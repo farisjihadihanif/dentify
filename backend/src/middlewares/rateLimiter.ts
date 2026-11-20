@@ -43,3 +43,4 @@ export function createRateLimiter(options: {
 export const authRateLimiter = createRateLimiter({ max: 10 });
 export const scanAndChatRateLimiter = createRateLimiter({ max: 20 });
 export const clinicsRateLimiter = createRateLimiter({ max: 30 });
+export const generalLimiter = createRateLimiter({ max: 60 });

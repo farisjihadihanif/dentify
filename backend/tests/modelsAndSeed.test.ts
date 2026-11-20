@@ -139,6 +139,8 @@ describe('T-003 & T-004 Models and Idempotent Seeder', () => {
 
     expect(first.knowledgeUpserted).toBe(5);
     expect(second.knowledgeUpserted).toBe(5);
+    expect(first.articlesUpserted).toBeGreaterThanOrEqual(10);
+    expect(first.clinicsUpserted).toBeGreaterThanOrEqual(15);
     expect(await DentalKnowledge.countDocuments()).toBe(5);
     expect(await User.countDocuments({ role: 'admin' })).toBe(1);
   });

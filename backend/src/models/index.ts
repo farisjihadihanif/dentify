@@ -27,3 +27,17 @@ export {
   type IFeedback,
   type IFeedbackDocument,
 } from './Feedback';
+export {
+  Article,
+  ARTICLE_CATEGORIES,
+  serializeArticle,
+  type ArticleCategory,
+  type IArticle,
+  type IArticleDocument,
+  type SerializedArticle,
+} from './Article';
+export {
+  ClinicDirectory,
+  type IClinicDirectory,
+  type IClinicDirectoryDocument,
+} from './ClinicDirectory';

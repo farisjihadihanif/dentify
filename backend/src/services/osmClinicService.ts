@@ -1,4 +1,7 @@
+import mongoose from 'mongoose';
 import { getEnv } from '../config/env';
+import { CLINIC_DIRECTORY_SEED } from '../constants/clinicDirectorySeed';
+import { ClinicDirectory } from '../models/ClinicDirectory';
 
 export interface ClinicItem {
   osm_id: string;
@@ -13,7 +16,7 @@ export interface ClinicItem {
 }
 
 export interface ClinicsSearchResult {
-  source: 'openstreetmap' | 'fallback';
+  source: 'openstreetmap' | 'directory_fallback' | 'fallback';
   data: ClinicItem[];
   fallback?: { osm_url: string };
 }
@@ -31,8 +34,15 @@ interface CacheEntry<T> {
 
 const CLINICS_TTL_MS = 15 * 60 * 1000; // 15 minutes
 const GEOCODE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
-const OVERPASS_TIMEOUT_MS = 8000; // 8 seconds
+const OVERPASS_MIRROR_TIMEOUT_MS = 4500; // short per-mirror timeout for fast failover
+const NOMINATIM_TIMEOUT_MS = 8000;
 const MAX_CACHE_ENTRIES = 500;
+
+export const OVERPASS_MIRRORS: readonly string[] = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+];
 
 const clinicsCache = new Map<string, CacheEntry<ClinicItem[]>>();
 const geocodeCache = new Map<string, CacheEntry<GeocodeCandidate[]>>();
@@ -87,7 +97,7 @@ export function haversineDistanceKm(
 }
 
 function buildOverpassQuery(lat: number, lng: number, radiusMeters: number): string {
-  return `[out:json][timeout:8];
+  return `[out:json][timeout:6];
 (
   node["amenity"="dentist"](around:${radiusMeters},${lat},${lng});
   way["amenity"="dentist"](around:${radiusMeters},${lat},${lng});
@@ -123,30 +133,19 @@ interface OverpassElement {
   tags?: Record<string, string>;
 }
 
-export async function searchNearbyClinics(
-  lat: number,
-  lng: number,
-  radiusKm: number,
-): Promise<ClinicsSearchResult> {
-  // ~1 km grid cell cache key (0.01 deg ~ 1.1 km)
-  const cacheKey = `${lat.toFixed(2)}:${lng.toFixed(2)}:${radiusKm}`;
-  const cached = getCached(clinicsCache, cacheKey);
-  if (cached) {
-    return { source: 'openstreetmap', data: cached };
-  }
-
-  const env = getEnv();
-  const radiusMeters = Math.round(radiusKm * 1000);
-  const query = buildOverpassQuery(lat, lng, radiusMeters);
+async function fetchOverpassMirror(
+  mirrorUrl: string,
+  query: string,
+  userAgent: string,
+): Promise<OverpassElement[]> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), OVERPASS_TIMEOUT_MS);
-
+  const timer = setTimeout(() => controller.abort(), OVERPASS_MIRROR_TIMEOUT_MS);
   try {
-    const response = await fetch(env.overpassUrl, {
+    const response = await fetch(mirrorUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-        'User-Agent': env.osmUserAgent,
+        'User-Agent': userAgent,
         Accept: 'application/json',
       },
       body: `data=${encodeURIComponent(query)}`,
@@ -158,10 +157,103 @@ export async function searchNearbyClinics(
     }
 
     const json = (await response.json()) as { elements?: OverpassElement[] };
+    return json.elements ?? [];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function searchSeededDirectoryFallback(
+  lat: number,
+  lng: number,
+  radiusKm: number,
+): Promise<ClinicItem[]> {
+  let records: Array<{
+    osm_id: string;
+    name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    phone: string | null;
+    opening_hours: string | null;
+    osm_url: string;
+  }> = [];
+
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const dbDocs = await ClinicDirectory.find().lean();
+      if (dbDocs.length > 0) {
+        records = dbDocs;
+      }
+    } catch {
+      // Fall back to curated in-memory seed below
+    }
+  }
+
+  if (records.length === 0) {
+    records = [...CLINIC_DIRECTORY_SEED];
+  }
+
+  const scored: ClinicItem[] = records
+    .map((doc) => ({
+      osm_id: doc.osm_id,
+      name: doc.name,
+      address: doc.address,
+      latitude: doc.latitude,
+      longitude: doc.longitude,
+      distance_km: haversineDistanceKm(lat, lng, doc.latitude, doc.longitude),
+      phone: doc.phone ?? null,
+      opening_hours: doc.opening_hours ?? null,
+      osm_url: doc.osm_url,
+    }))
+    .sort((a, b) => a.distance_km - b.distance_km);
+
+  const withinRadius = scored.filter((item) => item.distance_km <= radiusKm);
+  if (withinRadius.length > 0) {
+    return withinRadius;
+  }
+
+  // If user is near a seeded Indonesian metro area (within 25 km), still return nearest regional RSGM/clinics
+  const withinMetro = scored.filter((item) => item.distance_km <= 25);
+  return withinMetro.slice(0, 6);
+}
+
+export async function searchNearbyClinics(
+  lat: number,
+  lng: number,
+  radiusKm: number,
+): Promise<ClinicsSearchResult> {
+  const cacheKey = `${lat.toFixed(2)}:${lng.toFixed(2)}:${radiusKm}`;
+  const cached = getCached(clinicsCache, cacheKey);
+  if (cached) {
+    return { source: 'openstreetmap', data: cached };
+  }
+
+  const env = getEnv();
+  const radiusMeters = Math.round(radiusKm * 1000);
+  const query = buildOverpassQuery(lat, lng, radiusMeters);
+
+  // Rotate across configured primary mirror + backup Overpass mirrors
+  const mirrors = Array.from(new Set([env.overpassUrl, ...OVERPASS_MIRRORS]));
+  let elements: OverpassElement[] | null = null;
+
+  for (const mirrorUrl of mirrors) {
+    try {
+      const resElements = await fetchOverpassMirror(mirrorUrl, query, env.osmUserAgent);
+      elements = resElements;
+      if (resElements.length > 0) {
+        break;
+      }
+    } catch {
+      // Try next mirror
+    }
+  }
+
+  if (elements && elements.length > 0) {
     const seen = new Set<string>();
     const items: ClinicItem[] = [];
 
-    for (const el of json.elements ?? []) {
+    for (const el of elements) {
       const osmId = `${el.type}/${el.id}`;
       if (seen.has(osmId)) continue;
       seen.add(osmId);
@@ -184,24 +276,33 @@ export async function searchNearbyClinics(
       });
     }
 
-    items.sort((a, b) => a.distance_km - b.distance_km);
-    setBoundedCache(clinicsCache, cacheKey, items, CLINICS_TTL_MS);
-
-    return {
-      source: 'openstreetmap',
-      data: items,
-    };
-  } catch {
-    return {
-      source: 'fallback',
-      data: [],
-      fallback: {
-        osm_url: `https://www.openstreetmap.org/#map=15/${lat}/${lng}`,
-      },
-    };
-  } finally {
-    clearTimeout(timer);
+    if (items.length > 0) {
+      items.sort((a, b) => a.distance_km - b.distance_km);
+      setBoundedCache(clinicsCache, cacheKey, items, CLINICS_TTL_MS);
+      return {
+        source: 'openstreetmap',
+        data: items,
+      };
+    }
   }
+
+  // Fallback to seeded Indonesian dental clinic & RSGM directory so /clinics stays populated
+  const directoryItems = await searchSeededDirectoryFallback(lat, lng, radiusKm);
+  const osmFallbackUrl = `https://www.openstreetmap.org/#map=15/${lat}/${lng}`;
+
+  if (directoryItems.length > 0) {
+    return {
+      source: 'directory_fallback',
+      data: directoryItems,
+      fallback: { osm_url: osmFallbackUrl },
+    };
+  }
+
+  return {
+    source: 'fallback',
+    data: [],
+    fallback: { osm_url: osmFallbackUrl },
+  };
 }
 
 export async function geocodePlace(q: string): Promise<GeocodeCandidate[]> {
@@ -211,7 +312,6 @@ export async function geocodePlace(q: string): Promise<GeocodeCandidate[]> {
     return cached;
   }
 
-  // Respect Nominatim usage policy: <= 1 req/s
   const now = Date.now();
   const elapsed = now - lastNominatimCallMs;
   if (lastNominatimCallMs > 0 && elapsed < 1000 && process.env.NODE_ENV !== 'test') {
@@ -227,7 +327,7 @@ export async function geocodePlace(q: string): Promise<GeocodeCandidate[]> {
   url.searchParams.set('countrycodes', 'id');
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), OVERPASS_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), NOMINATIM_TIMEOUT_MS);
 
   try {
     const response = await fetch(url.toString(), {

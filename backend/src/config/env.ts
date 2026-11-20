@@ -39,7 +39,7 @@ export function getEnv(): AppEnv {
     bcryptSaltRounds: Math.max(10, Number(process.env.BCRYPT_SALT_ROUNDS ?? 10)),
     corsOrigins,
     aiServiceUrl: (process.env.AI_SERVICE_URL ?? 'http://localhost:8000').replace(/\/+$/, ''),
-    aiServiceApiKey: process.env.AI_SERVICE_API_KEY ?? '',
+    aiServiceApiKey: (process.env.AI_SERVICE_API_KEY ?? '').trim() || 'dev-internal-key',
     aiServiceTimeoutMs: Number(process.env.AI_SERVICE_TIMEOUT_MS ?? 25000),
     overpassUrl: process.env.OVERPASS_URL ?? 'https://overpass-api.de/api/interpreter',
     nominatimUrl: process.env.NOMINATIM_URL ?? 'https://nominatim.openstreetmap.org/search',

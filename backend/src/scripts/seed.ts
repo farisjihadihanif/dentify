@@ -1,12 +1,16 @@
 import bcrypt from 'bcryptjs';
 import { connectDb, disconnectDb } from '../config/db';
 import { getEnv } from '../config/env';
+import { INITIAL_ARTICLES_SEED } from '../constants/articleSeed';
+import { CLINIC_DIRECTORY_SEED } from '../constants/clinicDirectorySeed';
 import { DENTAL_KNOWLEDGE_SEED } from '../constants/knowledgeSeed';
-import { DentalKnowledge, User } from '../models';
+import { Article, ClinicDirectory, DentalKnowledge, User } from '../models';
 import { logger } from '../utils/logger';
 
 export interface SeedResult {
   knowledgeUpserted: number;
+  articlesUpserted: number;
+  clinicsUpserted: number;
   adminSeeded: boolean;
 }
 
@@ -25,6 +29,26 @@ export async function runSeed(options?: {
       { upsert: true, new: true, runValidators: true },
     );
     knowledgeUpserted += 1;
+  }
+
+  let articlesUpserted = 0;
+  for (const item of INITIAL_ARTICLES_SEED) {
+    await Article.findOneAndUpdate(
+      { slug: item.slug },
+      { $setOnInsert: item },
+      { upsert: true, new: true, runValidators: true },
+    );
+    articlesUpserted += 1;
+  }
+
+  let clinicsUpserted = 0;
+  for (const clinic of CLINIC_DIRECTORY_SEED) {
+    await ClinicDirectory.findOneAndUpdate(
+      { osm_id: clinic.osm_id },
+      { $set: clinic },
+      { upsert: true, new: true, runValidators: true },
+    );
+    clinicsUpserted += 1;
   }
 
   const adminEmail = (options?.adminEmail ?? env.adminEmail).trim().toLowerCase();
@@ -50,7 +74,7 @@ export async function runSeed(options?: {
     adminSeeded = true;
   }
 
-  return { knowledgeUpserted, adminSeeded };
+  return { knowledgeUpserted, articlesUpserted, clinicsUpserted, adminSeeded };
 }
 
 async function main(): Promise<void> {
@@ -58,6 +82,8 @@ async function main(): Promise<void> {
   const result = await runSeed();
   logger.info('Seed completed', {
     knowledgeUpserted: result.knowledgeUpserted,
+    articlesUpserted: result.articlesUpserted,
+    clinicsUpserted: result.clinicsUpserted,
     adminSeeded: result.adminSeeded,
   });
   await disconnectDb();

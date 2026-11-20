@@ -72,16 +72,59 @@ describe('T-203 Clinics OSM endpoints: validation, distance sort, fallback, geoc
     expect(res.body.data[1].name).toBe('Klinik Gigi (tanpa nama)');
   });
 
-  it('returns 200 fallback object with direct OSM URL when Overpass times out or fails', async () => {
-    vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('AbortError: timeout'));
+  it('rotates to secondary Overpass mirror when the primary mirror fails', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockRejectedValueOnce(new Error('Primary Overpass timeout'))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            elements: [
+              {
+                type: 'node',
+                id: 99,
+                lat: -7.77,
+                lon: 110.37,
+                tags: { name: 'Klinik Mirror Cadangan' },
+              },
+            ],
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        ),
+      );
+
+    const app = createApp();
+    const res = await request(app).get('/api/v1/clinics?lat=-7.77&lng=110.37&radius_km=5');
+    expect(res.status).toBe(200);
+    expect(res.body.source).toBe('openstreetmap');
+    expect(res.body.data).toHaveLength(1);
+    expect(res.body.data[0].name).toBe('Klinik Mirror Cadangan');
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('falls back to seeded Indonesian clinic & RSGM directory when all Overpass mirrors fail in Yogyakarta', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('AbortError: timeout'));
 
     const app = createApp();
     const res = await request(app).get('/api/v1/clinics?lat=-7.783&lng=110.391&radius_km=5');
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
+    expect(res.body.source).toBe('directory_fallback');
+    expect(res.body.data.length).toBeGreaterThan(0);
+    expect(res.body.data[0].distance_km).toBeLessThanOrEqual(res.body.data[res.body.data.length - 1].distance_km);
+    expect(res.body.fallback.osm_url).toBe('https://www.openstreetmap.org/#map=15/-7.783/110.391');
+  });
+
+  it('returns empty fallback with direct OSM URL when Overpass fails outside seeded Indonesian regions', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('AbortError: timeout'));
+
+    const app = createApp();
+    const res = await request(app).get('/api/v1/clinics?lat=0&lng=0&radius_km=5');
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
     expect(res.body.source).toBe('fallback');
     expect(res.body.data).toEqual([]);
-    expect(res.body.fallback.osm_url).toBe('https://www.openstreetmap.org/#map=15/-7.783/110.391');
+    expect(res.body.fallback.osm_url).toBe('https://www.openstreetmap.org/#map=15/0/0');
   });
 
   it('GET /clinics/geocode validates q and maps up to 5 Nominatim candidates', async () => {
