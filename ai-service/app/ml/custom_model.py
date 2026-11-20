@@ -14,10 +14,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import keras
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
+from keras import layers
 
 DENTAL_LABELS: tuple[str, ...] = ("caries", "calculus", "gingivitis", "healthy")
 
@@ -152,7 +152,7 @@ def _inverted_residual_block(
         use_bias=False,
         name=f"{prefix}_expand_conv",
     )(x)
-    h = layers.BatchNormalization(name=f"{prefix}_expand_bn")(h)
+    h = layers.BatchNormalization(momentum=0.9, name=f"{prefix}_expand_bn")(h)
     h = layers.ReLU(max_value=6.0, name=f"{prefix}_expand_relu")(h)
 
     h = layers.DepthwiseConv2D(
@@ -162,7 +162,7 @@ def _inverted_residual_block(
         use_bias=False,
         name=f"{prefix}_dw_conv",
     )(h)
-    h = layers.BatchNormalization(name=f"{prefix}_dw_bn")(h)
+    h = layers.BatchNormalization(momentum=0.9, name=f"{prefix}_dw_bn")(h)
     h = layers.ReLU(max_value=6.0, name=f"{prefix}_dw_relu")(h)
 
     h = layers.Conv2D(
@@ -172,7 +172,7 @@ def _inverted_residual_block(
         use_bias=False,
         name=f"{prefix}_proj_conv",
     )(h)
-    h = layers.BatchNormalization(name=f"{prefix}_proj_bn")(h)
+    h = layers.BatchNormalization(momentum=0.9, name=f"{prefix}_proj_bn")(h)
 
     if stride == 1 and in_channels == out_channels:
         return layers.Add(name=f"{prefix}_add")([x, h])
@@ -191,31 +191,31 @@ def build_denthub_model(
     inputs = keras.Input(shape=input_shape, name="dental_image")
 
     # Stem
-    x = layers.Conv2D(32, kernel_size=3, strides=2, padding="same", use_bias=False, name="stem_conv")(
+    x = layers.Conv2D(24, kernel_size=3, strides=2, padding="same", use_bias=False, name="stem_conv")(
         inputs
     )
-    x = layers.BatchNormalization(name="stem_bn")(x)
+    x = layers.BatchNormalization(momentum=0.9, name="stem_bn")(x)
     x = layers.ReLU(max_value=6.0, name="stem_relu")(x)
 
     # MobileNetV2-style inverted residual stages (built completely from scratch)
-    x = _inverted_residual_block(x, out_channels=24, stride=1, expansion=2, block_id=1)
-    x = _inverted_residual_block(x, out_channels=40, stride=2, expansion=4, block_id=2)
-    x = _inverted_residual_block(x, out_channels=40, stride=1, expansion=4, block_id=3)
-    x = _inverted_residual_block(x, out_channels=80, stride=2, expansion=4, block_id=4)
-    x = _inverted_residual_block(x, out_channels=80, stride=1, expansion=4, block_id=5)
+    x = _inverted_residual_block(x, out_channels=24, stride=2, expansion=2, block_id=1)
+    x = _inverted_residual_block(x, out_channels=32, stride=2, expansion=3, block_id=2)
+    x = _inverted_residual_block(x, out_channels=32, stride=1, expansion=3, block_id=3)
+    x = _inverted_residual_block(x, out_channels=64, stride=2, expansion=3, block_id=4)
+    x = _inverted_residual_block(x, out_channels=64, stride=1, expansion=3, block_id=5)
     x = ChannelAttention(reduction_ratio=8, name="mid_channel_attention")(x)
-    x = _inverted_residual_block(x, out_channels=128, stride=2, expansion=4, block_id=6)
-    x = _inverted_residual_block(x, out_channels=128, stride=1, expansion=4, block_id=7)
+    x = _inverted_residual_block(x, out_channels=96, stride=2, expansion=3, block_id=6)
+    x = _inverted_residual_block(x, out_channels=96, stride=1, expansion=3, block_id=7)
 
     # Final convolutional projection named for Grad-CAM localization
     x = layers.Conv2D(
-        192,
+        160,
         kernel_size=1,
         padding="same",
         use_bias=False,
         name="gradcam_conv",
     )(x)
-    x = layers.BatchNormalization(name="head_bn")(x)
+    x = layers.BatchNormalization(momentum=0.9, name="head_bn")(x)
     x = layers.ReLU(max_value=6.0, name="head_relu")(x)
     x = ChannelAttention(reduction_ratio=8, name="head_channel_attention")(x)
 

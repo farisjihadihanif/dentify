@@ -5,9 +5,9 @@ from pathlib import Path
 from typing import Any
 
 import cv2
+import keras
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
 
 from app.core.config import Settings, get_settings
 from app.core.state import runtime_state

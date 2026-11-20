@@ -17,9 +17,9 @@ from pathlib import Path
 from typing import Any
 
 import cv2
+import keras
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
 
 from app.ml.custom_model import (
     DENTAL_LABELS,
@@ -32,6 +32,20 @@ from app.ml.custom_model import (
 from app.ml.preprocessing import INPUT_SIZE, preprocess_rgb_for_model
 
 MODEL_VERSION = "denthub-cnn-1.0.0"
+
+_SCALAR_SUMMARY_META = tf.compat.v1.SummaryMetadata(
+    plugin_data=tf.compat.v1.SummaryMetadata.PluginData(plugin_name="scalars")
+)
+
+
+def _write_tb_scalar(tag: str, value: float, step: int) -> None:
+    """Write a native TensorBoard scalar event without requiring the tensorboard package."""
+    tf.summary.write(
+        tag=tag,
+        tensor=tf.constant(float(value), dtype=tf.float32),
+        step=step,
+        metadata=_SCALAR_SUMMARY_META,
+    )
 
 
 def load_split_arrays(
@@ -88,13 +102,12 @@ def compute_class_weights(y_onehot: np.ndarray) -> list[float]:
     counts = np.sum(y_onehot, axis=0)
     total = float(np.sum(counts))
     num_classes = len(counts)
-    weights: list[float] = []
-    for c in counts:
-        if c > 0:
-            weights.append(round(float(total / (num_classes * c)), 4))
-        else:
-            weights.append(1.0)
-    return weights
+    raw = [
+        float(np.sqrt(total / (num_classes * c))) if c > 0 else 1.0
+        for c in counts
+    ]
+    mean_w = float(np.mean(raw)) if raw else 1.0
+    return [round(w / mean_w, 4) for w in raw]
 
 
 def evaluate_predictions(y_true_onehot: np.ndarray, probs: np.ndarray) -> dict[str, Any]:
@@ -140,7 +153,8 @@ def train_model(
     logs_dir: Path,
     epochs: int = 25,
     batch_size: int = 16,
-    learning_rate: float = 1e-3,
+    learning_rate: float = 1.5e-3,
+    patience: int = 15,
     seed: int = 42,
 ) -> dict[str, Any]:
     keras.utils.set_random_seed(seed)
@@ -155,8 +169,18 @@ def train_model(
         )
 
     class_weights = compute_class_weights(train_y)
-    loss_fn = ClassWeightedFocalLoss(class_weights=class_weights, gamma=2.0, label_smoothing=0.02)
-    optimizer = keras.optimizers.Adam(learning_rate=learning_rate)
+    loss_fn = ClassWeightedFocalLoss(class_weights=class_weights, gamma=1.5, label_smoothing=0.05)
+    steps_per_epoch = max(1, int(np.ceil(len(train_x) / batch_size)))
+    lr_schedule = keras.optimizers.schedules.CosineDecay(
+        initial_learning_rate=learning_rate,
+        decay_steps=max(1, epochs * steps_per_epoch),
+        alpha=0.05,
+    )
+    optimizer = keras.optimizers.AdamW(
+        learning_rate=lr_schedule,
+        weight_decay=1e-4,
+        clipnorm=1.0,
+    )
 
     model = build_denthub_model(
         input_shape=(INPUT_SIZE, INPUT_SIZE, 3),
@@ -209,6 +233,8 @@ def train_model(
         return loss_val, acc
 
     history: list[dict[str, float]] = []
+    epochs_without_improvement = 0
+    best_seen_f1 = -1.0
     for epoch in range(epochs):
         train_losses: list[float] = []
         train_accs: list[float] = []
@@ -234,20 +260,32 @@ def train_model(
         checkpoint_cb.on_epoch_end(epoch, epoch_logs)
         history.append(epoch_logs)
 
+        current_f1 = float(epoch_logs.get("val_macro_f1", 0.0))
+        if current_f1 > best_seen_f1 + 1e-4:
+            best_seen_f1 = current_f1
+            epochs_without_improvement = 0
+        else:
+            epochs_without_improvement += 1
+
         with tb_train_writer.as_default():
-            tf.summary.scalar("loss", epoch_logs["loss"], step=epoch + 1)
-            tf.summary.scalar("accuracy", epoch_logs["accuracy"], step=epoch + 1)
+            _write_tb_scalar("loss", epoch_logs["loss"], step=epoch + 1)
+            _write_tb_scalar("accuracy", epoch_logs["accuracy"], step=epoch + 1)
         with tb_val_writer.as_default():
-            tf.summary.scalar("loss", epoch_logs["val_loss"], step=epoch + 1)
-            tf.summary.scalar("accuracy", epoch_logs["val_accuracy"], step=epoch + 1)
-            tf.summary.scalar("macro_f1", epoch_logs.get("val_macro_f1", 0.0), step=epoch + 1)
+            _write_tb_scalar("loss", epoch_logs["val_loss"], step=epoch + 1)
+            _write_tb_scalar("accuracy", epoch_logs["val_accuracy"], step=epoch + 1)
+            _write_tb_scalar("macro_f1", current_f1, step=epoch + 1)
 
         print(
             f"Epoch {epoch + 1:02d}/{epochs} - "
             f"loss: {epoch_logs['loss']:.4f}, acc: {epoch_logs['accuracy']:.4f}, "
             f"val_loss: {epoch_logs['val_loss']:.4f}, val_acc: {epoch_logs['val_accuracy']:.4f}, "
-            f"val_macro_f1: {epoch_logs.get('val_macro_f1', 0.0):.4f}"
+            f"val_macro_f1: {current_f1:.4f}",
+            flush=True,
         )
+
+        if patience > 0 and epochs_without_improvement >= patience and epoch + 1 >= max(8, patience):
+            print(f"Early stopping triggered at epoch {epoch + 1} (best val_macro_f1={best_seen_f1:.4f})", flush=True)
+            break
 
     tb_train_writer.flush()
     tb_val_writer.flush()
