@@ -70,7 +70,13 @@ def main() -> None:
     with tab_data:
         if assessment:
             c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Raw Files Scanned", assessment.get("raw_files_scanned", 0))
+            c1.metric(
+                "Raw Files Scanned",
+                assessment.get(
+                    "raw_files_scanned_included_sources",
+                    assessment.get("raw_files_scanned", 0),
+                ),
+            )
             c2.metric("Duplicates Removed (dHash)", assessment.get("dropped_duplicates", 0))
             c3.metric("Final Clean Images", assessment.get("final_clean_images", 0))
             c4.metric(

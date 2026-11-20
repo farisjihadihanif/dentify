@@ -73,7 +73,7 @@ def generate_eda_charts(df: pd.DataFrame, charts_dir: Path) -> list[str]:
     # Chart 1: Class distribution across train / val / test splits
     fig, ax = plt.subplots(figsize=(8, 4.8))
     ct = pd.crosstab(df["label"], df["split"]).reindex(columns=["train", "val", "test"], fill_value=0)
-    ct.plot(kind="bar", stacked=True, ax=ax, color=["#0891B2", "#0E7490", "#7C3AED"])
+    ct.plot(kind="bar", stacked=True, ax=ax, color=["#0369A1", "#075985", "#0F766E"])
     ax.set_title("DentHub Clean Dataset: Class Distribution by Leak-Free Split")
     ax.set_xlabel("Dental Condition")
     ax.set_ylabel("Image Count")
@@ -87,7 +87,7 @@ def generate_eda_charts(df: pd.DataFrame, charts_dir: Path) -> list[str]:
     # Chart 2: Dataset source composition
     fig, ax = plt.subplots(figsize=(8, 4.5))
     src_counts = df["source"].value_counts()
-    sns.barplot(x=src_counts.values, y=src_counts.index, ax=ax, color="#0891B2")
+    sns.barplot(x=src_counts.values, y=src_counts.index, ax=ax, color="#0369A1")
     ax.set_title("Cleaned & Deduplicated Image Count by Source Dataset")
     ax.set_xlabel("Image Count")
     ax.set_ylabel("Dataset Source")
@@ -99,7 +99,7 @@ def generate_eda_charts(df: pd.DataFrame, charts_dir: Path) -> list[str]:
 
     # Chart 3: Brightness & Sharpness distributions with Quality-Gate thresholds
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.6))
-    sns.boxplot(data=df, x="label", y="mean_luminance", ax=axes[0], color="#38BDF8")
+    sns.boxplot(data=df, x="label", y="mean_luminance", ax=axes[0], color="#0284C7")
     axes[0].axhline(35.0, color="#B91C1C", linestyle="--", label="Min Luminance (35)")
     axes[0].axhline(235.0, color="#B45309", linestyle="--", label="Max Luminance (235)")
     axes[0].set_title("Mean Luminance by Class & Quality Gate")
@@ -107,7 +107,7 @@ def generate_eda_charts(df: pd.DataFrame, charts_dir: Path) -> list[str]:
 
     clipped = df.copy()
     clipped["sharpness_log"] = np.log1p(clipped["laplacian_sharpness"])
-    sns.boxplot(data=clipped, x="label", y="sharpness_log", ax=axes[1], color="#2DD4BF")
+    sns.boxplot(data=clipped, x="label", y="sharpness_log", ax=axes[1], color="#0F766E")
     axes[1].axhline(np.log1p(30.0), color="#B91C1C", linestyle="--", label="Min Blur Var (30)")
     axes[1].set_title("Log Laplacian Sharpness by Class & Quality Gate")
     axes[1].legend(fontsize=8)
@@ -120,7 +120,7 @@ def generate_eda_charts(df: pd.DataFrame, charts_dir: Path) -> list[str]:
 
     # Chart 4: CLAHE contrast gain + feature correlation heatmap
     fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.6))
-    sns.violinplot(data=df, x="label", y="clahe_contrast_gain", ax=axes[0], color="#818CF8")
+    sns.violinplot(data=df, x="label", y="clahe_contrast_gain", ax=axes[0], color="#0F766E")
     axes[0].set_title("CLAHE Contrast Enhancement Gain by Condition")
 
     corr_cols = [
@@ -171,11 +171,12 @@ def build_wrangling_eda_notebook(
         ),
         nbf.v4.new_markdown_cell(
             "## 1. Data Gathering, Cleaning & Anti-Leakage Verification\n\n"
-            f"- Raw files scanned: **{assessment['raw_files_scanned']}**\n"
-            f"- Off-target / non-canonical labels dropped: **{assessment['dropped_unmapped_label']}**\n"
-            f"- Corrupt files dropped: **{assessment['dropped_corrupt']}**\n"
-            f"- Low-res / extreme aspect dropped: **{assessment['dropped_low_res_or_aspect']}**\n"
-            f"- Cross-dataset exact & perceptual near-duplicates removed (Hamming ≤ 4): **{assessment['dropped_duplicates']}**\n"
+            f"- Raw files scanned (included sources): **{assessment.get('raw_files_scanned_included_sources', assessment.get('raw_files_scanned', 0))}**\n"
+            f"- Pre-augmented & duplicate YOLO export files removed: **{assessment.get('dropped_pre_augmented_or_dupe_export', 0)}**\n"
+            f"- Off-target clinical classes dropped (`hypodontia`, `Mouth Ulcer`, `Tooth Discoloration`): **{assessment.get('dropped_off_target_class', 0)}**\n"
+            f"- Corrupt files dropped: **{assessment.get('dropped_corrupt', 0)}**\n"
+            f"- Low-res / extreme aspect dropped: **{assessment.get('dropped_low_res_or_aspect', 0)}**\n"
+            f"- Cross-dataset exact & perceptual near-duplicates removed (Hamming ≤ 4): **{assessment.get('dropped_duplicates', 0)}**\n"
             f"- Final clean unique images: **{assessment['final_clean_images']}** "
             f"(train={assessment['split_counts'].get('train', 0)}, "
             f"val={assessment['split_counts'].get('val', 0)}, "
