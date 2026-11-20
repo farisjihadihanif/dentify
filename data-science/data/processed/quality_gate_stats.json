@@ -1,9 +1,9 @@
 {
-  "median_luminance": 129.31,
-  "p05_luminance": 84.19,
-  "p95_luminance": 174.37,
-  "median_sharpness": 301.71,
-  "mean_clahe_gain": 4.39,
+  "median_luminance": 128.24,
+  "p05_luminance": 85.71,
+  "p95_luminance": 177.17,
+  "median_sharpness": 321.67,
+  "mean_clahe_gain": 4.91,
   "recommended_quality_gate": {
     "min_dimension": 224,
     "min_blur_variance": 30.0,

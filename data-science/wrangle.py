@@ -48,8 +48,16 @@ LABEL_ALIAS_MAP: dict[str, str] = {
     "gingivitis": "gingivitis",
     "radang gusi": "gingivitis",
     "healthy": "healthy",
+    "healthy teeth": "healthy",
     "gigi sehat": "healthy",
     "gusi sehat": "healthy",
+}
+
+AL_ZAHRAWI_LABEL_MAP: dict[str, str] = {
+    "Healthy Teeth": "healthy",
+    "Data caries": "caries",
+    "Calculus A": "calculus",
+    "Gingivitis A": "gingivitis",
 }
 
 OFF_TARGET_KEYWORDS: tuple[str, ...] = (
@@ -318,7 +326,8 @@ def write_data_dictionary(out_path: Path, report: dict[str, Any]) -> None:
         "| Kaggle `salmansajid05/oral-diseases` | `caries augmented data set`, `*_augmented_*`, `*_yolo_annotated_*` | **Removed** (pre-augmented / duplicate exports) | Kaggle open research / educational terms |",
         "| Kaggle `salmansajid05/oral-diseases` | `hypodontia`, `Mouth Ulcer`, `Tooth Discoloration` | **Removed** (out-of-scope conditions per `PRD §5.2`) | Kaggle open research / educational terms |",
         "| Kaggle `shahjahanabdullatif/dental-cavity-detection-dataset` | `Yolo_Dataset/{train,val,test}` (IDs `0`, `1`) | **Removed** after manual audit (missing class YAML, mixed severe pathology in both IDs, caption overlays, `.rf.` pre-augmentations) | CC BY-SA 4.0 |",
-        "| Kaggle `dental-caries-dataset` (brief 3rd source) + Local `dentalscan` supplement | Kaggle slug 403/gated → supplemented by local curated `gigi caries`, `karang gigi`, `gigi sehat`, `gusi sehat` | Mapped → `caries`, `calculus`, `healthy` | Internal Capstone `CC26-PSU285` research set |",
+        "| Kaggle `hamza202404/al-zahrawi-twenty-oral-teeth-mouth-diseases` (authenticated 3rd Kaggle source) | `Healthy Teeth`, `Data caries`, `Calculus A`, `Gingivitis A` (`al-Zahrawi.csv`) | Mapped → `healthy`, `caries`, `calculus`, `gingivitis` (dropped `Normal` `.rf.` segments & 15 off-target oral cancer/lesion classes) | CC0: Public Domain |",
+        "| Local `dentalscan` supplement (brief `jehanbhathena/dental-caries-dataset` remains 403/private on Kaggle) | `gigi caries`, `karang gigi`, `gigi sehat`, `gusi sehat` | Mapped → `caries`, `calculus`, `healthy` | Internal Capstone `CC26-PSU285` research set |",
         "",
         "## 3. Class Counts per Leak-Free Split (`data/processed/`)",
         "",
@@ -446,12 +455,73 @@ def write_wrangling_notebook(notebook_path: Path, report: dict[str, Any]) -> Non
         nbf.write(nb, fh)
 
 
+def ingest_al_zahrawi_csv(
+    al_zahrawi_dir: Path,
+    cleaned_records: list[dict[str, Any]],
+    drop_counts: Counter[str],
+) -> int:
+    """
+    Ingest verified classes from CC0 `hamza202404/al-zahrawi-twenty-oral-teeth-mouth-diseases`.
+    Explicitly keeps only `Healthy Teeth`, `Data caries`, `Calculus A`, `Gingivitis A`;
+    drops Roboflow `.rf.` segments (`Normal`) and 15 off-target oral cancer/lesion classes.
+    """
+    csv_path = al_zahrawi_dir / "al-Zahrawi.csv"
+    img_dir = al_zahrawi_dir / "al-Zahrawi Oral Disease Dataset" / "al-Zahrawi Oral Disease Dataset"
+    if not csv_path.exists() or not img_dir.exists():
+        return 0
+
+    df_meta = pd.read_csv(csv_path)
+    scanned = 0
+    for row in df_meta.itertuples(index=False):
+        fname = str(getattr(row, "_0", row[0])).strip()
+        raw_label = str(getattr(row, "Label", row[1])).strip()
+        fpath = img_dir / fname
+        if not fpath.is_file() or fpath.suffix.lower() not in IMAGE_EXTS:
+            continue
+        scanned += 1
+        if ".rf." in fname.lower() or raw_label == "Normal":
+            drop_counts["dropped_pre_augmented_or_dupe_export"] += 1
+            continue
+        label = AL_ZAHRAWI_LABEL_MAP.get(raw_label)
+        if label is None:
+            drop_counts["dropped_off_target_class"] += 1
+            continue
+
+        bgr = cv2.imread(str(fpath))
+        if bgr is None or bgr.size == 0 or bgr.ndim != 3:
+            drop_counts["dropped_corrupt"] += 1
+            continue
+        h, w = bgr.shape[:2]
+        aspect = max(w / max(h, 1), h / max(w, 1))
+        if w < 64 or h < 64 or aspect > 4.0:
+            drop_counts["dropped_low_res_or_aspect"] += 1
+            continue
+
+        rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+        dhash_int = compute_dhash_64(rgb)
+        img_id = hashlib.sha1(f"al_zahrawi:{fpath}".encode("utf-8")).hexdigest()[:12]
+        cleaned_records.append(
+            {
+                "image_id": img_id,
+                "source": "al_zahrawi",
+                "original_path": str(fpath),
+                "label": label,
+                "width": int(w),
+                "height": int(h),
+                "dhash_int": dhash_int,
+                "dhash_hex": f"{dhash_int:016x}",
+            }
+        )
+    return scanned
+
+
 def run_wrangling(
     processed_dir: Path,
     notebooks_dir: Path,
     oral_diseases_dir: Path,
     yolo_cavity_dir: Path,
     local_dentalscan_dir: Path,
+    al_zahrawi_dir: Path | None = None,
     extra_sources: list[tuple[str, Path]] | None = None,
     max_per_class: int | None = 500,
 ) -> dict[str, Any]:
@@ -512,6 +582,9 @@ def run_wrangling(
                         "dhash_hex": f"{dhash_int:016x}",
                     }
                 )
+
+    if al_zahrawi_dir is not None and al_zahrawi_dir.exists():
+        raw_scanned += ingest_al_zahrawi_csv(al_zahrawi_dir, cleaned_records, drop_counts)
 
     candidates_before_dedupe = len(cleaned_records)
     deduped = cluster_near_duplicates(cleaned_records, max_hamming=4)
@@ -627,23 +700,32 @@ def main() -> None:
         help="Authenticate with KAGGLE_API_TOKEN from .env and download/refresh Kaggle datasets",
     )
     parser.add_argument(
+        "--al-zahrawi-dir",
+        type=Path,
+        default=kaggle_cache
+        / "hamza202404"
+        / "al-zahrawi-twenty-oral-teeth-mouth-diseases"
+        / "versions"
+        / "1",
+    )
+    parser.add_argument(
         "--kaggle-caries-slug",
         type=str,
-        default="jehanbhathena/dental-caries-dataset",
-        help="Optional 3rd Kaggle dataset slug downloaded when --download-kaggle is enabled",
+        default="hamza202404/al-zahrawi-twenty-oral-teeth-mouth-diseases",
+        help="3rd Kaggle dataset slug downloaded when --download-kaggle is enabled",
     )
-    parser.add_argument("--max-per-class", type=int, default=500)
+    parser.add_argument("--max-per-class", type=int, default=600)
     args = parser.parse_args()
 
     oral_dir = args.oral_diseases_dir
+    al_zahrawi_dir = args.al_zahrawi_dir
     extra_sources: list[tuple[str, Path]] = []
     if args.download_kaggle:
         configure_kaggle_auth(args.env_file)
         if not oral_dir.exists():
             oral_dir = download_kaggle_dataset("salmansajid05/oral-diseases", args.env_file)
-        if args.kaggle_caries_slug:
-            caries_dir = download_kaggle_dataset(args.kaggle_caries_slug, args.env_file)
-            extra_sources.append(("kaggle_dental_caries", caries_dir))
+        if not al_zahrawi_dir.exists() and args.kaggle_caries_slug:
+            al_zahrawi_dir = download_kaggle_dataset(args.kaggle_caries_slug, args.env_file)
 
     run_wrangling(
         processed_dir=args.processed_dir,
@@ -651,6 +733,7 @@ def main() -> None:
         oral_diseases_dir=oral_dir,
         yolo_cavity_dir=args.yolo_cavity_dir,
         local_dentalscan_dir=args.local_dentalscan_dir,
+        al_zahrawi_dir=al_zahrawi_dir,
         extra_sources=extra_sources,
         max_per_class=args.max_per_class,
     )
