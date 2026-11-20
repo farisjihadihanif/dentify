@@ -2,9 +2,18 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Download, MapPin, MessageCircleHeart } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  Download,
+  MapPin,
+  MessageCircleHeart,
+  Sparkles,
+  XCircle,
+} from 'lucide-react';
 import type { ScanReportData } from '../services/scanService';
 import { downloadScanReportAsPng } from '../utils/downloadScanReport';
+import { AiFeedbackControl } from './AiFeedbackControl';
 import { AppButton } from './AppButton';
 import { ClinicEscalationCard } from './ClinicEscalationCard';
 import { MedicalDisclaimerBanner } from './MedicalDisclaimerBanner';
@@ -16,8 +25,27 @@ export interface ScanResultCardProps {
   onScanAgain?: () => void;
 }
 
+export const LOW_CONFIDENCE_WARNING_TEXT =
+  'Hasil kurang pasti, pertimbangkan mengambil ulang foto';
+
+function describeConfidenceMeaning(score: number): string {
+  if (score >= 0.85) {
+    return 'Indikasi visual cukup kuat pada foto ini, namun tetap memerlukan pemeriksaan dokter gigi.';
+  }
+  if (score >= 0.75) {
+    return 'Indikasi visual cukup jelas pada foto ini; gunakan sebagai skrining awal.';
+  }
+  return LOW_CONFIDENCE_WARNING_TEXT;
+}
+
+/**
+ * Dental screening report card (docs/DESIGN.md §3.2 & §8.3).
+ * Displays "Hasil analisis AI", honest confidence interpretation (<0.75 warning),
+ * structured Do's & Don'ts, MedicalDisclaimerBanner, AiFeedbackControl, and action links.
+ */
 export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCardProps) {
   const confidencePercent = Math.round(report.confidence_score * 100);
+  const isUncertain = report.confidence_score < 0.75;
   const deniHref = report.id
     ? `/chat?scan_id=${encodeURIComponent(report.id)}&condition=${encodeURIComponent(
         report.primary_condition,
@@ -38,15 +66,39 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
     >
       <MedicalDisclaimerBanner message={report.medical_disclaimer} />
 
-      <div className="flex flex-col justify-between gap-4 border-b border-border pb-5 sm:flex-row sm:items-center">
-        <div>
-          <p className="text-badge font-semibold text-brand-dark">Hasil Screening Computer Vision</p>
-          <h2 className="mt-1 text-screen-title text-text">{report.condition_label}</h2>
-          <p className="mt-1 text-badge text-text-muted">
+      <div className="flex flex-col justify-between gap-4 border-b border-border pb-5 sm:flex-row sm:items-start">
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              data-testid="scan-ai-label"
+              className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-brand-soft px-3 py-0.5 text-xs font-semibold text-brand-dark"
+            >
+              <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span>Hasil analisis AI</span>
+            </span>
+            <span className="text-xs text-text-muted">
+              Sumber foto: {report.capture_source === 'camera' ? 'Kamera Langsung' : 'Unggahan File'}
+            </span>
+          </div>
+
+          <h2 className="text-screen-title text-text">{report.condition_label}</h2>
+
+          <p className="text-badge text-text-muted">
             Tingkat keyakinan model AI:{' '}
-            <strong className="font-bold text-text">{confidencePercent}%</strong> • Sumber foto:{' '}
-            <span>{report.capture_source === 'camera' ? 'Kamera Langsung' : 'Unggahan File'}</span>
+            <strong className="font-bold text-text">{confidencePercent}%</strong> —{' '}
+            <span>{describeConfidenceMeaning(report.confidence_score)}</span>
           </p>
+
+          {isUncertain && (
+            <p
+              role="note"
+              data-testid="low-confidence-warning"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-status-yellow/40 bg-bg px-3 py-1.5 text-xs font-semibold text-status-yellow"
+            >
+              <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>{LOW_CONFIDENCE_WARNING_TEXT}</span>
+            </p>
+          )}
         </div>
 
         <StatusBadge urgency={report.urgency_level} />
@@ -83,7 +135,7 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <div className="rounded-card border border-border bg-surface p-4">
             <h4 className="flex items-center gap-2 text-card-title text-status-green">
-              <span aria-hidden="true">✓</span>
+              <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden="true" />
               <span>Yang Dianjurkan (Do&apos;s)</span>
             </h4>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-badge text-text">
@@ -95,7 +147,7 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
 
           <div className="rounded-card border border-border bg-surface p-4">
             <h4 className="flex items-center gap-2 text-card-title text-status-red">
-              <span aria-hidden="true">✕</span>
+              <XCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
               <span>Yang Harus Dihindari (Don&apos;ts)</span>
             </h4>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-badge text-text">
@@ -107,7 +159,8 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
         </div>
       </div>
 
-      {/* Tombol Aksi Utama Pasca-Scan: Unduh Hasil, Tanya Lebih Lanjut ke Deni, & Cari Klinik Terdekat */}
+      <AiFeedbackControl targetType="scan" targetId={report.id ?? 'quick-scan'} />
+
       <div className="flex flex-wrap items-center justify-between gap-2.5 border-t border-border pt-4">
         <div className="flex flex-wrap items-center gap-2.5">
           <AppButton
@@ -141,7 +194,7 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
           <button
             type="button"
             onClick={onScanAgain}
-            className="inline-flex h-9 min-h-touch items-center justify-center whitespace-nowrap rounded-lg px-3 text-xs font-semibold text-brand-dark hover:bg-brand-soft"
+            className="inline-flex h-9 min-h-touch items-center justify-center whitespace-nowrap rounded-lg px-3.5 text-xs font-semibold text-brand-dark hover:bg-brand-soft"
           >
             + Scan Foto Baru
           </button>

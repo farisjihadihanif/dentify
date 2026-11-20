@@ -24,6 +24,7 @@ export interface ChatTurnResponseData {
   urgency_level: UrgencyLevel;
   trigger_clinic_finder: boolean;
   suggested_questions: string[];
+  is_fallback?: boolean;
   medical_disclaimer: string;
 }
 
@@ -37,6 +38,7 @@ export interface ChatMessageItem {
   content: string;
   urgency_level?: UrgencyLevel;
   trigger_clinic_finder: boolean;
+  is_fallback?: boolean;
   timestamp: string;
 }
 

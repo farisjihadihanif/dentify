@@ -289,8 +289,6 @@ export function DentistWorld3DCanvas({ className = '' }: DentistWorld3DCanvasPro
       data-testid="dentist-3d-canvas"
       className={['relative h-full w-full select-none', className].filter(Boolean).join(' ')}
     >
-      {/* Cahaya latar radial lembut di belakang objek 3D (bukan di atasnya, sehingga 3D 100% tajam) */}
-      <div className="pointer-events-none absolute inset-6 rounded-pill bg-gradient-to-tr from-brand/15 via-brand-soft/60 to-transparent blur-2xl" />
       <div ref={mountRef} className="relative z-10 h-full w-full" />
     </div>
   );

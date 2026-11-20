@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { ClipboardList } from 'lucide-react';
 import { AppButton } from './AppButton';
 
 export const DEFAULT_HISTORY_EMPTY_TEXT =
@@ -35,8 +36,8 @@ export function EmptyState({
         .filter(Boolean)
         .join(' ')}
     >
-      <div className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-pill bg-brand-soft text-card-title font-bold text-brand-dark">
-        🦷
+      <div className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-pill bg-brand-soft text-brand-dark">
+        <ClipboardList className="h-6 w-6" aria-hidden="true" />
       </div>
       <h2 className="mt-4 text-card-title text-text">{title}</h2>
       <p className="mx-auto mt-2 max-w-md text-body text-text-muted">{description}</p>

@@ -1,0 +1,140 @@
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AiFeedbackControl } from '../components/AiFeedbackControl';
+import { DeniChat, FALLBACK_DENI_BANNER_TEXT } from '../components/DeniChat';
+import {
+  LOW_CONFIDENCE_WARNING_TEXT,
+  ScanResultCard,
+} from '../components/ScanResultCard';
+import apiClient from '../services/apiClient';
+import { submitAiFeedback } from '../services/feedbackService';
+import type { ScanReportData } from '../services/scanService';
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => '/scan',
+}));
+
+function makeScanReport(confidenceScore: number): ScanReportData {
+  return {
+    id: 'scan_t207_001',
+    capture_source: 'upload',
+    primary_condition: 'caries',
+    condition_label: 'Indikasi Karies Gigi',
+    confidence_score: confidenceScore,
+    urgency_level: confidenceScore < 0.75 ? 'medium' : 'high',
+    trigger_clinic_finder: confidenceScore >= 0.75,
+    detections: [{ label: 'caries', confidence: confidenceScore, bbox: [0.1, 0.2, 0.4, 0.5] }],
+    care_recommendations: {
+      summary: 'Terdeteksi indikasi awal karies gigi pada foto yang diunggah.',
+      dos: ['Sikat gigi dua kali sehari dengan pasta gigi berfluoride.'],
+      donts: ['Hindari minuman manis berlebihan sebelum tidur.'],
+    },
+    medical_disclaimer:
+      'Hasil ini merupakan skrining awal berbasis AI dan bukan diagnosis medis resmi.',
+    created_at: '2026-11-20T12:00:00.000Z',
+  };
+}
+
+describe('T-207: AI transparency labels, honest confidence, fallback banner, and feedback control', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('shows "Hasil analisis AI" and feedback controls on ScanResultCard without low-confidence warning when >= 0.75', () => {
+    const html = renderToStaticMarkup(<ScanResultCard report={makeScanReport(0.88)} />);
+    expect(html).toContain('Hasil analisis AI');
+    expect(html).toContain('88%');
+    expect(html).not.toContain(LOW_CONFIDENCE_WARNING_TEXT);
+    expect(html).toContain('Membantu');
+    expect(html).toContain('Tidak akurat');
+  });
+
+  it('shows honest low-confidence warning when confidence_score < 0.75', () => {
+    const html = renderToStaticMarkup(<ScanResultCard report={makeScanReport(0.62)} />);
+    expect(html).toContain('Hasil analisis AI');
+    expect(html).toContain('62%');
+    expect(html).toContain(LOW_CONFIDENCE_WARNING_TEXT);
+    expect(html).toContain('Hasil kurang pasti, pertimbangkan mengambil ulang foto');
+  });
+
+  it('shows "Dibuat oleh AI" and feedback controls on Deni messages', () => {
+    const html = renderToStaticMarkup(
+      <DeniChat
+        initialMessages={[
+          {
+            role: 'assistant',
+            content: 'Sikat gigi secara teratur dan periksakan ke dokter gigi setiap 6 bulan.',
+            timestamp: '2026-11-20T12:01:00.000Z',
+            is_fallback: false,
+          },
+        ]}
+      />,
+    );
+    expect(html).toContain('Dibuat oleh AI');
+    expect(html).toContain('Membantu');
+    expect(html).toContain('Tidak akurat');
+    expect(html).not.toContain(FALLBACK_DENI_BANNER_TEXT);
+  });
+
+  it('labels static LLM fallback replies plainly with the required Indonesian notice', () => {
+    const html = renderToStaticMarkup(
+      <DeniChat
+        initialMessages={[
+          {
+            role: 'assistant',
+            content: 'Panduan umum perawatan gigi preventif.',
+            timestamp: '2026-11-20T12:02:00.000Z',
+            is_fallback: true,
+          },
+        ]}
+      />,
+    );
+    expect(html).toContain(FALLBACK_DENI_BANNER_TEXT);
+    expect(html).toContain('Deni sedang tidak tersedia. Berikut panduan umum.');
+  });
+
+  it('renders AiFeedbackControl buttons cleanly and submits POST /feedback payload', async () => {
+    const html = renderToStaticMarkup(
+      <AiFeedbackControl targetType="scan" targetId="scan_t207_001" />,
+    );
+    expect(html).toContain('Membantu');
+    expect(html).toContain('Tidak akurat');
+
+    const postSpy = vi.spyOn(apiClient, 'post').mockResolvedValueOnce({
+      data: {
+        status: 'success',
+        message: 'Masukan Anda berhasil disimpan.',
+        data: {
+          id: 'fb_001',
+          target_type: 'scan',
+          target_id: 'scan_t207_001',
+          rating: 'inaccurate',
+          comment: 'Foto agak gelap',
+          created_at: '2026-11-20T12:05:00.000Z',
+        },
+      },
+    });
+
+    const result = await submitAiFeedback({
+      target_type: 'scan',
+      target_id: 'scan_t207_001',
+      rating: 'inaccurate',
+      comment: 'Foto agak gelap',
+    });
+
+    expect(postSpy).toHaveBeenCalledWith('/feedback', {
+      target_type: 'scan',
+      target_id: 'scan_t207_001',
+      rating: 'inaccurate',
+      comment: 'Foto agak gelap',
+    });
+    expect(result.id).toBe('fb_001');
+    expect(result.rating).toBe('inaccurate');
+  });
+});

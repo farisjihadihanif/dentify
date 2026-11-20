@@ -2,7 +2,8 @@
 
 import React, { useCallback, useEffect, useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { MessageSquare, Plus, Trash2 } from 'lucide-react';
+import { AlertCircle, MessageSquare, Plus, Sparkles, Trash2 } from 'lucide-react';
+import { AiFeedbackControl } from './AiFeedbackControl';
 import { AppButton } from './AppButton';
 import { ClinicEscalationCard } from './ClinicEscalationCard';
 import { ErrorBanner } from './ErrorBanner';
@@ -36,13 +37,16 @@ export interface DeniChatProps {
   initialScanReport?: ScanReportData | null;
   initialTriggeredClinics?: ClinicItem[];
   initialSessions?: ChatSessionSummary[];
+  initialMessages?: ChatMessageItem[];
 }
+
+export const FALLBACK_DENI_BANNER_TEXT = 'Deni sedang tidak tersedia. Berikut panduan umum.';
 
 const WELCOME_DENI_MESSAGE =
   'Halo! Saya Deni, asisten AI kesehatan gigi preventif Anda di DentHub. Silakan pilih pertanyaan cepat di bawah atau tuliskan keluhan gigi dan gusi yang ingin Anda tanyakan.';
 
 /**
- * Main interactive consultation panel with Deni (docs/DESIGN.md §3.3).
+ * Main interactive consultation panel with Deni (docs/DESIGN.md §3.3 & §8.3).
  */
 export function DeniChat({
   initialScanId = null,
@@ -50,20 +54,23 @@ export function DeniChat({
   initialScanReport = null,
   initialTriggeredClinics = [],
   initialSessions = [],
+  initialMessages,
 }: DeniChatProps) {
   const [scanId, setScanId] = useState<string | null>(initialScanId);
   const [scanReport, setScanReport] = useState<ScanReportData | null>(initialScanReport);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionsList, setSessionsList] = useState<ChatSessionSummary[]>(initialSessions);
   const [loggedIn, setLoggedIn] = useState<boolean>(() => isAuthenticated());
-  const [messages, setMessages] = useState<ChatMessageItem[]>([
-    {
-      role: 'assistant',
-      content: WELCOME_DENI_MESSAGE,
-      trigger_clinic_finder: Boolean(initialScanReport?.trigger_clinic_finder),
-      timestamp: new Date().toISOString(),
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessageItem[]>(
+    initialMessages ?? [
+      {
+        role: 'assistant',
+        content: WELCOME_DENI_MESSAGE,
+        trigger_clinic_finder: Boolean(initialScanReport?.trigger_clinic_finder),
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  );
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([
     ...INITIAL_SUGGESTED_QUESTIONS,
   ]);
@@ -228,6 +235,7 @@ export function DeniChat({
         content: response.reply,
         urgency_level: response.urgency_level,
         trigger_clinic_finder: response.trigger_clinic_finder,
+        is_fallback: Boolean(response.is_fallback),
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, deniMsg]);
@@ -405,6 +413,7 @@ export function DeniChat({
           <div className="max-h-[28rem] space-y-4 overflow-y-auto pr-1">
             {messages.map((msg, idx) => {
               const isUser = msg.role === 'user';
+              const targetId = sessionId ? `${sessionId}:${idx}` : `guest-msg-${idx}`;
               return (
                 <div
                   key={`msg-${idx}`}
@@ -417,7 +426,7 @@ export function DeniChat({
                     <img
                       src="/images/deni-mascot.png"
                       alt="Avatar Deni"
-                      className="mt-1 h-9 w-9 shrink-0 rounded-pill border border-border bg-brand-soft object-contain p-0.5"
+                      className="mt-1 h-9 w-9 shrink-0 rounded-pill border border-border bg-accent-deni-soft object-contain p-0.5"
                     />
                   )}
                   <div
@@ -425,11 +434,42 @@ export function DeniChat({
                       'max-w-xl rounded-card px-4 py-3 text-body',
                       isUser
                         ? 'bg-brand text-surface'
-                        : 'border border-border bg-bg text-text',
+                        : 'border border-border bg-accent-deni-soft/60 text-text',
                     ].join(' ')}
                   >
-                    <p className="mb-1 text-badge font-bold">{isUser ? 'Anda' : 'Deni'}</p>
+                    <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                      <p className="text-badge font-bold">{isUser ? 'Anda' : 'Deni'}</p>
+                      {!isUser && (
+                        <span
+                          data-testid="deni-ai-label"
+                          className="inline-flex items-center gap-1 rounded-pill border border-accent-deni/30 bg-surface px-2.5 py-0.5 text-xs font-semibold text-accent-deni"
+                        >
+                          <Sparkles className="h-3 w-3 shrink-0" aria-hidden="true" />
+                          <span>Dibuat oleh AI</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {!isUser && msg.is_fallback && (
+                      <p
+                        role="status"
+                        data-testid="deni-fallback-label"
+                        className="mb-2 inline-flex items-center gap-1.5 rounded-lg border border-status-yellow/40 bg-surface px-2.5 py-1 text-xs font-semibold text-status-yellow"
+                      >
+                        <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                        <span>{FALLBACK_DENI_BANNER_TEXT}</span>
+                      </p>
+                    )}
+
                     <div className="whitespace-pre-line leading-relaxed">{msg.content}</div>
+
+                    {!isUser && (
+                      <AiFeedbackControl
+                        targetType="chat_message"
+                        targetId={targetId}
+                        compact
+                      />
+                    )}
                   </div>
                 </div>
               );

@@ -1,4 +1,5 @@
 import React from 'react';
+import { AlertCircle, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 export type UrgencyLevel = 'low' | 'medium' | 'emergency';
 
@@ -12,7 +13,7 @@ export interface UrgencyMeta {
   label: string;
   description: string;
   badgeClass: string;
-  iconSymbol: string;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 export const URGENCY_METADATA: Record<UrgencyLevel, UrgencyMeta> = {
@@ -20,29 +21,28 @@ export const URGENCY_METADATA: Record<UrgencyLevel, UrgencyMeta> = {
     label: 'Perawatan Mandiri',
     description: 'Kondisi dapat dipantau dengan kebersihan mulut rutin di rumah.',
     badgeClass: 'bg-status-green text-surface',
-    iconSymbol: '✓',
+    icon: CheckCircle2,
   },
   medium: {
     label: 'Disarankan Periksa ke Dokter Gigi (1–2 minggu)',
     description: 'Disarankan menjadwalkan pemeriksaan ke dokter gigi dalam 1–2 minggu.',
     badgeClass: 'bg-status-yellow text-surface',
-    iconSymbol: '!',
+    icon: AlertCircle,
   },
   emergency: {
     label: 'Segera ke Dokter Gigi',
     description: 'Terdeteksi indikasi yang memerlukan penanganan dokter gigi segera.',
     badgeClass: 'bg-status-red text-surface',
-    iconSymbol: '▲',
+    icon: AlertTriangle,
   },
 };
 
 /**
- * Badge tingkat urgensi hasil screening (`DESIGN.md §4.2` & `§3.2`):
- * mengombinasikan warna token (`status-green`, `status-yellow`, `status-red`),
- * simbol ikon, dan label teks berbahasa Indonesia yang jelas.
+ * Screening urgency badge (docs/DESIGN.md §4 & §8.1: semantic tokens + lucide-react icons).
  */
 export function StatusBadge({ urgency, customLabel, className = '' }: StatusBadgeProps) {
   const meta = URGENCY_METADATA[urgency] ?? URGENCY_METADATA.low;
+  const Icon = meta.icon;
 
   return (
     <span
@@ -56,9 +56,7 @@ export function StatusBadge({ urgency, customLabel, className = '' }: StatusBadg
         .filter(Boolean)
         .join(' ')}
     >
-      <span aria-hidden="true" className="font-bold">
-        {meta.iconSymbol}
-      </span>
+      <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
       <span>{customLabel || meta.label}</span>
     </span>
   );

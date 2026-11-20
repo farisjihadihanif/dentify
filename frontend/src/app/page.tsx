@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import {
   Camera,
   Sparkles,
@@ -11,6 +11,7 @@ import {
   MapPin,
   ArrowRight,
   ShieldCheck,
+  CheckCircle2,
 } from 'lucide-react';
 import { DentistWorld3DCanvas } from '../components/DentistWorld3DCanvas';
 import { MedicalDisclaimerBanner } from '../components/MedicalDisclaimerBanner';
@@ -60,6 +61,8 @@ const TIMELINE_FLOW_STEPS = [
  * 3. Section 3: Preview Fitur Scan dan Tanyakan ke Deni (beserta Banner Disclaimer Medis wajib).
  */
 export default function HomePage() {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <main className="bg-bg text-text">
       {/* =====================================================================
@@ -133,10 +136,13 @@ export default function HomePage() {
             return (
               <motion.article
                 key={item.step}
-                initial={{ opacity: 0, y: 20 }}
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.25 }}
-                transition={{ duration: 0.35, delay: index * 0.07 }}
+                transition={{
+                  duration: prefersReducedMotion ? 0 : 0.35,
+                  delay: prefersReducedMotion ? 0 : index * 0.07,
+                }}
                 className="relative flex items-start gap-4 pl-1 sm:gap-5 sm:pl-2"
               >
                 <div className="relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-pill bg-brand font-bold text-surface shadow-sm ring-4 ring-bg sm:h-10 sm:w-10">
@@ -207,17 +213,22 @@ export default function HomePage() {
                 <div className="flex items-center justify-between border-b border-border pb-2.5">
                   <div>
                     <p className="text-xs font-bold text-text">
-                      Contoh Hasil: Indikasi Karies Gigi
+                      Ilustrasi Hasil: Indikasi Karies Gigi
                     </p>
-                    <p className="text-xs text-text-muted">Keyakinan AI: 91% • Dapat Diunduh</p>
+                    <p className="text-xs text-text-muted">
+                      Hasil analisis AI • Indikasi visual terdeteksi • Dapat Diunduh
+                    </p>
                   </div>
                   <span className="rounded-pill bg-status-red px-2.5 py-0.5 text-xs font-semibold text-surface">
                     Segera Periksa
                   </span>
                 </div>
-                <p className="mt-2.5 text-xs text-text-muted">
-                  ✓ Dilengkapi daftar anjuran (Do&apos;s), pantangan (Don&apos;ts), tombol Unduh
-                  Hasil, dan riwayat scan di sidebar.
+                <p className="mt-2.5 flex items-start gap-1.5 text-xs text-text-muted">
+                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-status-green" aria-hidden="true" />
+                  <span>
+                    Dilengkapi daftar anjuran (Do&apos;s), pantangan (Don&apos;ts), tombol Unduh
+                    Hasil, dan riwayat scan di sidebar.
+                  </span>
                 </p>
               </div>
             </div>
@@ -237,7 +248,7 @@ export default function HomePage() {
           <div className="flex flex-col justify-between rounded-card border border-border bg-surface p-6 shadow-sm">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-1.5 rounded-pill bg-brand-soft px-3 py-1 text-xs font-bold text-accent-deni">
+                <span className="inline-flex items-center gap-1.5 rounded-pill bg-accent-deni-soft px-3 py-1 text-xs font-bold text-accent-deni">
                   <MessageCircleHeart className="h-3.5 w-3.5" />
                   <span>Asisten AI • Tanyakan ke Deni</span>
                 </span>
@@ -265,10 +276,16 @@ export default function HomePage() {
                 <div className="ml-auto max-w-xs rounded-xl bg-brand px-3 py-2 text-surface">
                   &ldquo;Deni, gigi geraham saya ngilu saat minum air dingin, harus bagaimana?&rdquo;
                 </div>
-                <div className="max-w-md rounded-xl border border-border bg-surface px-3 py-2 text-text">
-                  <strong className="text-brand-dark">🦷 Deni:</strong> &ldquo;Hindari minuman
-                  terlalu dingin atau manis sementara waktu, gunakan pasta gigi khusus gigi sensitif
-                  berfluoride, dan jadwalkan pemeriksaan ke dokter gigi terdekat.&rdquo;
+                <div className="max-w-md rounded-xl border border-accent-deni/20 bg-accent-deni-soft px-3 py-2 text-text">
+                  <span className="mb-1 flex items-center gap-1.5">
+                    <strong className="text-accent-deni">Deni</strong>
+                    <span className="rounded-pill bg-surface px-1.5 py-0.5 text-[10px] font-semibold text-accent-deni">
+                      Dibuat oleh AI
+                    </span>
+                  </span>
+                  &ldquo;Hindari minuman terlalu dingin atau manis sementara waktu, gunakan pasta
+                  gigi khusus gigi sensitif berfluoride, dan jadwalkan pemeriksaan ke dokter gigi
+                  terdekat.&rdquo;
                 </div>
               </div>
             </div>

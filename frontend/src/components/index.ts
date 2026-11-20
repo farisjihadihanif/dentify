@@ -20,6 +20,7 @@ export {
   type CameraFacingMode,
 } from './WebcamCapture';
 export { ScanResultCard, type ScanResultCardProps } from './ScanResultCard';
+export { AiFeedbackControl, type AiFeedbackControlProps } from './AiFeedbackControl';
 export { DeniChat, type DeniChatProps } from './DeniChat';
 export { ClinicEscalationCard, type ClinicEscalationCardProps } from './ClinicEscalationCard';
 export { ClinicCard, type ClinicCardProps } from './ClinicCard';

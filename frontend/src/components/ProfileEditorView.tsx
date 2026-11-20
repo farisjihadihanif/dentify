@@ -8,7 +8,7 @@ import React, {
   type FormEvent,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { Camera, LogOut, Save, UserCircle2, KeyRound } from 'lucide-react';
+import { Camera, CheckCircle2, LogOut, Save, UserCircle2, KeyRound } from 'lucide-react';
 import { AppButton } from './AppButton';
 import { ErrorBanner } from './ErrorBanner';
 import { MedicalDisclaimerBanner } from './MedicalDisclaimerBanner';
@@ -176,9 +176,10 @@ export function ProfileEditorView({ initialUser = null }: ProfileEditorViewProps
         <div
           role="status"
           data-testid="profile-success-banner"
-          className="rounded-card border border-status-green bg-brand-soft p-4 text-badge font-semibold text-status-green"
+          className="flex items-center gap-2 rounded-card border border-status-green bg-brand-soft p-4 text-badge font-semibold text-status-green"
         >
-          ✓ {successMessage}
+          <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>{successMessage}</span>
         </div>
       )}
 
