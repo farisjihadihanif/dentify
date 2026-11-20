@@ -1,0 +1,66 @@
+# Secrets and credentials (AGENTS.md Security)
+.env
+.env.*
+!.env.example
+kaggle.json
+*.pem
+*.key
+
+# Node.js (frontend/, backend/)
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+coverage/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+.vercel/
+
+# Python (ai-service/, data-science/)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+.ipynb_checkpoints/
+
+# Datasets and large processed image folders (never commit raw or split image data)
+data-science/data/raw/
+data-science/data/processed/train/
+data-science/data/processed/val/
+data-science/data/processed/test/
+data-science/data/processed/*.jpg
+data-science/data/processed/*.jpeg
+data-science/data/processed/*.png
+data-science/data/processed/*.webp
+
+# Model binaries & checkpoints
+*.keras
+*.h5
+*.weights.h5
+*.ckpt
+*.ckpt.*
+ai-service/models/saved_model/
+!ai-service/models/.gitkeep
+
+# Temporary uploads and logs
+uploads/
+tmp/
+*.log
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
