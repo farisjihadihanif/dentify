@@ -18,7 +18,13 @@ const config: Config = {
           ring: 'var(--color-brand-ring)',
           soft: 'var(--color-brand-soft)',
         },
-        surface: 'var(--color-surface)',
+        surface: {
+          DEFAULT: 'var(--color-surface)',
+          navy: 'var(--color-surface-navy)',
+          teal: 'var(--color-surface-teal)',
+          mint: 'var(--color-surface-mint)',
+          sand: 'var(--color-surface-sand)',
+        },
         bg: 'var(--color-bg)',
         text: {
           DEFAULT: 'var(--color-text)',

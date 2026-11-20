@@ -8,7 +8,17 @@ import React, {
   type FormEvent,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { Camera, CheckCircle2, LogOut, Save, UserCircle2, KeyRound } from 'lucide-react';
+import {
+  Camera,
+  CheckCircle2,
+  KeyRound,
+  LogOut,
+  Mail,
+  Save,
+  Shield,
+  User,
+  UserCircle2,
+} from 'lucide-react';
 import { AppButton } from './AppButton';
 import { ErrorBanner } from './ErrorBanner';
 import {
@@ -25,14 +35,17 @@ export interface ProfileEditorViewProps {
   initialUser?: AuthUser | null;
 }
 
+const SETTINGS_NAV_LINKS = [
+  { id: 'profil-umum', label: 'Profil Umum', icon: User },
+  { id: 'keamanan', label: 'Keamanan & Kata Sandi', icon: KeyRound },
+  { id: 'sesi-akun', label: 'Sesi & Akun', icon: Shield },
+] as const;
+
 /**
- * Form Edit Profile (`ProfileEditorView.tsx`):
- * - Dapat mengganti:
- *   1. Nama Lengkap (`name`)
- *   2. Username (`username`)
- *   3. Kata Sandi (`currentPassword` & `newPassword`)
- *   4. Foto Profile (`avatar` — pratinjau langsung & konversi ke data URL)
- * - Menyediakan tombol Logout untuk keluar dari sesi dengan aman.
+ * Modern SaaS Two-Column Account Settings Workspace (`ProfileEditorView.tsx`, docs/DESIGN.md §3.5):
+ * - Left sticky column: Profile summary card (avatar, full name, username, email) + quick section jump nav
+ * - Right column: Cleanly divided cards for Profil Umum, Keamanan & Kata Sandi, and bottom Sesi & Akun
+ *   with an understated outline/ghost-danger logout control (no top-header red logout button).
  */
 export function ProfileEditorView({ initialUser = null }: ProfileEditorViewProps) {
   const router = useRouter();
@@ -142,34 +155,22 @@ export function ProfileEditorView({ initialUser = null }: ProfileEditorViewProps
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-4 py-10 sm:px-6 sm:py-12">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <span className="inline-block rounded-pill bg-brand-soft px-3.5 py-1 text-xs font-bold text-brand-dark">
-            Pengaturan Akun • DentHub Profile
-          </span>
-          <h1 className="mt-2 text-2xl font-bold text-text sm:text-3xl">
-            Edit Profil Pengguna
-          </h1>
-          <p className="mt-1 text-sm text-text-muted sm:text-base">
-            Perbarui nama lengkap, username, kata sandi, dan foto profil akun DentHub Anda.
-          </p>
-        </div>
-
-        <AppButton
-          variant="danger"
-          size="sm"
-          onClick={handleLogout}
-          data-testid="logout-btn"
-        >
-          <LogOut className="h-4 w-4 shrink-0" />
-          <span>Keluar (Logout)</span>
-        </AppButton>
+    <div
+      data-testid="profile-settings-workspace"
+      className="mx-auto max-w-6xl space-y-6 px-4 pb-24 pt-10 sm:px-6 sm:pt-12 lg:px-8"
+    >
+      {/* Clean Page Header (no red logout button here) */}
+      <div className="border-b border-border pb-5">
+        <span className="inline-block rounded-pill bg-brand-soft px-3.5 py-1 text-xs font-bold text-brand-dark">
+          Pengaturan Akun • DentHub Settings
+        </span>
+        <h1 className="mt-2 text-2xl font-bold text-text sm:text-3xl">Edit Profil Pengguna</h1>
+        <p className="mt-1 text-sm text-text-muted sm:text-base">
+          Kelola identitas akun, keamanan kata sandi, dan sesi aktif DentHub Anda dalam satu tempat.
+        </p>
       </div>
 
-      {uiError && (
-        <ErrorBanner error={uiError} onDismiss={() => setUiError(null)} />
-      )}
+      {uiError && <ErrorBanner error={uiError} onDismiss={() => setUiError(null)} />}
 
       {successMessage && (
         <div
@@ -182,170 +183,294 @@ export function ProfileEditorView({ initialUser = null }: ProfileEditorViewProps
         </div>
       )}
 
-      <section className="rounded-card border border-border bg-surface p-6 shadow-sm sm:p-8">
-        <form onSubmit={(e) => void handleSaveSubmit(e)} className="space-y-6" noValidate>
-          <div className="flex flex-col items-center gap-4 border-b border-border pb-6 sm:flex-row">
-            <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-pill border-2 border-brand bg-brand-soft text-brand-dark shadow-sm">
-              {avatar ? (
-                <img
-                  src={avatar}
-                  alt="Foto Profil Pengguna"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <UserCircle2 className="h-14 w-14" />
-              )}
-            </div>
-
-            <div className="space-y-2 text-center sm:text-left">
-              <p className="text-card-title text-text">Foto Profil</p>
-              <p className="text-badge text-text-muted">
-                Unggah foto berformat JPG, PNG, atau WEBP (maksimal 500 KB).
-              </p>
-              <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
-                <label
-                  htmlFor="profile-avatar-upload"
-                  className="inline-flex h-9 min-h-touch cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark transition-colors hover:bg-brand-soft"
-                >
-                  <Camera className="h-4 w-4 shrink-0" />
-                  <span>Ganti Foto Profil</span>
-                  <input
-                    ref={avatarInputRef}
-                    id="profile-avatar-upload"
-                    name="avatar"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={handleAvatarFileChange}
-                    className="sr-only"
+      <div className="grid items-start gap-6 lg:grid-cols-12">
+        {/* Left Sticky Profile Summary & Section Navigation */}
+        <aside
+          aria-label="Ringkasan Profil dan Navigasi Pengaturan"
+          data-testid="profile-settings-sidebar"
+          className="space-y-4 lg:sticky lg:top-8 lg:col-span-4"
+        >
+          <div className="rounded-card border border-border bg-surface p-6 shadow-sm">
+            <div className="flex flex-col items-center text-center">
+              <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-pill border-2 border-brand bg-brand-soft text-brand-dark shadow-sm">
+                {avatar ? (
+                  <img
+                    src={avatar}
+                    alt="Foto Profil Pengguna"
+                    className="h-full w-full object-cover"
                   />
-                </label>
-
-                {avatar && (
-                  <button
-                    type="button"
-                    onClick={() => setAvatar('')}
-                    className="inline-flex h-9 min-h-touch items-center whitespace-nowrap rounded-lg px-3 text-xs font-semibold text-status-red hover:underline"
-                  >
-                    Hapus Foto
-                  </button>
+                ) : (
+                  <UserCircle2 className="h-12 w-12" aria-hidden="true" />
                 )}
               </div>
-            </div>
-          </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor="profile-full-name" className="block text-badge font-semibold text-text">
-                Nama Lengkap
-              </label>
-              <input
-                id="profile-full-name"
-                name="name"
-                type="text"
-                required
-                minLength={2}
-                maxLength={100}
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Nama lengkap Anda"
-                className="mt-1.5 w-full rounded-card border border-border bg-surface px-4 py-3 text-body text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="profile-username" className="block text-badge font-semibold text-text">
-                Username
-              </label>
-              <input
-                id="profile-username"
-                name="username"
-                type="text"
-                minLength={3}
-                maxLength={30}
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="contoh: farislubis"
-                className="mt-1.5 w-full rounded-card border border-border bg-surface px-4 py-3 text-body text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="profile-email-readonly" className="block text-badge font-semibold text-text">
-              Alamat Email Terdaftar
-            </label>
-            <input
-              id="profile-email-readonly"
-              type="email"
-              disabled
-              value={email}
-              className="mt-1.5 w-full cursor-not-allowed rounded-card border border-border bg-bg px-4 py-3 text-body text-text-muted"
-            />
-          </div>
-
-          <div className="space-y-4 border-t border-border pt-5">
-            <div className="flex items-center gap-2">
-              <KeyRound className="h-4 w-4 text-brand-dark" />
-              <h2 className="text-card-title text-text">
-                Ganti Kata Sandi (Kosongkan jika tidak ingin mengubah)
+              <h2 className="mt-3.5 text-lg font-bold text-text">
+                {fullName || 'Pengguna DentHub'}
               </h2>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label
-                  htmlFor="profile-current-password"
-                  className="block text-badge font-semibold text-text"
-                >
-                  Kata Sandi Saat Ini
-                </label>
-                <input
-                  id="profile-current-password"
-                  name="currentPassword"
-                  type="password"
-                  autoComplete="current-password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Kata sandi lama"
-                  className="mt-1.5 w-full rounded-card border border-border bg-surface px-4 py-3 text-body text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="profile-new-password"
-                  className="block text-badge font-semibold text-text"
-                >
-                  Kata Sandi Baru (Min. 8 Karakter)
-                </label>
-                <input
-                  id="profile-new-password"
-                  name="newPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  minLength={8}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Minimal 8 karakter"
-                  className="mt-1.5 w-full rounded-card border border-border bg-surface px-4 py-3 text-body text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand"
-                />
-              </div>
+              {username && (
+                <p className="text-xs font-semibold text-brand-dark">@{username}</p>
+              )}
+              <p className="mt-1.5 inline-flex items-center gap-1.5 text-xs text-text-muted">
+                <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <span className="truncate">{email || 'Belum ada email'}</span>
+              </p>
             </div>
           </div>
 
-          <AppButton
-            type="submit"
-            variant="primary"
-            fullWidth
-            loading={isSaving || isLoadingProfile}
-            loadingText="Menyimpan Perubahan..."
-            disabled={fullName.trim().length < 2}
+          <nav
+            aria-label="Navigasi Bagian Pengaturan"
+            className="rounded-card border border-border bg-surface p-2 shadow-sm"
           >
-            <Save className="h-4 w-4" />
-            <span>Simpan Perubahan Profil</span>
-          </AppButton>
-        </form>
-      </section>
+            <ul className="space-y-1">
+              {SETTINGS_NAV_LINKS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <li key={item.id}>
+                    <a
+                      href={`#${item.id}`}
+                      className="flex min-h-touch items-center gap-2.5 rounded-xl px-3.5 py-2 text-sm font-semibold text-text-muted transition-colors hover:bg-brand-soft hover:text-brand-dark"
+                    >
+                      <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      <span>{item.label}</span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        </aside>
+
+        {/* Right Column: Structured Settings Cards */}
+        <div className="space-y-6 lg:col-span-8">
+          <form onSubmit={(e) => void handleSaveSubmit(e)} className="space-y-6" noValidate>
+            {/* Card 1: Profil Umum */}
+            <section
+              id="profil-umum"
+              aria-labelledby="heading-profil-umum"
+              className="rounded-card border border-border bg-surface p-6 shadow-sm sm:p-7"
+            >
+              <div className="border-b border-border pb-4">
+                <h2 id="heading-profil-umum" className="text-lg font-bold text-text">
+                  Profil Umum
+                </h2>
+                <p className="mt-0.5 text-xs text-text-muted sm:text-sm">
+                  Informasi ini ditampilkan pada akun dan riwayat pemindaian DentHub Anda.
+                </p>
+              </div>
+
+              <div className="mt-5 flex flex-col items-center gap-4 border-b border-border pb-6 sm:flex-row">
+                <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-pill border border-border bg-brand-soft text-brand-dark">
+                  {avatar ? (
+                    <img
+                      src={avatar}
+                      alt="Pratinjau Foto Profil"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <UserCircle2 className="h-11 w-11" aria-hidden="true" />
+                  )}
+                </div>
+
+                <div className="space-y-2 text-center sm:text-left">
+                  <p className="text-sm font-semibold text-text">Foto Profil</p>
+                  <p className="text-xs text-text-muted">
+                    Unggah foto berformat JPG, PNG, atau WEBP (maksimal 500 KB).
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
+                    <label
+                      htmlFor="profile-avatar-upload"
+                      className="inline-flex h-9 min-h-touch cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark transition-colors hover:bg-brand-soft"
+                    >
+                      <Camera className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      <span>Ganti Foto Profil</span>
+                      <input
+                        ref={avatarInputRef}
+                        id="profile-avatar-upload"
+                        name="avatar"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleAvatarFileChange}
+                        className="sr-only"
+                      />
+                    </label>
+
+                    {avatar && (
+                      <button
+                        type="button"
+                        onClick={() => setAvatar('')}
+                        className="inline-flex h-9 min-h-touch items-center whitespace-nowrap rounded-lg px-3 text-xs font-semibold text-status-red hover:underline"
+                      >
+                        Hapus Foto
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="profile-full-name"
+                    className="block text-badge font-semibold text-text"
+                  >
+                    Nama Lengkap
+                  </label>
+                  <input
+                    id="profile-full-name"
+                    name="name"
+                    type="text"
+                    required
+                    minLength={2}
+                    maxLength={100}
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Nama lengkap Anda"
+                    className="mt-1.5 w-full rounded-card border border-border bg-surface px-4 py-2.5 text-body text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="profile-username"
+                    className="block text-badge font-semibold text-text"
+                  >
+                    Username
+                  </label>
+                  <input
+                    id="profile-username"
+                    name="username"
+                    type="text"
+                    minLength={3}
+                    maxLength={30}
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="contoh: farislubis"
+                    className="mt-1.5 w-full rounded-card border border-border bg-surface px-4 py-2.5 text-body text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <label
+                  htmlFor="profile-email-readonly"
+                  className="block text-badge font-semibold text-text"
+                >
+                  Alamat Email Terdaftar
+                </label>
+                <input
+                  id="profile-email-readonly"
+                  type="email"
+                  disabled
+                  value={email}
+                  className="mt-1.5 w-full cursor-not-allowed rounded-card border border-border bg-bg px-4 py-2.5 text-body text-text-muted"
+                />
+              </div>
+            </section>
+
+            {/* Card 2: Keamanan & Kata Sandi */}
+            <section
+              id="keamanan"
+              aria-labelledby="heading-keamanan"
+              className="rounded-card border border-border bg-surface p-6 shadow-sm sm:p-7"
+            >
+              <div className="border-b border-border pb-4">
+                <div className="flex items-center gap-2">
+                  <KeyRound className="h-4 w-4 text-brand-dark" aria-hidden="true" />
+                  <h2 id="heading-keamanan" className="text-lg font-bold text-text">
+                    Keamanan &amp; Kata Sandi
+                  </h2>
+                </div>
+                <p className="mt-0.5 text-xs text-text-muted sm:text-sm">
+                  Kosongkan kolom di bawah apabila Anda tidak ingin mengganti kata sandi saat ini.
+                </p>
+              </div>
+
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="profile-current-password"
+                    className="block text-badge font-semibold text-text"
+                  >
+                    Kata Sandi Saat Ini
+                  </label>
+                  <input
+                    id="profile-current-password"
+                    name="currentPassword"
+                    type="password"
+                    autoComplete="current-password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Kata sandi lama"
+                    className="mt-1.5 w-full rounded-card border border-border bg-surface px-4 py-2.5 text-body text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="profile-new-password"
+                    className="block text-badge font-semibold text-text"
+                  >
+                    Kata Sandi Baru (Min. 8 Karakter)
+                  </label>
+                  <input
+                    id="profile-new-password"
+                    name="newPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={8}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Minimal 8 karakter"
+                    className="mt-1.5 w-full rounded-card border border-border bg-surface px-4 py-2.5 text-body text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end border-t border-border pt-5">
+                <AppButton
+                  type="submit"
+                  variant="primary"
+                  size="md"
+                  loading={isSaving || isLoadingProfile}
+                  loadingText="Menyimpan Perubahan..."
+                  disabled={fullName.trim().length < 2}
+                >
+                  <Save className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span>Simpan Perubahan Profil</span>
+                </AppButton>
+              </div>
+            </section>
+          </form>
+
+          {/* Card 3: Dedicated Bottom Sesi & Akun Card with Understated Logout Button */}
+          <section
+            id="sesi-akun"
+            aria-labelledby="heading-sesi-akun"
+            data-testid="profile-session-card"
+            className="flex flex-col justify-between gap-4 rounded-card border border-border bg-surface p-6 shadow-sm sm:flex-row sm:items-center sm:p-7"
+          >
+            <div className="space-y-1">
+              <h2 id="heading-sesi-akun" className="text-lg font-bold text-text">
+                Sesi &amp; Akun
+              </h2>
+              <p className="text-xs leading-relaxed text-text-muted sm:text-sm">
+                Keluar dari sesi DentHub pada perangkat ini. Riwayat pemindaian dan percakapan
+                Anda tetap aman tersimpan di akun Anda.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              data-testid="logout-btn"
+              className="inline-flex h-10 min-h-touch shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-status-red/40 bg-transparent px-4 text-sm font-semibold text-status-red transition-colors hover:border-status-red hover:bg-status-red/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-red"
+            >
+              <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>Keluar dari Akun</span>
+            </button>
+          </section>
+        </div>
+      </div>
     </div>
   );
 }

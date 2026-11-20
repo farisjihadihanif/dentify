@@ -63,12 +63,10 @@ describe('Landing Page 3 Section & Layar Pemindaian Gigi dengan Sidebar (T-110)'
     const html = renderToStaticMarkup(<HomePage />);
 
     expect(html).toContain('data-testid="home-section-1-hero"');
+    expect(html).toContain('data-testid="hero-top-left-logo"');
     expect(html).toContain('min-h-[calc(100svh-4rem)]');
     expect(html).toContain('absolute inset-0 h-full w-full');
     expect(html).toContain('data-testid="dentist-3d-canvas"');
-    expect(html).not.toContain('Pemindaian Optik 360°');
-    expect(html).not.toContain('Pindai Otomatis');
-    expect(html).not.toContain('Fokus Karies');
     expect(html).toContain('Cegah Gigi Berlubang Sejak Dini');
     expect(html).toContain(
       'Dapatkan pemeriksaan gigi online gratis dan temukan solusi untuk masalah gigi Anda!',
@@ -76,10 +74,16 @@ describe('Landing Page 3 Section & Layar Pemindaian Gigi dengan Sidebar (T-110)'
     expect(html).toContain('Cek Sekarang!');
     expect(html).toContain('href="/scan"');
 
-    expect(html).toContain('data-testid="home-section-2-flow"');
     expect(html).toContain('data-testid="home-kinetic-ribbon"');
     expect(html).toContain('animate-kinetic-marquee');
-    expect(html).toContain('w-full border-y');
+    expect(html).toContain('animate-kinetic-marquee-reverse');
+    expect(html).toContain('kinetic-stroke-text');
+
+    expect(html).toContain('data-testid="home-section-2-flow"');
+    expect(html).toContain('bg-surface-navy');
+    expect(html).toContain('bg-surface-mint');
+    expect(html).toContain('bg-surface-teal');
+    expect(html).toContain('bg-surface-sand');
     expect(html).toContain('01 Unggah Foto / Kamera Langsung');
     expect(html).toContain('02 AI Menganalisis Kondisi Gigi');
     expect(html).toContain('03 Dapatkan Hasil &amp; Unduh Laporan');

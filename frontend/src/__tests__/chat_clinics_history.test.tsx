@@ -188,6 +188,13 @@ describe('Global layout, identity, /profile, and /panduan (T-110, T-206)', () =>
         }}
       />,
     );
+    expect(profileHtml).toContain('data-testid="profile-settings-workspace"');
+    expect(profileHtml).toContain('data-testid="profile-settings-sidebar"');
+    expect(profileHtml).toContain('data-testid="profile-session-card"');
+    expect(profileHtml).toContain('Profil Umum');
+    expect(profileHtml).toContain('Keamanan &amp; Kata Sandi');
+    expect(profileHtml).toContain('Sesi &amp; Akun');
+    expect(profileHtml).toContain('Keluar dari Akun');
     expect(profileHtml).toContain('Edit Profil Pengguna');
     expect(profileHtml).toContain('Faris Jihadi Hanif Lubis');
     expect(profileHtml).toContain('farislubis');

@@ -37,6 +37,10 @@ export { DeniMascot } from './DeniMascot';
 export { AuthGuard, type AuthGuardProps } from './AuthGuard';
 export { DentistWorld3DCanvas } from './DentistWorld3DCanvas';
 export {
+  KineticMarqueeRibbons,
+  type KineticMarqueeRibbonsProps,
+} from './KineticMarqueeRibbons';
+export {
   DentalArticleModal,
   DENTIST_WORLD_ARTICLES,
   type DentalArticleModalProps,
