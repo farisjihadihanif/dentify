@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="dhToothGrad" x1="12" y1="8" x2="52" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#0369A1" />
+    </linearGradient>
+    <linearGradient id="dhOrbitGrad" x1="4" y1="34" x2="60" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0EA5E9" />
+      <stop offset="100%" stop-color="#0369A1" />
+    </linearGradient>
+  </defs>
+  <!-- Garis kontur gigi modern -->
+  <path
+    d="M21 15C16.2 15 13 19.2 13 24.5C13 30.8 16.2 35.8 18.4 42.2C19.6 45.8 20.6 50 23.2 50C25.5 50 26.8 45.5 28.4 41.2C29.4 38.6 30.6 37.5 32 37.5C33.4 37.5 34.6 38.6 35.6 41.2C37.2 45.5 38.5 50 40.8 50C43.4 50 44.4 45.8 45.6 42.2C47.8 35.8 51 30.8 51 24.5C51 19.2 47.8 15 43 15C39.2 15 36.2 17.6 32 17.6C27.8 17.6 24.8 15 21 15Z"
+    stroke="url(#dhToothGrad)"
+    stroke-width="4.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Cincin orbit miring yang melingkari bagian bawah gigi -->
+  <path
+    d="M11 35.5C6.5 39.2 6.8 44.2 13.5 47.2C22.4 51.2 38.8 50.2 49.5 44.6C56.8 40.8 58.5 35.4 53 32.2"
+    stroke="url(#dhOrbitGrad)"
+    stroke-width="3.8"
+    stroke-linecap="round"
+  />
+  <!-- Kilau bintang medis kecil -->
+  <circle cx="48" cy="14" r="2.2" fill="#0284C7" />
+</svg>

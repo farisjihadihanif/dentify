@@ -1,0 +1,103 @@
+import { AxiosHeaders, type InternalAxiosRequestConfig } from 'axios';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { attachAuthInterceptor, resolveApiBaseUrl } from '../services/apiClient';
+import { clearAuthToken, getAuthToken, hasAuthToken, setAuthToken } from '../services/authStorage';
+import { mapApiError } from '../services/errorMapper';
+
+describe('errorMapper (DESIGN.md §5)', () => {
+  it('maps core API error codes to exact Indonesian messages and UI actions', () => {
+    expect(mapApiError('UNAUTHENTICATED')).toEqual({
+      code: 'UNAUTHENTICATED',
+      action: 'redirect_login',
+      message: 'Sesi Anda telah berakhir. Silakan masuk kembali untuk mengakses riwayat Anda.',
+    });
+
+    expect(mapApiError('PAYLOAD_TOO_LARGE')).toEqual({
+      code: 'PAYLOAD_TOO_LARGE',
+      action: 'reset_file_input',
+      message: 'Ukuran foto terlalu besar (maksimal 5 MB). Silakan pilih foto lain.',
+    });
+
+    expect(mapApiError('INVALID_IMAGE')).toEqual({
+      code: 'INVALID_IMAGE',
+      action: 'reset_file_input',
+      message: 'Format file tidak didukung. Gunakan foto berformat JPG, PNG, atau WEBP.',
+    });
+
+    expect(mapApiError('LOW_QUALITY_IMAGE')).toEqual({
+      code: 'LOW_QUALITY_IMAGE',
+      action: 'show_retake_guidance',
+      message:
+        'Foto kurang jelas atau terlalu gelap. Ambil ulang foto di tempat yang terang dengan gigi yang bersih.',
+    });
+
+    expect(mapApiError('RATE_LIMITED')).toEqual({
+      code: 'RATE_LIMITED',
+      action: 'cooldown_submit_10s',
+      cooldownSeconds: 10,
+      message: 'Permintaan terlalu cepat. Mohon tunggu sebentar sebelum mencoba lagi.',
+    });
+
+    expect(mapApiError('AI_SERVICE_UNAVAILABLE')).toEqual({
+      code: 'AI_SERVICE_UNAVAILABLE',
+      action: 'show_retry_button',
+      message: 'Layanan analisis AI sedang sibuk. Silakan kirim ulang foto Anda.',
+    });
+
+    expect(mapApiError({ code: 1 })).toEqual({
+      code: 'GEOLOCATION_DENIED',
+      action: 'show_manual_location_form',
+      message:
+        'Akses lokasi dinonaktifkan. Masukkan nama kota atau kecamatan Anda untuk mencari klinik terdekat.',
+    });
+  });
+
+  it('maps Axios error payloads including fieldErrors on 422 VALIDATION_ERROR', () => {
+    const mapped = mapApiError({
+      response: {
+        status: 422,
+        data: {
+          success: false,
+          code: 'VALIDATION_ERROR',
+          message: 'Format email tidak valid.',
+          errors: { email: ['Format email tidak valid.'] },
+        },
+      },
+    });
+
+    expect(mapped).toEqual({
+      code: 'VALIDATION_ERROR',
+      action: 'show_alert',
+      cooldownSeconds: undefined,
+      message: 'Format email tidak valid.',
+      fieldErrors: { email: ['Format email tidak valid.'] },
+    });
+  });
+});
+
+describe('apiClient and authStorage (DESIGN.md §5 & AGENTS.md §8)', () => {
+  beforeEach(() => {
+    clearAuthToken();
+  });
+
+  it('resolves NEXT_PUBLIC_API_URL and trims trailing slashes', () => {
+    expect(resolveApiBaseUrl({ NEXT_PUBLIC_API_URL: 'https://api.denthub.id/api/v1///' })).toBe(
+      'https://api.denthub.id/api/v1',
+    );
+    expect(resolveApiBaseUrl({})).toBe('http://localhost:5000/api/v1');
+  });
+
+  it('stores token via authStorage and injects Authorization Bearer header', () => {
+    expect(hasAuthToken()).toBe(false);
+    setAuthToken('jwt-token-contoh');
+    expect(getAuthToken()).toBe('jwt-token-contoh');
+    expect(hasAuthToken()).toBe(true);
+
+    const config = attachAuthInterceptor({
+      headers: new AxiosHeaders(),
+    } as InternalAxiosRequestConfig);
+
+    expect(config.headers.get('Authorization')).toBe('Bearer jwt-token-contoh');
+    expect(config.headers.get('Accept')).toBe('application/json');
+  });
+});
