@@ -190,14 +190,31 @@ describe('Global layout, identity, /profile, and /panduan (T-110, T-206)', () =>
     );
     expect(profileHtml).toContain('data-testid="profile-settings-workspace"');
     expect(profileHtml).toContain('data-testid="profile-settings-sidebar"');
-    expect(profileHtml).toContain('data-testid="profile-session-card"');
+    expect(profileHtml).toContain('data-testid="profile-panel-general"');
+    expect(profileHtml).not.toContain('data-testid="profile-session-card"');
     expect(profileHtml).toContain('Profil Umum');
     expect(profileHtml).toContain('Keamanan &amp; Kata Sandi');
     expect(profileHtml).toContain('Sesi &amp; Akun');
-    expect(profileHtml).toContain('Keluar dari Akun');
     expect(profileHtml).toContain('Edit Profil Pengguna');
     expect(profileHtml).toContain('Faris Jihadi Hanif Lubis');
     expect(profileHtml).toContain('farislubis');
+
+    const sessionTabHtml = renderToStaticMarkup(
+      <ProfileEditorView
+        initialSection="session"
+        initialUser={{
+          id: 'u1',
+          full_name: 'Faris Jihadi Hanif Lubis',
+          username: 'farislubis',
+          email: 'faris@denthub.id',
+          avatar: '',
+          role: 'user',
+        }}
+      />,
+    );
+    expect(sessionTabHtml).toContain('data-testid="profile-session-card"');
+    expect(sessionTabHtml).toContain('Keluar dari Akun');
+    expect(sessionTabHtml).not.toContain('data-testid="profile-panel-general"');
 
     const pageHtml = renderToStaticMarkup(<ProfilePage />);
     expect(pageHtml).toContain('Edit Profil Pengguna');

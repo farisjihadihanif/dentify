@@ -159,15 +159,15 @@ export default function HomePage() {
       <KineticMarqueeRibbons testId="home-kinetic-ribbon" />
 
       {/* =====================================================================
-          SECTION 2: Full-Bleed Dark-Navy Multi-Tone Stacked Step Cards
+          SECTION 2: Full-Bleed Edge-to-Edge Dark-Navy Multi-Tone Stacked Step Cards
          ===================================================================== */}
       <section
         id="alur-aplikasi"
         aria-labelledby="heading-alur-aplikasi"
         data-testid="home-section-2-flow"
-        className="w-full px-2 py-6 sm:px-4"
+        className="w-full bg-surface-navy px-4 py-16 text-surface sm:px-8 sm:py-24 lg:px-12"
       >
-        <div className="w-full rounded-[2rem] bg-surface-navy px-4 py-16 text-surface shadow-xl sm:rounded-[2.75rem] sm:px-8 sm:py-24 lg:px-12">
+        <div className="mx-auto w-full max-w-[1380px]">
           <motion.div
             initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -191,7 +191,7 @@ export default function HomePage() {
           </motion.div>
 
           {/* Alternating High-Contrast Multi-Tone Stacked Cards */}
-          <div className="mx-auto mt-12 max-w-5xl space-y-6">
+          <div className="mx-auto mt-14 w-full max-w-[1380px] space-y-8">
             {TIMELINE_FLOW_STEPS.map((item, index) => {
               const Icon = item.icon;
               const theme = STACKED_CARD_THEMES[index % STACKED_CARD_THEMES.length];
@@ -214,17 +214,17 @@ export default function HomePage() {
                           delay: index * 0.06,
                         }
                   }
-                  style={{ top: `${4.5 + index * 1.15}rem` }}
+                  style={{ top: `${4.5 + index * 1.25}rem` }}
                   className={[
-                    'group sticky rounded-[1.75rem] border p-6 shadow-lg transition-all duration-200 hover:shadow-2xl sm:p-9',
+                    'group sticky flex min-h-[250px] items-center rounded-[2rem] border p-7 shadow-xl transition-all duration-200 hover:shadow-2xl sm:min-h-[290px] sm:p-11',
                     theme.card,
                   ].join(' ')}
                 >
-                  <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-8">
-                    <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:w-48 sm:flex-col sm:items-start sm:justify-center">
+                  <div className="flex w-full flex-col gap-6 sm:flex-row sm:items-center sm:gap-10">
+                    <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:w-56 sm:flex-col sm:items-start sm:justify-center">
                       <span
                         className={[
-                          'font-display text-5xl font-extrabold leading-none tracking-tight transition-transform duration-200 group-hover:scale-105 sm:text-6xl',
+                          'font-display text-6xl font-extrabold leading-none tracking-tight transition-transform duration-200 group-hover:scale-105 sm:text-7xl',
                           theme.num,
                         ].join(' ')}
                       >
@@ -232,7 +232,7 @@ export default function HomePage() {
                       </span>
                       <span
                         className={[
-                          'inline-flex items-center gap-1.5 rounded-pill px-3.5 py-1 text-xs font-bold',
+                          'inline-flex items-center gap-1.5 rounded-pill px-4 py-1.5 text-xs font-bold',
                           theme.badge,
                         ].join(' ')}
                       >
@@ -242,11 +242,11 @@ export default function HomePage() {
                     </div>
 
                     <div
-                      className={['hidden h-24 w-px sm:block', theme.divider].join(' ')}
+                      className={['hidden h-28 w-px sm:block', theme.divider].join(' ')}
                       aria-hidden="true"
                     />
 
-                    <div className="flex-1 space-y-2">
+                    <div className="flex-1 space-y-2.5">
                       <p
                         className={[
                           'text-xs font-bold uppercase tracking-wider',
@@ -255,8 +255,8 @@ export default function HomePage() {
                       >
                         {item.subtitle}
                       </p>
-                      <h3 className="text-xl font-extrabold sm:text-2xl">{item.title}</h3>
-                      <p className={['text-sm leading-relaxed sm:text-base', theme.desc].join(' ')}>
+                      <h3 className="text-2xl font-extrabold sm:text-3xl">{item.title}</h3>
+                      <p className={['text-base leading-relaxed sm:text-lg', theme.desc].join(' ')}>
                         {item.description}
                       </p>
                     </div>

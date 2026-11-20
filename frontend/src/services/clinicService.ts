@@ -18,7 +18,7 @@ export interface ClinicItem {
 
 export interface ClinicsResponsePayload {
   success: true;
-  source: 'openstreetmap' | 'fallback';
+  source: 'openstreetmap' | 'directory_fallback' | 'fallback';
   data: ClinicItem[];
   fallback?: {
     osm_url: string;

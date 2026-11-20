@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 import { Bricolage_Grotesque, Plus_Jakarta_Sans } from 'next/font/google';
+import { AdminRolePill } from '../components/AdminRolePill';
 import { AppFooter } from '../components/AppFooter';
 import { DeniMascot } from '../components/DeniMascot';
 import { FloatingNavbar } from '../components/FloatingNavbar';
+import { NewsPromoAdPopup } from '../components/NewsPromoAdPopup';
 import './globals.css';
 
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -36,6 +38,8 @@ export default function RootLayout({
       className={`${bricolageGrotesque.variable} ${plusJakartaSans.variable}`}
     >
       <body className="flex min-h-screen flex-col bg-bg font-sans text-body text-text antialiased">
+        <AdminRolePill />
+        <NewsPromoAdPopup />
         <FloatingNavbar />
         <div className="flex-1">{children}</div>
         <DeniMascot />

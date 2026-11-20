@@ -46,3 +46,19 @@ export {
   type DentalArticleModalProps,
   type DentalEducationArticle,
 } from './DentalArticleModal';
+export { AdminRolePill, type AdminRolePillProps } from './AdminRolePill';
+export {
+  NewsPromoAdPopup,
+  isAdPopupExcludedPath,
+  type NewsPromoAdPopupProps,
+} from './NewsPromoAdPopup';
+export { BeritaPortalView, type BeritaPortalViewProps } from './BeritaPortalView';
+export {
+  BeritaArticleDetailView,
+  type BeritaArticleDetailViewProps,
+} from './BeritaArticleDetailView';
+export {
+  AdminDashboardView,
+  type AdminDashboardViewProps,
+  type AdminTabKey,
+} from './AdminDashboardView';

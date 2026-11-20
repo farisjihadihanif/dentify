@@ -150,243 +150,251 @@ export default function PanduanPage() {
         ]}
       />
 
-      <div className="w-full space-y-10 px-2 py-6 sm:px-4">
+      <div className="w-full">
         {/* =====================================================================
-            SECTION 1: Full-Bleed Dark-Navy Multi-Tone Stacked Guide Steps
+            SECTION 1: Full-Bleed Edge-to-Edge Dark-Navy Multi-Tone Stacked Guide Steps
            ===================================================================== */}
         <section
           aria-labelledby="heading-panduan-aplikasi"
           data-testid="panduan-section-1-steps"
-          className="w-full rounded-[2rem] bg-surface-navy px-4 py-16 text-surface shadow-xl sm:rounded-[2.75rem] sm:px-8 sm:py-24 lg:px-12"
+          className="w-full bg-surface-navy px-4 py-16 text-surface sm:px-8 sm:py-24 lg:px-12"
         >
-          <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
-            className="mx-auto max-w-3xl text-center"
-          >
-            <span className="inline-block rounded-pill border border-surface/20 bg-surface/10 px-4 py-1 text-xs font-bold uppercase tracking-wider text-surface-mint">
-              Pusat Bantuan • Panduan Pengguna DentHub
-            </span>
-            <h1
-              id="heading-panduan-aplikasi"
-              className="mt-3 text-3xl font-extrabold text-surface sm:text-4xl lg:text-5xl"
+          <div className="mx-auto w-full max-w-[1380px]">
+            <motion.div
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
+              className="mx-auto max-w-3xl text-center"
             >
-              Panduan Lengkap Penggunaan Aplikasi DentHub AI
-            </h1>
-            <p className="mt-3 text-sm text-surface/80 sm:text-base">
-              Pelajari cara melakukan screening kesehatan gigi mandiri, mengunduh laporan hasil,
-              berkonsultasi dengan Deni, hingga menemukan klinik dokter gigi terdekat.
-            </p>
-          </motion.div>
+              <span className="inline-block rounded-pill border border-surface/20 bg-surface/10 px-4 py-1 text-xs font-bold uppercase tracking-wider text-surface-mint">
+                Pusat Bantuan • Panduan Pengguna DentHub
+              </span>
+              <h1
+                id="heading-panduan-aplikasi"
+                className="mt-3 text-3xl font-extrabold text-surface sm:text-4xl lg:text-5xl"
+              >
+                Panduan Lengkap Penggunaan Aplikasi DentHub AI
+              </h1>
+              <p className="mt-3 text-sm text-surface/80 sm:text-base">
+                Pelajari cara melakukan screening kesehatan gigi mandiri, mengunduh laporan hasil,
+                berkonsultasi dengan Deni, hingga menemukan klinik dokter gigi terdekat.
+              </p>
+            </motion.div>
 
-          <div className="mx-auto mt-12 max-w-5xl space-y-6">
-            {GUIDE_SECTIONS.map((item, index) => {
-              const Icon = item.icon;
-              const theme = STACKED_CARD_THEMES[index % STACKED_CARD_THEMES.length];
-              return (
-                <motion.article
-                  key={item.step}
-                  initial={
-                    prefersReducedMotion ? false : { opacity: 0, y: 32, scale: 0.97 }
-                  }
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  whileHover={prefersReducedMotion ? undefined : { y: -4 }}
-                  viewport={{ once: true, amount: 0.2 }}
-                  transition={
-                    prefersReducedMotion
-                      ? { duration: 0 }
-                      : {
-                          type: 'spring',
-                          stiffness: 130,
-                          damping: 20,
-                          delay: index * 0.05,
-                        }
-                  }
-                  style={{ top: `${4.2 + index * 0.9}rem` }}
-                  className={[
-                    'group sticky rounded-[1.75rem] border p-6 shadow-lg transition-all duration-200 hover:shadow-2xl sm:p-9',
-                    theme.card,
-                  ].join(' ')}
-                >
-                  <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-8">
-                    <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:w-48 sm:flex-col sm:items-start sm:justify-center">
-                      <span
-                        className={[
-                          'font-display text-5xl font-extrabold leading-none tracking-tight transition-transform duration-200 group-hover:scale-105 sm:text-6xl',
-                          theme.num,
-                        ].join(' ')}
-                      >
-                        {item.step}
-                      </span>
-                      <span
-                        className={[
-                          'inline-flex items-center gap-1.5 rounded-pill px-3.5 py-1 text-xs font-bold',
-                          theme.badge,
-                        ].join(' ')}
-                      >
-                        <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                        <span>{item.badge}</span>
-                      </span>
+            <div className="mx-auto mt-14 w-full max-w-[1380px] space-y-8">
+              {GUIDE_SECTIONS.map((item, index) => {
+                const Icon = item.icon;
+                const theme = STACKED_CARD_THEMES[index % STACKED_CARD_THEMES.length];
+                return (
+                  <motion.article
+                    key={item.step}
+                    initial={
+                      prefersReducedMotion ? false : { opacity: 0, y: 32, scale: 0.97 }
+                    }
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    whileHover={prefersReducedMotion ? undefined : { y: -4 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={
+                      prefersReducedMotion
+                        ? { duration: 0 }
+                        : {
+                            type: 'spring',
+                            stiffness: 130,
+                            damping: 20,
+                            delay: index * 0.05,
+                          }
+                    }
+                    style={{ top: `${4.5 + index * 1.25}rem` }}
+                    className={[
+                      'group sticky flex min-h-[250px] items-center rounded-[2rem] border p-7 shadow-xl transition-all duration-200 hover:shadow-2xl sm:min-h-[290px] sm:p-11',
+                      theme.card,
+                    ].join(' ')}
+                  >
+                    <div className="flex w-full flex-col gap-6 sm:flex-row sm:items-center sm:gap-10">
+                      <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:w-56 sm:flex-col sm:items-start sm:justify-center">
+                        <span
+                          className={[
+                            'font-display text-6xl font-extrabold leading-none tracking-tight transition-transform duration-200 group-hover:scale-105 sm:text-7xl',
+                            theme.num,
+                          ].join(' ')}
+                        >
+                          {item.step}
+                        </span>
+                        <span
+                          className={[
+                            'inline-flex items-center gap-1.5 rounded-pill px-4 py-1.5 text-xs font-bold',
+                            theme.badge,
+                          ].join(' ')}
+                        >
+                          <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          <span>{item.badge}</span>
+                        </span>
+                      </div>
+
+                      <div
+                        className={['hidden h-28 w-px sm:block', theme.divider].join(' ')}
+                        aria-hidden="true"
+                      />
+
+                      <div className="flex-1 space-y-2.5">
+                        <h2 className="text-2xl font-extrabold sm:text-3xl">{item.title}</h2>
+                        <p
+                          className={['text-base leading-relaxed sm:text-lg', theme.desc].join(' ')}
+                        >
+                          {item.description}
+                        </p>
+                      </div>
                     </div>
+                  </motion.article>
+                );
+              })}
+            </div>
 
-                    <div
-                      className={['hidden h-24 w-px sm:block', theme.divider].join(' ')}
-                      aria-hidden="true"
-                    />
-
-                    <div className="flex-1 space-y-2">
-                      <h2 className="text-xl font-extrabold sm:text-2xl">{item.title}</h2>
-                      <p className={['text-sm leading-relaxed sm:text-base', theme.desc].join(' ')}>
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
-                </motion.article>
-              );
-            })}
-          </div>
-
-          <div className="mx-auto mt-12 flex max-w-5xl flex-wrap items-center justify-center gap-3 rounded-[1.5rem] border border-surface/15 bg-surface/10 p-6 text-center">
-            <Link
-              href="/scan"
-              className="inline-flex h-10 min-h-cta items-center justify-center whitespace-nowrap rounded-xl bg-brand px-5 text-sm font-bold text-surface shadow-sm transition-colors hover:bg-brand-dark"
-            >
-              Mulai AI Scan Sekarang →
-            </Link>
-            <Link
-              href="/chat"
-              className="inline-flex h-10 min-h-touch items-center justify-center whitespace-nowrap rounded-xl bg-accent-deni px-5 text-sm font-bold text-surface shadow-sm transition-opacity hover:opacity-95"
-            >
-              Tanya Deni Sekarang
-            </Link>
+            <div className="mx-auto mt-14 flex w-full max-w-[1380px] flex-wrap items-center justify-center gap-3 rounded-[1.5rem] border border-surface/15 bg-surface/10 p-6 text-center">
+              <Link
+                href="/scan"
+                className="inline-flex h-10 min-h-cta items-center justify-center whitespace-nowrap rounded-xl bg-brand px-5 text-sm font-bold text-surface shadow-sm transition-colors hover:bg-brand-dark"
+              >
+                Mulai AI Scan Sekarang →
+              </Link>
+              <Link
+                href="/chat"
+                className="inline-flex h-10 min-h-touch items-center justify-center whitespace-nowrap rounded-xl bg-accent-deni px-5 text-sm font-bold text-surface shadow-sm transition-opacity hover:opacity-95"
+              >
+                Tanya Deni Sekarang
+              </Link>
+            </div>
           </div>
         </section>
 
         {/* =====================================================================
-            SECTION 2: Full-Bleed Dark-Navy Multi-Tone Clickable Dental Articles
+            SECTION 2: Full-Bleed Edge-to-Edge Dark-Navy Multi-Tone Clickable Dental Articles
            ===================================================================== */}
         <section
           aria-labelledby="heading-dunia-dentist"
           data-testid="panduan-section-2-dentist-world"
-          className="w-full rounded-[2rem] bg-surface-navy px-4 py-16 text-surface shadow-xl sm:rounded-[2.75rem] sm:px-8 sm:py-24 lg:px-12"
+          className="w-full border-t border-surface/15 bg-surface-navy px-4 py-16 text-surface sm:px-8 sm:py-24 lg:px-12"
         >
-          <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
-            className="mx-auto max-w-3xl text-center"
-          >
-            <span className="inline-block rounded-pill border border-surface/20 bg-surface/10 px-4 py-1 text-xs font-bold uppercase tracking-wider text-surface-mint">
-              Edukasi Kesehatan Gigi • Dunia Dentist
-            </span>
-            <h2
-              id="heading-dunia-dentist"
-              className="mt-3 text-3xl font-extrabold text-surface sm:text-4xl lg:text-5xl"
+          <div className="mx-auto w-full max-w-[1380px]">
+            <motion.div
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
+              className="mx-auto max-w-3xl text-center"
             >
-              Informasi Seputar Dunia Dentist &amp; Perawatan Gigi
-            </h2>
-            <p className="mt-3 text-sm text-surface/80 sm:text-base">
-              Klik salah satu kartu topik di bawah ini untuk membaca artikel edukasi lengkap yang
-              merujuk pada pedoman WHO, ADA, dan Kemenkes RI.
-            </p>
-          </motion.div>
+              <span className="inline-block rounded-pill border border-surface/20 bg-surface/10 px-4 py-1 text-xs font-bold uppercase tracking-wider text-surface-mint">
+                Edukasi Kesehatan Gigi • Dunia Dentist
+              </span>
+              <h2
+                id="heading-dunia-dentist"
+                className="mt-3 text-3xl font-extrabold text-surface sm:text-4xl lg:text-5xl"
+              >
+                Informasi Seputar Dunia Dentist &amp; Perawatan Gigi
+              </h2>
+              <p className="mt-3 text-sm text-surface/80 sm:text-base">
+                Klik salah satu kartu topik di bawah ini untuk membaca artikel edukasi lengkap yang
+                merujuk pada pedoman WHO, ADA, dan Kemenkes RI.
+              </p>
+            </motion.div>
 
-          <div className="mx-auto mt-12 max-w-5xl space-y-6">
-            {DENTIST_WORLD_ARTICLES.map((article, index) => {
-              const Icon = ARTICLE_ICONS[article.id] ?? BookOpen;
-              const theme = STACKED_CARD_THEMES[index % STACKED_CARD_THEMES.length];
-              return (
-                <motion.button
-                  key={article.id}
-                  type="button"
-                  data-testid={`dentist-article-card-${article.id}`}
-                  onClick={() => setSelectedArticle(article)}
-                  initial={
-                    prefersReducedMotion ? false : { opacity: 0, y: 32, scale: 0.97 }
-                  }
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  whileHover={prefersReducedMotion ? undefined : { y: -4 }}
-                  viewport={{ once: true, amount: 0.2 }}
-                  transition={
-                    prefersReducedMotion
-                      ? { duration: 0 }
-                      : {
-                          type: 'spring',
-                          stiffness: 135,
-                          damping: 20,
-                          delay: index * 0.06,
-                        }
-                  }
-                  style={{ top: `${4.5 + index * 1.1}rem` }}
-                  className={[
-                    'group sticky block w-full cursor-pointer rounded-[1.75rem] border p-6 text-left shadow-lg transition-all duration-200 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring sm:p-9',
-                    theme.card,
-                  ].join(' ')}
-                >
-                  <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-8">
-                    <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:w-48 sm:flex-col sm:items-start sm:justify-center">
-                      <span
-                        className={[
-                          'font-display text-5xl font-extrabold leading-none tracking-tight transition-transform duration-200 group-hover:scale-105 sm:text-6xl',
-                          theme.num,
-                        ].join(' ')}
-                      >
-                        {article.stepNumber}
-                      </span>
-                      <span
-                        className={[
-                          'inline-flex items-center gap-1.5 rounded-pill px-3.5 py-1 text-xs font-bold',
-                          theme.badge,
-                        ].join(' ')}
-                      >
-                        <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                        <span>{article.category}</span>
-                      </span>
-                    </div>
-
-                    <div
-                      className={['hidden h-24 w-px sm:block', theme.divider].join(' ')}
-                      aria-hidden="true"
-                    />
-
-                    <div className="flex-1 space-y-2">
-                      <div
-                        className={[
-                          'flex flex-wrap items-center gap-2 text-xs font-semibold',
-                          theme.meta,
-                        ].join(' ')}
-                      >
-                        <span>{article.readTime}</span>
-                        <span>•</span>
-                        <span>Referensi WHO / ADA / Kemenkes RI</span>
-                      </div>
-                      <h3 className="text-xl font-extrabold sm:text-2xl">{article.title}</h3>
-                      <p className={['text-sm leading-relaxed sm:text-base', theme.desc].join(' ')}>
-                        {article.summary}
-                      </p>
-                      <div className="pt-1">
+            <div className="mx-auto mt-14 w-full max-w-[1380px] space-y-8">
+              {DENTIST_WORLD_ARTICLES.map((article, index) => {
+                const Icon = ARTICLE_ICONS[article.id] ?? BookOpen;
+                const theme = STACKED_CARD_THEMES[index % STACKED_CARD_THEMES.length];
+                return (
+                  <motion.button
+                    key={article.id}
+                    type="button"
+                    data-testid={`dentist-article-card-${article.id}`}
+                    onClick={() => setSelectedArticle(article)}
+                    initial={
+                      prefersReducedMotion ? false : { opacity: 0, y: 32, scale: 0.97 }
+                    }
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    whileHover={prefersReducedMotion ? undefined : { y: -4 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={
+                      prefersReducedMotion
+                        ? { duration: 0 }
+                        : {
+                            type: 'spring',
+                            stiffness: 135,
+                            damping: 20,
+                            delay: index * 0.06,
+                          }
+                    }
+                    style={{ top: `${4.5 + index * 1.25}rem` }}
+                    className={[
+                      'group sticky flex min-h-[250px] w-full cursor-pointer items-center rounded-[2rem] border p-7 text-left shadow-xl transition-all duration-200 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring sm:min-h-[290px] sm:p-11',
+                      theme.card,
+                    ].join(' ')}
+                  >
+                    <div className="flex w-full flex-col gap-6 sm:flex-row sm:items-center sm:gap-10">
+                      <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:w-56 sm:flex-col sm:items-start sm:justify-center">
                         <span
                           className={[
-                            'inline-flex items-center gap-1.5 text-xs font-bold',
-                            theme.cta,
+                            'font-display text-6xl font-extrabold leading-none tracking-tight transition-transform duration-200 group-hover:scale-105 sm:text-7xl',
+                            theme.num,
                           ].join(' ')}
                         >
-                          <BookOpen className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                          <span>Baca Artikel Lengkap</span>
-                          <ArrowUpRight
-                            className="h-4 w-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                            aria-hidden="true"
-                          />
+                          {article.stepNumber}
+                        </span>
+                        <span
+                          className={[
+                            'inline-flex items-center gap-1.5 rounded-pill px-4 py-1.5 text-xs font-bold',
+                            theme.badge,
+                          ].join(' ')}
+                        >
+                          <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          <span>{article.category}</span>
                         </span>
                       </div>
+
+                      <div
+                        className={['hidden h-28 w-px sm:block', theme.divider].join(' ')}
+                        aria-hidden="true"
+                      />
+
+                      <div className="flex-1 space-y-2.5">
+                        <div
+                          className={[
+                            'flex flex-wrap items-center gap-2 text-xs font-semibold',
+                            theme.meta,
+                          ].join(' ')}
+                        >
+                          <span>{article.readTime}</span>
+                          <span>•</span>
+                          <span>Referensi WHO / ADA / Kemenkes RI</span>
+                        </div>
+                        <h3 className="text-2xl font-extrabold sm:text-3xl">{article.title}</h3>
+                        <p
+                          className={['text-base leading-relaxed sm:text-lg', theme.desc].join(' ')}
+                        >
+                          {article.summary}
+                        </p>
+                        <div className="pt-1">
+                          <span
+                            className={[
+                              'inline-flex items-center gap-1.5 text-xs font-bold',
+                              theme.cta,
+                            ].join(' ')}
+                          >
+                            <BookOpen className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                            <span>Baca Artikel Lengkap</span>
+                            <ArrowUpRight
+                              className="h-4 w-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                              aria-hidden="true"
+                            />
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </motion.button>
-              );
-            })}
+                  </motion.button>
+                );
+              })}
+            </div>
           </div>
         </section>
       </div>

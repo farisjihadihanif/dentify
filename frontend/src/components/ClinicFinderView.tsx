@@ -40,7 +40,7 @@ export function ClinicFinderView({
   const [radiusKm, setRadiusKm] = useState<number>(5);
   const [clinics, setClinics] = useState<ClinicItem[]>(initialClinics);
   const [fallbackOsmUrl, setFallbackOsmUrl] = useState<string | null>(null);
-  const [isFallbackActive, setIsFallbackActive] = useState(false);
+  const [clinicSource, setClinicSource] = useState<'openstreetmap' | 'directory_fallback' | 'fallback'>('openstreetmap');
   const [isLoading, setIsLoading] = useState(false);
   const [showManualForm, setShowManualForm] = useState(initialManualMode);
   const [manualCityQuery, setManualCityQuery] = useState('');
@@ -53,7 +53,7 @@ export function ClinicFinderView({
       try {
         const res = await fetchNearbyClinics(targetCoords.lat, targetCoords.lng, targetRadiusKm);
         setClinics(res.data || []);
-        setIsFallbackActive(res.source === 'fallback');
+        setClinicSource(res.source);
         setFallbackOsmUrl(res.fallback?.osm_url || null);
       } catch (error) {
         const mapped =
@@ -198,7 +198,31 @@ export function ClinicFinderView({
         locationLabel={coords.label}
       />
 
-      {isFallbackActive && fallbackOsmUrl && (
+      {clinicSource === 'directory_fallback' && fallbackOsmUrl && (
+        <div
+          role="status"
+          data-testid="clinic-directory-fallback-note"
+          className="rounded-card border border-brand/25 bg-brand-soft p-4 text-badge text-text"
+        >
+          <p className="font-semibold text-brand-dark">
+            Menampilkan direktori klinik gigi &amp; RSGM terkurasi DentHub.
+          </p>
+          <p className="mt-1 text-text-muted">
+            Server Overpass OpenStreetMap sedang sibuk; Anda juga dapat membuka peta langsung di{' '}
+            <a
+              href={fallbackOsmUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-brand-dark underline"
+            >
+              OpenStreetMap ↗
+            </a>
+            .
+          </p>
+        </div>
+      )}
+
+      {clinicSource === 'fallback' && fallbackOsmUrl && (
         <div
           role="status"
           className="rounded-card border border-status-yellow bg-surface p-4 text-badge text-text"
