@@ -1,28 +1,60 @@
 {
-  "raw_files_scanned": 48057,
-  "dropped_unmapped_label": 7616,
+  "raw_files_scanned_included_sources": 14249,
+  "excluded_yolo_dataset_audit": {
+    "present": true,
+    "total_images": 33808,
+    "unique_roboflow_prefixes": 15288,
+    "reason_excluded": "Manual visual & metadata audit found no data.yaml/classes.txt, mixed severe pathology (caries, calculus, gingivitis) across both numeric IDs 0 and 1, YouTube caption bars, and 90-degree Roboflow .rf. pre-augmented duplicates."
+  },
+  "dropped_pre_augmented_or_dupe_export": 6757,
+  "dropped_off_target_class": 3241,
+  "dropped_unmapped_label": 0,
   "dropped_corrupt": 0,
   "dropped_low_res_or_aspect": 18,
-  "dropped_duplicates": 22036,
-  "final_clean_images": 1751,
+  "candidates_before_dedupe": 4233,
+  "dropped_duplicates": 2704,
+  "final_clean_images": 1302,
   "class_counts": {
-    "caries": 600,
-    "gingivitis": 600,
-    "calculus": 508,
-    "healthy": 43
+    "gingivitis": 500,
+    "calculus": 492,
+    "caries": 191,
+    "healthy": 119
   },
   "split_counts": {
-    "train": 1226,
-    "test": 263,
-    "val": 262
+    "train": 910,
+    "val": 196,
+    "test": 196
+  },
+  "class_counts_per_split": {
+    "train": {
+      "caries": 133,
+      "calculus": 344,
+      "gingivitis": 350,
+      "healthy": 83
+    },
+    "val": {
+      "caries": 29,
+      "calculus": 74,
+      "gingivitis": 75,
+      "healthy": 18
+    },
+    "test": {
+      "caries": 29,
+      "calculus": 74,
+      "gingivitis": 75,
+      "healthy": 18
+    }
   },
   "source_counts": {
-    "oral_diseases": 1708,
-    "local_dentalscan_0": 43
+    "oral_diseases": 1029,
+    "local_dentalscan": 273
   },
-  "kaggle_status": {
-    "oral_diseases": "downloaded",
-    "dental_cavity_detection": "downloaded"
+  "leakage_check": {
+    "exact_overlap": 0,
+    "cluster_overlap": 0,
+    "min_cross_split_hamming": 5,
+    "threshold_max_hamming": 4,
+    "passed": true
   },
   "leakage_verified_zero_overlap": true
 }

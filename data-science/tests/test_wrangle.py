@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 
 from wrangle import (
+    classify_path_for_cleaning,
     cluster_near_duplicates,
     compute_dhash_64,
     infer_canonical_label,
@@ -12,21 +13,30 @@ from wrangle import (
 )
 
 
-def test_infer_canonical_label_maps_valid_and_drops_off_target() -> None:
-    assert infer_canonical_label(Path("raw/oral-diseases/Caries/img1.jpg")) == "caries"
-    assert infer_canonical_label(Path("raw/local/karang gigi/img2.png")) == "calculus"
-    assert infer_canonical_label(Path("raw/oral-diseases/Gingivitis/img3.jpg")) == "gingivitis"
-    assert infer_canonical_label(Path("raw/local/gigi sehat/img4.jpg")) == "healthy"
-    assert infer_canonical_label(Path("raw/oral-diseases/Mouth Ulcer/img5.jpg")) is None
-    assert infer_canonical_label(Path("raw/oral-diseases/hypodontia/img6.jpg")) is None
+def test_manual_cleaning_label_mapping_and_exclusions() -> None:
+    assert infer_canonical_label(Path("oral-diseases/Data caries/caries orignal data set/done/1.jpg")) == "caries"
+    assert infer_canonical_label(Path("oral-diseases/Calculus/Calculus/1.jpg")) == "calculus"
+    assert infer_canonical_label(Path("oral-diseases/Gingivitis/Gingivitis/1.jpg")) == "gingivitis"
+    assert infer_canonical_label(Path("dentalscan/gigi sehat/1.jpg")) == "healthy"
+    assert infer_canonical_label(Path("dentalscan/gusi sehat/1.jpg")) == "healthy"
+
+    # Pre-augmented & duplicate exports explicitly dropped
+    lbl, reason = classify_path_for_cleaning(
+        Path("oral-diseases/Data caries/caries augmented data set/preview/1.jpg")
+    )
+    assert lbl is None and reason == "dropped_pre_augmented_or_dupe_export"
+
+    # Off-target classes explicitly dropped
+    lbl2, reason2 = classify_path_for_cleaning(Path("oral-diseases/Mouth Ulcer/1.jpg"))
+    assert lbl2 is None and reason2 == "dropped_off_target_class"
+    lbl3, reason3 = classify_path_for_cleaning(Path("oral-diseases/hypodontia/1.jpg"))
+    assert lbl3 is None and reason3 == "dropped_off_target_class"
 
 
 def test_cluster_near_duplicates_removes_exact_and_near_duplicates() -> None:
     rng = np.random.default_rng(123)
     base = rng.integers(30, 220, size=(256, 256, 3), dtype=np.uint8)
-    # Slightly perturbed copy (should have Hamming distance <= 4)
     near_copy = np.clip(base.astype(np.int16) + 2, 0, 255).astype(np.uint8)
-    # Distinct image
     other = rng.integers(30, 220, size=(256, 256, 3), dtype=np.uint8)
     cv2.rectangle(other, (10, 10), (240, 120), (250, 250, 250), thickness=-1)
 
@@ -45,25 +55,29 @@ def test_cluster_near_duplicates_removes_exact_and_near_duplicates() -> None:
     assert {r["image_id"] for r in deduped} == {"a", "d"}
 
 
-def test_stratified_group_split_has_zero_overlap() -> None:
+def test_stratified_group_split_asserts_zero_exact_and_near_duplicate_overlap() -> None:
+    rng = np.random.default_rng(99)
     rows = []
-    for idx in range(80):
+    # Generate 80 well-separated synthetic 64-bit dHashes
+    seen: list[int] = []
+    while len(seen) < 80:
+        cand = int(rng.integers(0, (1 << 63) - 1, dtype=np.int64))
+        if all((cand ^ prev).bit_count() > 8 for prev in seen):
+            seen.append(cand)
+
+    for idx, h in enumerate(seen):
         label = ("caries", "calculus", "gingivitis", "healthy")[idx % 4]
         rows.append(
             {
                 "image_id": f"img_{idx:03d}",
                 "source": "test",
                 "label": label,
-                "dhash_hex": f"{idx:016x}",
+                "dhash_hex": f"{h:016x}",
                 "cluster_id": f"c{idx:05d}",
             }
         )
-    df = stratified_group_split_70_15_15(pd.DataFrame(rows), seed=42)
+    df, leak_report = stratified_group_split_70_15_15(pd.DataFrame(rows), seed=42, max_hamming=4)
     assert set(df["split"].unique()) == {"train", "val", "test"}
-
-    train_ids = set(df.loc[df["split"] == "train", "dhash_hex"])
-    val_ids = set(df.loc[df["split"] == "val", "dhash_hex"])
-    test_ids = set(df.loc[df["split"] == "test", "dhash_hex"])
-    assert train_ids.isdisjoint(val_ids)
-    assert train_ids.isdisjoint(test_ids)
-    assert val_ids.isdisjoint(test_ids)
+    assert leak_report["passed"] is True
+    assert leak_report["exact_overlap"] == 0
+    assert leak_report["min_cross_split_hamming"] > 4
