@@ -18,3 +18,12 @@ export {
   type IDentalKnowledge,
   type IDentalKnowledgeDocument,
 } from './DentalKnowledge';
+export {
+  Feedback,
+  FEEDBACK_RATINGS,
+  FEEDBACK_TARGET_TYPES,
+  type FeedbackRating,
+  type FeedbackTargetType,
+  type IFeedback,
+  type IFeedbackDocument,
+} from './Feedback';

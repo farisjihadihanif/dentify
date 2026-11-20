@@ -116,6 +116,7 @@ export async function postChatMessage(
     let urgencyLevel: UrgencyLevel;
     let triggerClinicFinder: boolean;
     let suggestedQuestions: string[];
+    let isFallback = false;
 
     try {
       const aiReply = await requestAgentChat({
@@ -133,6 +134,7 @@ export async function postChatMessage(
           : STATIC_FALLBACK_SUGGESTIONS;
     } catch {
       // Static Indonesian fallback on AI/LLM failure (API_SPECS §6.1, ARCHITECTURE §5.4)
+      isFallback = true;
       const severe = containsSevereSymptoms(input.message);
       reply = STATIC_FALLBACK_CHAT_REPLY;
       urgencyLevel = severe ? 'emergency' : linkedScan?.urgency_level ?? 'low';
@@ -204,6 +206,7 @@ export async function postChatMessage(
         urgency_level: urgencyLevel,
         trigger_clinic_finder: triggerClinicFinder,
         suggested_questions: suggestedQuestions,
+        is_fallback: isFallback,
         medical_disclaimer: DISCLAIMER_CHAT,
       },
     });
