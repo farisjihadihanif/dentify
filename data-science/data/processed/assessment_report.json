@@ -1,0 +1,28 @@
+{
+  "raw_files_scanned": 48057,
+  "dropped_unmapped_label": 7616,
+  "dropped_corrupt": 0,
+  "dropped_low_res_or_aspect": 18,
+  "dropped_duplicates": 22036,
+  "final_clean_images": 1751,
+  "class_counts": {
+    "caries": 600,
+    "gingivitis": 600,
+    "calculus": 508,
+    "healthy": 43
+  },
+  "split_counts": {
+    "train": 1226,
+    "test": 263,
+    "val": 262
+  },
+  "source_counts": {
+    "oral_diseases": 1708,
+    "local_dentalscan_0": 43
+  },
+  "kaggle_status": {
+    "oral_diseases": "downloaded",
+    "dental_cavity_detection": "downloaded"
+  },
+  "leakage_verified_zero_overlap": true
+}
