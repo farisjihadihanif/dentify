@@ -1,0 +1,74 @@
+# Render.com Blueprint for DentHub (Backend Express TS & AI Service FastAPI)
+# Reference: docs/ARCHITECTURE.md §9 & docs/TASK.md (T-303)
+# All secrets and deployment-specific URLs use `sync: false` so nothing sensitive is hardcoded.
+
+services:
+  - type: web
+    name: denthub-ai-service
+    runtime: python
+    rootDir: ai-service
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: MODEL_PATH
+        value: models/denthub_model.keras
+      - key: MIN_CONFIDENCE
+        value: "0.60"
+      - key: EMERGENCY_CONFIDENCE
+        value: "0.85"
+      - key: LLM_TIMEOUT_S
+        value: "20"
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: AI_SERVICE_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+
+  - type: web
+    name: denthub-backend
+    runtime: node
+    rootDir: backend
+    plan: starter
+    buildCommand: npm install --no-fund --no-audit && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: "1"
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: BCRYPT_SALT_ROUNDS
+        value: "10"
+      - key: AI_SERVICE_TIMEOUT_MS
+        value: "25000"
+      - key: OVERPASS_URL
+        value: https://overpass-api.de/api/interpreter
+      - key: NOMINATIM_URL
+        value: https://nominatim.openstreetmap.org/search
+      - key: OSM_USER_AGENT
+        value: DentHub/1.0 (capstone-cc26-psu285@denthub.local)
+      - key: CORS_ORIGINS
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: AI_SERVICE_URL
+        sync: false
+      - key: AI_SERVICE_API_KEY
+        sync: false
+      - key: ADMIN_NAME
+        value: Administrator DentHub
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
