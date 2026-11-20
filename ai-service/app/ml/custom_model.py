@@ -191,36 +191,53 @@ def build_denthub_model(
     inputs = keras.Input(shape=input_shape, name="dental_image")
 
     # Stem
-    x = layers.Conv2D(24, kernel_size=3, strides=2, padding="same", use_bias=False, name="stem_conv")(
-        inputs
-    )
+    x = layers.Conv2D(
+        32,
+        kernel_size=3,
+        strides=2,
+        padding="same",
+        use_bias=False,
+        kernel_regularizer=keras.regularizers.l2(1e-4),
+        name="stem_conv",
+    )(inputs)
     x = layers.BatchNormalization(momentum=0.9, name="stem_bn")(x)
     x = layers.ReLU(max_value=6.0, name="stem_relu")(x)
 
     # MobileNetV2-style inverted residual stages (built completely from scratch)
-    x = _inverted_residual_block(x, out_channels=24, stride=2, expansion=2, block_id=1)
-    x = _inverted_residual_block(x, out_channels=32, stride=2, expansion=3, block_id=2)
-    x = _inverted_residual_block(x, out_channels=32, stride=1, expansion=3, block_id=3)
-    x = _inverted_residual_block(x, out_channels=64, stride=2, expansion=3, block_id=4)
-    x = _inverted_residual_block(x, out_channels=64, stride=1, expansion=3, block_id=5)
+    x = _inverted_residual_block(x, out_channels=32, stride=2, expansion=2, block_id=1)
+    x = _inverted_residual_block(x, out_channels=48, stride=2, expansion=3, block_id=2)
+    x = _inverted_residual_block(x, out_channels=48, stride=1, expansion=3, block_id=3)
+    x = _inverted_residual_block(x, out_channels=80, stride=2, expansion=3, block_id=4)
+    x = _inverted_residual_block(x, out_channels=80, stride=1, expansion=3, block_id=5)
     x = ChannelAttention(reduction_ratio=8, name="mid_channel_attention")(x)
-    x = _inverted_residual_block(x, out_channels=96, stride=2, expansion=3, block_id=6)
-    x = _inverted_residual_block(x, out_channels=96, stride=1, expansion=3, block_id=7)
+    x = _inverted_residual_block(x, out_channels=128, stride=2, expansion=3, block_id=6)
+    x = _inverted_residual_block(x, out_channels=128, stride=1, expansion=3, block_id=7)
 
     # Final convolutional projection named for Grad-CAM localization
     x = layers.Conv2D(
-        160,
+        192,
         kernel_size=1,
         padding="same",
         use_bias=False,
+        kernel_regularizer=keras.regularizers.l2(1e-4),
         name="gradcam_conv",
     )(x)
     x = layers.BatchNormalization(momentum=0.9, name="head_bn")(x)
     x = layers.ReLU(max_value=6.0, name="head_relu")(x)
     x = ChannelAttention(reduction_ratio=8, name="head_channel_attention")(x)
 
-    x = layers.GlobalAveragePooling2D(name="global_avg_pool")(x)
+    gap = layers.GlobalAveragePooling2D(name="global_avg_pool")(x)
+    gmp = layers.GlobalMaxPooling2D(name="global_max_pool")(x)
+    x = layers.Concatenate(name="dual_pool_concat")([gap, gmp])
     x = layers.Dropout(dropout_rate, name="head_dropout")(x)
+    x = layers.Dense(
+        128,
+        activation="swish",
+        kernel_regularizer=keras.regularizers.l2(1e-4),
+        name="head_dense",
+    )(x)
+    x = layers.BatchNormalization(momentum=0.9, name="head_dense_bn")(x)
+    x = layers.Dropout(dropout_rate * 0.7, name="head_dense_dropout")(x)
     outputs = layers.Dense(num_classes, activation="softmax", name="condition_probs")(x)
 
     return keras.Model(inputs=inputs, outputs=outputs, name="denthub_mobilenet_attention")

@@ -88,14 +88,61 @@ def load_split_arrays(
 def augment_training_batch(batch_x: tf.Tensor) -> tf.Tensor:
     """Training-only augmentation (never applied to validation or test splits)."""
     x = tf.image.random_flip_left_right(batch_x)
-    x = tf.image.random_brightness(x, max_delta=0.12)
-    x = tf.image.random_contrast(x, lower=0.88, upper=1.12)
-    # Mild random crop + resize for zoom invariance
-    crop_frac = tf.random.uniform([], minval=0.86, maxval=1.0)
+    x = tf.image.random_brightness(x, max_delta=0.14)
+    x = tf.image.random_contrast(x, lower=0.84, upper=1.16)
+    x = tf.image.random_saturation(x, lower=0.84, upper=1.18)
+    x = tf.image.random_hue(x, max_delta=0.03)
+    # Random crop + resize for multi-scale zoom & shift invariance
+    crop_frac = tf.random.uniform([], minval=0.80, maxval=1.0)
     crop_size = tf.cast(tf.round(crop_frac * INPUT_SIZE), tf.int32)
     x = tf.image.random_crop(x, size=[tf.shape(x)[0], crop_size, crop_size, 3])
     x = tf.image.resize(x, [INPUT_SIZE, INPUT_SIZE])
     return tf.clip_by_value(x, 0.0, 1.0)
+
+
+def predict_with_tta(model: keras.Model, x_arr: np.ndarray, batch_size: int = 32) -> np.ndarray:
+    """4-view Test-Time Augmentation: original, horizontal flip, 90% center crop, and cropped flip."""
+    margin = int(INPUT_SIZE * 0.05)
+    cropped = x_arr[:, margin : INPUT_SIZE - margin, margin : INPUT_SIZE - margin, :]
+    cropped_resized = tf.image.resize(cropped, [INPUT_SIZE, INPUT_SIZE]).numpy().astype(np.float32)
+
+    views = [
+        x_arr,
+        x_arr[:, :, ::-1, :],
+        cropped_resized,
+        cropped_resized[:, :, ::-1, :],
+    ]
+    preds = [model.predict(v, batch_size=batch_size, verbose=0) for v in views]
+    return np.mean(preds, axis=0).astype(np.float32)
+
+
+def build_balanced_train_dataset(
+    train_x: np.ndarray,
+    train_y: np.ndarray,
+    batch_size: int,
+    seed: int,
+) -> tuple[tf.data.Dataset, int]:
+    """Class-balanced sampling dataset (oversamples minority train classes per epoch, zero val/test leakage)."""
+    y_idx = np.argmax(train_y, axis=1)
+    per_class_ds: list[tf.data.Dataset] = []
+    max_count = 0
+    for c in range(train_y.shape[1]):
+        mask = y_idx == c
+        cx = train_x[mask]
+        cy = train_y[mask]
+        max_count = max(max_count, len(cx))
+        ds_c = (
+            tf.data.Dataset.from_tensor_slices((cx, cy))
+            .shuffle(buffer_size=max(len(cx), 1), seed=seed + c, reshuffle_each_iteration=True)
+            .repeat()
+        )
+        per_class_ds.append(ds_c)
+
+    balanced = tf.data.Dataset.sample_from_datasets(per_class_ds, seed=seed)
+    total_epoch_samples = max_count * train_y.shape[1]
+    steps_per_epoch = max(1, int(np.ceil(total_epoch_samples / batch_size)))
+    ds = balanced.batch(batch_size).prefetch(tf.data.AUTOTUNE)
+    return ds, steps_per_epoch
 
 
 def compute_class_weights(y_onehot: np.ndarray) -> list[float]:
@@ -169,23 +216,27 @@ def train_model(
         )
 
     class_weights = compute_class_weights(train_y)
-    loss_fn = ClassWeightedFocalLoss(class_weights=class_weights, gamma=1.5, label_smoothing=0.05)
-    steps_per_epoch = max(1, int(np.ceil(len(train_x) / batch_size)))
+    # With class-balanced sampling, keep gentle focal weights to avoid over-skewing predictions
+    focal_weights = [round(0.5 + 0.5 * w, 4) for w in class_weights]
+    loss_fn = ClassWeightedFocalLoss(class_weights=focal_weights, gamma=1.5, label_smoothing=0.05)
+    train_ds, steps_per_epoch = build_balanced_train_dataset(
+        train_x, train_y, batch_size=batch_size, seed=seed
+    )
     lr_schedule = keras.optimizers.schedules.CosineDecay(
         initial_learning_rate=learning_rate,
         decay_steps=max(1, epochs * steps_per_epoch),
-        alpha=0.05,
+        alpha=0.03,
     )
     optimizer = keras.optimizers.AdamW(
         learning_rate=lr_schedule,
-        weight_decay=1e-4,
+        weight_decay=2e-4,
         clipnorm=1.0,
     )
 
     model = build_denthub_model(
         input_shape=(INPUT_SIZE, INPUT_SIZE, 3),
         num_classes=len(DENTAL_LABELS),
-        dropout_rate=0.25,
+        dropout_rate=0.3,
     )
     model.compile(optimizer=optimizer, loss=loss_fn, metrics=["accuracy"])
 
@@ -202,20 +253,26 @@ def train_model(
     )
     checkpoint_cb.set_model(model)
 
-    train_ds = (
-        tf.data.Dataset.from_tensor_slices((train_x, train_y))
-        .shuffle(buffer_size=max(len(train_x), 1), seed=seed, reshuffle_each_iteration=True)
-        .batch(batch_size)
-        .prefetch(tf.data.AUTOTUNE)
-    )
     val_ds = tf.data.Dataset.from_tensor_slices((val_x, val_y)).batch(batch_size)
 
     @tf.function
     def train_step(x_batch: tf.Tensor, y_batch: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
         aug_x = augment_training_batch(x_batch)
+        # Mild MixUp on 30% of batches for better generalization from scratch
+        do_mixup = tf.random.uniform([]) < 0.30
+        if do_mixup:
+            lam = tf.random.uniform([], minval=0.75, maxval=0.95)
+            idx = tf.random.shuffle(tf.range(tf.shape(aug_x)[0]))
+            aug_x = lam * aug_x + (1.0 - lam) * tf.gather(aug_x, idx)
+            y_target = lam * y_batch + (1.0 - lam) * tf.gather(y_batch, idx)
+        else:
+            y_target = y_batch
+
         with tf.GradientTape() as tape:
             preds = model(aug_x, training=True)
-            loss_val = tf.reduce_mean(loss_fn(y_batch, preds))
+            loss_val = tf.reduce_mean(loss_fn(y_target, preds))
+            if model.losses:
+                loss_val = loss_val + tf.add_n(model.losses)
         grads = tape.gradient(loss_val, model.trainable_variables)
         optimizer.apply_gradients(zip(grads, model.trainable_variables, strict=False))
         acc = tf.reduce_mean(
@@ -238,7 +295,7 @@ def train_model(
     for epoch in range(epochs):
         train_losses: list[float] = []
         train_accs: list[float] = []
-        for xb, yb in train_ds:
+        for xb, yb in train_ds.take(steps_per_epoch):
             l_val, a_val = train_step(xb, yb)
             train_losses.append(float(l_val.numpy()))
             train_accs.append(float(a_val.numpy()))
@@ -290,19 +347,21 @@ def train_model(
     tb_train_writer.flush()
     tb_val_writer.flush()
 
-    # Reload best checkpointed .keras model and evaluate on held-out test set
+    # Reload best checkpointed .keras model and evaluate on held-out test set (single-view + 4-view TTA)
     best_model = load_denthub_model(model_output_path)
-    test_probs = best_model.predict(test_x, batch_size=batch_size, verbose=0)
+    test_probs_single = best_model.predict(test_x, batch_size=batch_size, verbose=0)
+    test_metrics_single = evaluate_predictions(test_y, test_probs_single)
+    test_probs = predict_with_tta(best_model, test_x, batch_size=batch_size)
     test_metrics = evaluate_predictions(test_y, test_probs)
-    val_probs = best_model.predict(val_x, batch_size=batch_size, verbose=0)
+    val_probs = predict_with_tta(best_model, val_x, batch_size=batch_size)
     val_metrics = evaluate_predictions(val_y, val_probs)
 
     meta = {
         "model_version": MODEL_VERSION,
         "labels": list(DENTAL_LABELS),
         "input_size": INPUT_SIZE,
-        "preprocessing": "RGB -> LAB CLAHE (clip=2.0, grid=8x8) -> resize 224x224 -> scale [0,1]",
-        "architecture": "DentHub Functional API MobileNetV2-style + ChannelAttention (trained from scratch)",
+        "preprocessing": "RGB -> LAB CLAHE (clip=2.0, grid=8x8) -> resize 224x224 -> scale [0,1] + 4-view TTA",
+        "architecture": "DentHub Functional API MobileNetV2-style + ChannelAttention + DualPool (trained from scratch)",
         "pretrained_weights": False,
         "custom_components": [
             "ChannelAttention",
@@ -313,7 +372,7 @@ def train_model(
         "training_date": datetime.now(timezone.utc).isoformat(),
         "epochs": epochs,
         "batch_size": batch_size,
-        "class_weights": class_weights,
+        "class_weights": focal_weights,
         "dataset_splits": {
             "train": int(len(train_x)),
             "val": int(len(val_x)),
@@ -321,6 +380,7 @@ def train_model(
         },
         "val_metrics": val_metrics,
         "test_metrics": test_metrics,
+        "test_metrics_single_view": test_metrics_single,
         "tensorboard_log_dir": str((logs_dir / run_name).as_posix()),
         "history": history,
     }
