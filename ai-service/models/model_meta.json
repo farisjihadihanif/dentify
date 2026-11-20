@@ -10,6 +10,7 @@
   "preprocessing": "RGB -> LAB CLAHE (clip=2.0, grid=8x8) -> resize 224x224 -> scale [0,1]",
   "architecture": "DentHub Functional API MobileNetV2-style + ChannelAttention (trained from scratch)",
   "pretrained_weights": false,
+  "baseline_notes": "Accepted 78.06% held-out test accuracy (0.7337 Macro-F1, 0.2166 MAE) under strict from-scratch training (weights=None; no ImageNet/TF Hub/AutoML) on the leak-free 910-image training split (1,302 total unique images after removing pre-augmented duplicates and excluding unavailable private Kaggle dataset #3 and ambiguous cavity-detection labels).",
   "custom_components": [
     "ChannelAttention",
     "ClassWeightedFocalLoss",
