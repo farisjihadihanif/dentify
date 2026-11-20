@@ -23,8 +23,8 @@
         <circle cx="0" cy="0" r="18" fill="#E6F7F7" fill-opacity="0.22"/>
       </g>
   <text x="44" y="348" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" letter-spacing="2" fill="#E6F7F7" opacity="0.88">DETEKSI DINI</text>
-  <text x="44" y="392" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="800" fill="#FFFFFF">Tambal Karies Komposit</text>
+  <text x="44" y="392" font-family="system-ui, -apple-system, sans-serif" font-size="26" font-weight="800" fill="#FFFFFF">Tambal Karies Komposit</text>
   <text x="44" y="428" font-family="system-ui, -apple-system, sans-serif" font-size="17" font-weight="500" fill="#E6F7F7" opacity="0.9">Tanpa Antre Panjang</text>
   <line x1="44" y1="472" x2="376" y2="472" stroke="#E6F7F7" stroke-opacity="0.25" stroke-width="1"/>
-  <text x="44" y="504" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" letter-spacing="1" fill="#FFFFFF" opacity="0.85">DentHub • Edukasi Kesehatan Gigi</text>
+  <text x="44" y="504" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" letter-spacing="1" fill="#FFFFFF" opacity="0.85">DentHub &#x2022; Edukasi Kesehatan Gigi</text>
 </svg>

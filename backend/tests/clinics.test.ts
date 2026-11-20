@@ -67,6 +67,7 @@ describe('T-203 Clinics OSM endpoints: validation, distance sort, fallback, geoc
     expect(res.body.source).toBe('openstreetmap');
     expect(res.body.data).toHaveLength(3);
     expect(res.body.data[0].name).toBe('Klinik Gigi Dekat');
+    expect(res.body.data[0].osm_url).toContain('https://www.google.com/maps/dir/?api=1&destination=');
     expect(res.body.data[0].distance_km).toBeLessThanOrEqual(res.body.data[1].distance_km);
     expect(res.body.data[1].distance_km).toBeLessThanOrEqual(res.body.data[2].distance_km);
     expect(res.body.data[1].name).toBe('Klinik Gigi (tanpa nama)');

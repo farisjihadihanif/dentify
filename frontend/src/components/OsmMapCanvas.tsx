@@ -2,7 +2,10 @@
 
 import React, { useEffect, useRef } from 'react';
 import 'leaflet/dist/leaflet.css';
-import type { ClinicItem } from '../services/clinicService';
+import {
+  buildGoogleMapsDirectionsUrl,
+  type ClinicItem,
+} from '../services/clinicService';
 
 export interface OsmMapCanvasProps {
   centerLat: number;
@@ -60,6 +63,8 @@ export default function OsmMapCanvas({
 
       // Pin untuk setiap klinik gigi terdekat
       for (const clinic of clinics) {
+        const directionsUrl = buildGoogleMapsDirectionsUrl(clinic.latitude, clinic.longitude);
+        const safeAddress = clinic.address || 'Alamat tersedia di peta';
         L.circleMarker([clinic.latitude, clinic.longitude], {
           radius: 8,
           weight: 2,
@@ -68,9 +73,9 @@ export default function OsmMapCanvas({
         })
           .addTo(mapInstance)
           .bindPopup(
-            `<strong>${clinic.name}</strong><br/>${clinic.address}<br/>Jarak: ${clinic.distance_km.toFixed(
+            `<strong>${clinic.name}</strong><br/>${safeAddress}<br/>Jarak: ${clinic.distance_km.toFixed(
               1,
-            )} km`,
+            )} km<br/><a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" style="font-weight:600;text-decoration:underline;">Buka Rute di Google Maps &rarr;</a>`,
           );
       }
     });

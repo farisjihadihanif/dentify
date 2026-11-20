@@ -7,6 +7,7 @@ import { ErrorBanner } from './ErrorBanner';
 import { OsmMapView } from './OsmMapView';
 import {
   DEFAULT_COORDINATES,
+  buildGoogleMapsDirectionsUrl,
   fetchNearbyClinics,
   requestBrowserGeolocation,
   resolveManualLocationQuery,
@@ -208,14 +209,14 @@ export function ClinicFinderView({
             Menampilkan direktori klinik gigi &amp; RSGM terkurasi DentHub.
           </p>
           <p className="mt-1 text-text-muted">
-            Server Overpass OpenStreetMap sedang sibuk; Anda juga dapat membuka peta langsung di{' '}
+            Server Overpass OpenStreetMap sedang sibuk; Anda juga dapat membuka rute langsung di{' '}
             <a
-              href={fallbackOsmUrl}
+              href={buildGoogleMapsDirectionsUrl(coords.lat, coords.lng)}
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold text-brand-dark underline"
             >
-              OpenStreetMap ↗
+              Google Maps ↗
             </a>
             .
           </p>
@@ -231,14 +232,14 @@ export function ClinicFinderView({
             Server publik Overpass OpenStreetMap sedang sibuk.
           </p>
           <p className="mt-1 text-text-muted">
-            Anda tetap dapat membuka peta fasilitas dokter gigi terdekat secara langsung melalui{' '}
+            Anda tetap dapat membuka navigasi fasilitas dokter gigi terdekat secara langsung melalui{' '}
             <a
-              href={fallbackOsmUrl}
+              href={buildGoogleMapsDirectionsUrl(coords.lat, coords.lng)}
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold text-brand-dark underline"
             >
-              tautan pencarian OpenStreetMap ini ↗
+              Google Maps ↗
             </a>
             .
           </p>

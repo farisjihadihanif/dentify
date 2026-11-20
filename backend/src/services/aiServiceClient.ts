@@ -29,6 +29,9 @@ export interface AiChatKnowledgeItem {
 
 export interface AiAgentChatRequest {
   message: string;
+  user_name?: string;
+  image_base64?: string;
+  image_mime_type?: string;
   scan_context?: {
     primary_condition: DentalCondition;
     confidence_score: number;

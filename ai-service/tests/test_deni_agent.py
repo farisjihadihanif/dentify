@@ -103,12 +103,15 @@ def test_agent_chat_endpoint_auth_and_schema(monkeypatch: pytest.MonkeyPatch) ->
     r_ok = client.post(
         "/internal/agent/chat",
         headers={"X-Internal-Key": "test-agent-key"},
-        json={"message": "Bagaimana cara menyikat gigi yang benar?"},
+        json={
+            "message": "Bagaimana cara menyikat gigi yang benar?",
+            "user_name": "Faris",
+        },
     )
     assert r_ok.status_code == 200
     body = r_ok.json()
     assert body["urgency_level"] in {"low", "medium", "emergency"}
     assert isinstance(body["trigger_clinic_finder"], bool)
-    assert isinstance(body["reply"], str) and len(body["reply"]) > 10
+    assert "Faris" in body["reply"]
     assert isinstance(body["suggested_questions"], list)
     get_settings.cache_clear()

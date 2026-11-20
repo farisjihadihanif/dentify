@@ -60,28 +60,40 @@ function parseJpegDimensions(buf: Buffer): { width: number; height: number } | n
 }
 
 function parseWebpDimensions(buf: Buffer): { width: number; height: number } | null {
-  if (buf.length < 30) return null;
-  const chunkHeader = buf.toString('ascii', 12, 16);
-  if (chunkHeader === 'VP8X' && buf.length >= 30) {
-    const width = 1 + buf.readUIntLE(24, 3);
-    const height = 1 + buf.readUIntLE(27, 3);
-    return { width, height };
-  }
-  if (chunkHeader === 'VP8 ' && buf.length >= 30) {
-    // Keyframe start code 9d 01 2a at offset 23..25
-    if (buf[23] === 0x9d && buf[24] === 0x01 && buf[25] === 0x2a) {
-      const width = buf.readUInt16LE(26) & 0x3fff;
-      const height = buf.readUInt16LE(28) & 0x3fff;
-      return { width, height };
+  if (buf.length < 25) return null;
+
+  let offset = 12;
+  while (offset + 8 <= buf.length) {
+    const chunkHeader = buf.toString('ascii', offset, offset + 4);
+    const chunkSize = buf.readUInt32LE(offset + 4);
+    const payloadOffset = offset + 8;
+
+    if (chunkHeader === 'VP8X' && payloadOffset + 10 <= buf.length) {
+      const width = 1 + buf.readUIntLE(payloadOffset + 4, 3);
+      const height = 1 + buf.readUIntLE(payloadOffset + 7, 3);
+      if (width > 0 && height > 0) return { width, height };
+    } else if (chunkHeader === 'VP8 ' && payloadOffset + 10 <= buf.length) {
+      if (
+        buf[payloadOffset + 3] === 0x9d &&
+        buf[payloadOffset + 4] === 0x01 &&
+        buf[payloadOffset + 5] === 0x2a
+      ) {
+        const width = buf.readUInt16LE(payloadOffset + 6) & 0x3fff;
+        const height = buf.readUInt16LE(payloadOffset + 8) & 0x3fff;
+        if (width > 0 && height > 0) return { width, height };
+      }
+    } else if (chunkHeader === 'VP8L' && payloadOffset + 5 <= buf.length) {
+      if (buf[payloadOffset] === 0x2f) {
+        const bits = buf.readUInt32LE(payloadOffset + 1);
+        const width = (bits & 0x3fff) + 1;
+        const height = ((bits >> 14) & 0x3fff) + 1;
+        if (width > 0 && height > 0) return { width, height };
+      }
     }
-  }
-  if (chunkHeader === 'VP8L' && buf.length >= 25) {
-    if (buf[20] === 0x2f) {
-      const bits = buf.readUInt32LE(21);
-      const width = (bits & 0x3fff) + 1;
-      const height = ((bits >> 14) & 0x3fff) + 1;
-      return { width, height };
-    }
+
+    const paddedSize = chunkSize + (chunkSize % 2);
+    if (paddedSize <= 0) break;
+    offset = payloadOffset + paddedSize;
   }
   return null;
 }

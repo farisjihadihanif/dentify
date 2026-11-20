@@ -95,14 +95,18 @@ const SAMPLE_USER: AuthUser = {
 };
 
 describe('T-208 Footer Vertical Link Stack & Admin Role Pill', () => {
-  it('places Berita & Promo (/berita) directly underneath Panduan Aplikasi (/panduan) on the right side', () => {
+  it('stacks credits on left and Panduan Aplikasi + Promo, Berita & Artikel on right with mobile dock clearance', () => {
     const html = renderToStaticMarkup(<AppFooter />);
+    expect(html).toContain('data-testid="footer-left-credits"');
+    expect(html).toContain('created by');
+    expect(html).toContain('Denthub © 2026');
     expect(html).toContain('data-testid="footer-right-links"');
-    expect(html).toContain('flex-col');
+    expect(html).toContain('pb-24');
+    expect(html).toContain('md:pb-4');
     expect(html).toContain('href="/panduan"');
     expect(html).toContain('href="/berita"');
     expect(html).toContain('Panduan Aplikasi');
-    expect(html).toContain('Berita &amp; Promo');
+    expect(html).toContain('Promo, Berita &amp; Artikel');
     expect(html.indexOf('/panduan')).toBeLessThan(html.indexOf('/berita'));
   });
 
@@ -161,23 +165,27 @@ describe('T-208 /berita Digital Library Portal & Two-Step Reader (/berita/[slug]
     expect(getOrderedCategories('Artikel')).toEqual(['Artikel', 'Berita', 'Promo']);
   });
 
-  it('renders centered search bar, arrowless select, 3 horizontal shelves, and Step 1 preview modal', () => {
+  it('renders centered search bar, custom styled category dropdown, 3 horizontal shelves, and Step 1 preview modal without eyebrow badge', () => {
     const html = renderToStaticMarkup(
       <BeritaPortalView
         initialArticles={SAMPLE_ARTICLES}
         initialCategory="Promo"
+        initialDropdownOpen
         initialPreviewArticle={SAMPLE_ARTICLES[0]}
       />,
     );
 
     expect(html).toContain('data-testid="berita-section-1-search"');
+    expect(html).not.toContain('Portal Informasi &amp; Pustaka Digital DentHub');
     expect(html).toContain('data-testid="berita-category-select"');
-    expect(html).toContain('appearance-none');
+    expect(html).toContain('data-testid="berita-category-menu"');
+    expect(html).toContain('data-testid="berita-category-option-promo"');
     expect(html).toContain('overflow-x-auto');
     expect(html.indexOf('data-testid="berita-shelf-promo"')).toBeLessThan(
       html.indexOf('data-testid="berita-shelf-berita"'),
     );
     expect(html).toContain('data-testid="berita-preview-modal"');
+    expect(html).toContain('opacity-100');
     expect(html).toContain('Baca Selengkapnya');
     expect(html).toContain('href="/berita/promo-scaling-gigi-25"');
   });
@@ -289,16 +297,21 @@ describe('T-208 /admin CMS & User Management Dashboard', () => {
 });
 
 describe('T-208 Edge-to-Edge Home Section 2 & /panduan + Tabbed /profile', () => {
-  it('renders Home Section 2 and /panduan as full-bleed edge-to-edge navy sections with max-w-[1380px] stacked cards', () => {
+  it('renders Home Section 2 without eyebrow/subtitle and /panduan with interactive DENTHUB. display wordmark', () => {
     const homeHtml = renderToStaticMarkup(<HomePage />);
     expect(homeHtml).toContain('data-testid="home-section-2-flow"');
     expect(homeHtml).toContain('w-full bg-surface-navy');
     expect(homeHtml).toContain('max-w-[1380px]');
     expect(homeHtml).toContain('min-h-[250px]');
+    expect(homeHtml).not.toContain('AI Dental Screening • Dunia Dentist 3D');
+    expect(homeHtml).not.toContain('Alur Penggunaan Aplikasi');
+    expect(homeHtml).not.toContain('Ikuti 4 langkah berurutan');
 
     const panduanHtml = renderToStaticMarkup(<PanduanPage />);
     expect(panduanHtml).toContain('data-testid="panduan-section-1-steps"');
     expect(panduanHtml).toContain('data-testid="panduan-section-2-dentist-world"');
+    expect(panduanHtml).toContain('data-testid="panduan-bottom-wordmark"');
+    expect(panduanHtml).toContain('aria-label="DENTHUB."');
     expect(panduanHtml).toContain('max-w-[1380px]');
     expect(panduanHtml).toContain('min-h-[250px]');
   });

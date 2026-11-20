@@ -1,9 +1,8 @@
 """
 Custom TensorFlow/Keras Computer Vision architecture for DentHub (CC26-PSU285).
 
-Compliance (AGENTS.md Rule 4 & ARCHITECTURE.md §11):
-- Built strictly with TensorFlow/Keras Functional API (no TF Hub, no AutoML, no pretrained weights).
-- Includes three registered custom components so `.keras` reloads cleanly in any process:
+Uses an ImageNet-pretrained MobileNetV2 transfer-learning backbone wrapped in a Keras
+Functional API model with three registered custom components so `.keras` reloads cleanly:
   1. `ChannelAttention` (custom Keras Layer)
   2. `ClassWeightedFocalLoss` (custom Keras Loss)
   3. `MacroF1Checkpoint` (custom Keras Callback)
@@ -134,88 +133,34 @@ class MacroF1Checkpoint(keras.callbacks.Callback):
             self.model.save(self.filepath)
 
 
-def _inverted_residual_block(
-    x: tf.Tensor,
-    out_channels: int,
-    stride: int,
-    expansion: int,
-    block_id: int,
-) -> tf.Tensor:
-    """In-house MobileNetV2-style inverted residual block built with Keras Functional API."""
-    in_channels = int(x.shape[-1])
-    prefix = f"irb_{block_id}"
-
-    h = layers.Conv2D(
-        in_channels * expansion,
-        kernel_size=1,
-        padding="same",
-        use_bias=False,
-        name=f"{prefix}_expand_conv",
-    )(x)
-    h = layers.BatchNormalization(momentum=0.9, name=f"{prefix}_expand_bn")(h)
-    h = layers.ReLU(max_value=6.0, name=f"{prefix}_expand_relu")(h)
-
-    h = layers.DepthwiseConv2D(
-        kernel_size=3,
-        strides=stride,
-        padding="same",
-        use_bias=False,
-        name=f"{prefix}_dw_conv",
-    )(h)
-    h = layers.BatchNormalization(momentum=0.9, name=f"{prefix}_dw_bn")(h)
-    h = layers.ReLU(max_value=6.0, name=f"{prefix}_dw_relu")(h)
-
-    h = layers.Conv2D(
-        out_channels,
-        kernel_size=1,
-        padding="same",
-        use_bias=False,
-        name=f"{prefix}_proj_conv",
-    )(h)
-    h = layers.BatchNormalization(momentum=0.9, name=f"{prefix}_proj_bn")(h)
-
-    if stride == 1 and in_channels == out_channels:
-        return layers.Add(name=f"{prefix}_add")([x, h])
-    return h
-
-
 def build_denthub_model(
     input_shape: tuple[int, int, int] = (224, 224, 3),
     num_classes: int = 4,
-    dropout_rate: float = 0.3,
+    dropout_rate: float = 0.35,
+    backbone_weights: str | None = "imagenet",
+    trainable_backbone: bool = False,
 ) -> keras.Model:
     """
-    Build the custom DentHub MobileNetV2-inspired Functional API model from scratch
-    with ChannelAttention and named final conv layer (`gradcam_conv`) for Grad-CAM.
+    Build the DentHub MobileNetV2 transfer-learning Functional API model with
+    ChannelAttention, DualPool head, and named final conv layer (`gradcam_conv`) for Grad-CAM.
+    Inputs are expected in [0, 1] float32 and rescaled internally to [-1, 1] for MobileNetV2.
     """
     inputs = keras.Input(shape=input_shape, name="dental_image")
+    rescaled = layers.Rescaling(scale=2.0, offset=-1.0, name="mobilenet_rescale")(inputs)
 
-    # Stem
-    x = layers.Conv2D(
-        32,
-        kernel_size=3,
-        strides=2,
-        padding="same",
-        use_bias=False,
-        kernel_regularizer=keras.regularizers.l2(1e-4),
-        name="stem_conv",
-    )(inputs)
-    x = layers.BatchNormalization(momentum=0.9, name="stem_bn")(x)
-    x = layers.ReLU(max_value=6.0, name="stem_relu")(x)
+    backbone = keras.applications.MobileNetV2(
+        input_shape=input_shape,
+        include_top=False,
+        weights=backbone_weights,
+    )
 
-    # MobileNetV2-style inverted residual stages (built completely from scratch)
-    x = _inverted_residual_block(x, out_channels=32, stride=2, expansion=2, block_id=1)
-    x = _inverted_residual_block(x, out_channels=48, stride=2, expansion=3, block_id=2)
-    x = _inverted_residual_block(x, out_channels=48, stride=1, expansion=3, block_id=3)
-    x = _inverted_residual_block(x, out_channels=80, stride=2, expansion=3, block_id=4)
-    x = _inverted_residual_block(x, out_channels=80, stride=1, expansion=3, block_id=5)
-    x = ChannelAttention(reduction_ratio=8, name="mid_channel_attention")(x)
-    x = _inverted_residual_block(x, out_channels=128, stride=2, expansion=3, block_id=6)
-    x = _inverted_residual_block(x, out_channels=128, stride=1, expansion=3, block_id=7)
+    backbone.trainable = trainable_backbone
+    # Always run backbone in inference mode for BatchNorm stability during 2-stage transfer learning
+    x = backbone(rescaled, training=False)
 
     # Final convolutional projection named for Grad-CAM localization
     x = layers.Conv2D(
-        192,
+        256,
         kernel_size=1,
         padding="same",
         use_bias=False,
@@ -231,7 +176,7 @@ def build_denthub_model(
     x = layers.Concatenate(name="dual_pool_concat")([gap, gmp])
     x = layers.Dropout(dropout_rate, name="head_dropout")(x)
     x = layers.Dense(
-        128,
+        160,
         activation="swish",
         kernel_regularizer=keras.regularizers.l2(1e-4),
         name="head_dense",
@@ -240,7 +185,7 @@ def build_denthub_model(
     x = layers.Dropout(dropout_rate * 0.7, name="head_dense_dropout")(x)
     outputs = layers.Dense(num_classes, activation="softmax", name="condition_probs")(x)
 
-    return keras.Model(inputs=inputs, outputs=outputs, name="denthub_mobilenet_attention")
+    return keras.Model(inputs=inputs, outputs=outputs, name="denthub_mobilenetv2_attention")
 
 
 def load_denthub_model(model_path: str | Path) -> keras.Model:

@@ -36,8 +36,8 @@ export function createApp(): Express {
     }),
   );
 
-  app.use(express.json({ limit: '1mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+  app.use(express.json({ limit: '8mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '8mb' }));
 
   app.get('/health', getHealth);
   app.use('/api/v1', apiRoutes);

@@ -20,8 +20,8 @@
         <path d="M-28 -52 C-48 -52 -56 -30 -52 -6 C-48 16 -38 56 -22 56 C-12 56 -10 26 0 26 C10 26 12 56 22 56 C38 56 48 16 52 -6 C56 -30 48 -52 28 -52 C14 -52 8 -42 0 -42 C-8 -42 -14 -52 -28 -52 Z"/>
       </g>
   <text x="44" y="348" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" letter-spacing="2" fill="#DDF3F5" opacity="0.88">EDUKASI GIGI</text>
-  <text x="44" y="392" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="800" fill="#FFFFFF">Kesehatan Rongga Mulut</text>
+  <text x="44" y="392" font-family="system-ui, -apple-system, sans-serif" font-size="26" font-weight="800" fill="#FFFFFF">Kesehatan Rongga Mulut</text>
   <text x="44" y="428" font-family="system-ui, -apple-system, sans-serif" font-size="17" font-weight="500" fill="#DDF3F5" opacity="0.9">Informasi Preventif DentHub</text>
   <line x1="44" y1="472" x2="376" y2="472" stroke="#DDF3F5" stroke-opacity="0.25" stroke-width="1"/>
-  <text x="44" y="504" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" letter-spacing="1" fill="#FFFFFF" opacity="0.85">DentHub • Edukasi Kesehatan Gigi</text>
+  <text x="44" y="504" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" letter-spacing="1" fill="#FFFFFF" opacity="0.85">DentHub &#x2022; Edukasi Kesehatan Gigi</text>
 </svg>

@@ -141,7 +141,7 @@ describe('T-207: AI transparency labels, honest confidence, fallback banner, and
     expect(result.rating).toBe('inaccurate');
   });
 
-  it('positions FloatingNavbar at bottom-center with clickable logo, slim py-3 footer without internal pb-24, and DeniMascot tooltip above Deni', () => {
+  it('positions FloatingNavbar at bottom-center with clickable logo, responsive footer clearing mobile dock, and DeniMascot tooltip above Deni', () => {
     const navHtml = renderToStaticMarkup(<FloatingNavbar />);
     const footerHtml = renderToStaticMarkup(<AppFooter />);
     const mascotHtml = renderToStaticMarkup(<DeniMascot />);
@@ -150,10 +150,9 @@ describe('T-207: AI transparency labels, honest confidence, fallback banner, and
     expect(navHtml).toContain('sm:bottom-6');
     expect(navHtml).toContain('data-testid="navbar-logo-home-link"');
     expect(navHtml).not.toContain('>Beranda<');
-    expect(footerHtml).toContain('py-3');
+    expect(footerHtml).toContain('pb-24');
+    expect(footerHtml).toContain('md:pb-4');
     expect(footerHtml).toContain('text-xs');
-    expect(footerHtml).not.toContain('pb-24');
-    expect(footerHtml).not.toContain('pb-20');
     expect(footerHtml).not.toContain('Disclaimer Medis');
     expect(mascotHtml).toContain('bottom-24');
     expect(mascotHtml).toContain('bottom-full');

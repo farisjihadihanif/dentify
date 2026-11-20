@@ -10,7 +10,6 @@ import {
   MessageCircleHeart,
   MapPin,
   ArrowRight,
-  ShieldCheck,
   CheckCircle2,
 } from 'lucide-react';
 import { DentHubLogo } from '../components/DentHubLogo';
@@ -127,12 +126,7 @@ export default function HomePage() {
 
         {/* Centered Hero Typography Floating Directly Over Canvas */}
         <div className="pointer-events-none relative z-10 mx-auto flex w-full max-w-2xl flex-col items-center justify-center px-4 py-16 text-center sm:px-6">
-          <div className="inline-flex items-center gap-2 rounded-pill border border-brand/25 bg-surface px-3.5 py-1 text-xs font-bold text-brand-dark shadow-sm">
-            <ShieldCheck className="h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
-            <span>AI Dental Screening • Dunia Dentist 3D</span>
-          </div>
-
-          <h1 className="mt-5 text-3xl font-extrabold leading-tight tracking-tight text-text sm:text-5xl lg:text-6xl">
+          <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-text sm:text-5xl lg:text-6xl">
             Cegah Gigi Berlubang Sejak Dini
           </h1>
 
@@ -175,19 +169,12 @@ export default function HomePage() {
             transition={{ duration: prefersReducedMotion ? 0 : 0.45 }}
             className="mx-auto max-w-3xl text-center"
           >
-            <span className="inline-block rounded-pill border border-surface/20 bg-surface/10 px-4 py-1 text-xs font-bold uppercase tracking-wider text-surface-mint">
-              Alur Penggunaan Aplikasi
-            </span>
             <h2
               id="heading-alur-aplikasi"
-              className="mt-3 text-3xl font-extrabold text-surface sm:text-4xl lg:text-5xl"
+              className="text-3xl font-extrabold text-surface sm:text-4xl lg:text-5xl"
             >
               Cara Kerja DentHub dari Awal hingga Solusi
             </h2>
-            <p className="mt-3 text-sm text-surface/80 sm:text-base">
-              Ikuti 4 langkah berurutan di bawah ini untuk memeriksa kondisi gigi Anda secara
-              mandiri dan terarah.
-            </p>
           </motion.div>
 
           {/* Alternating High-Contrast Multi-Tone Stacked Cards */}

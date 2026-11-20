@@ -634,6 +634,11 @@ export function AdminDashboardView({
                     <img
                       src={article.coverImageUrl || '/images/covers/artikel-default.svg'}
                       alt={article.title}
+                      onError={(e) => {
+                        if (!e.currentTarget.src.endsWith('/images/covers/artikel-default.svg')) {
+                          e.currentTarget.src = '/images/covers/artikel-default.svg';
+                        }
+                      }}
                       className="h-20 w-16 shrink-0 rounded-lg object-cover"
                     />
                     <div className="min-w-0 flex-1 space-y-1">

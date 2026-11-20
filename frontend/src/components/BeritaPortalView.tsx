@@ -1,8 +1,17 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Newspaper, Search, Sparkles, Tag, X } from 'lucide-react';
+import {
+  ArrowRight,
+  BookOpen,
+  Check,
+  Newspaper,
+  Search,
+  Sparkles,
+  Tag,
+  X,
+} from 'lucide-react';
 import {
   ARTICLE_CATEGORIES,
   fetchPublishedArticles,
@@ -15,34 +24,50 @@ export interface BeritaPortalViewProps {
   initialArticles?: ArticleItem[];
   initialCategory?: ArticleCategory;
   initialPreviewArticle?: ArticleItem | null;
+  initialDropdownOpen?: boolean;
 }
 
+const DEFAULT_COVER_IMAGE = '/images/covers/artikel-default.svg';
+
 const CATEGORY_DESCRIPTIONS: Record<ArticleCategory, string> = {
-  Berita: 'Kabar terbaru seputar inovasi teknologi skrining gigi, kesehatan masyarakat, dan pembaruan DentHub.',
-  Promo: 'Penawaran pemeriksaan rutin, voucher scaling mitra RSGM, dan program edukasi preventif DentHub.',
-  Artikel: 'Panduan edukasi perawatan gigi harian dan kesehatan rongga mulut berbasis referensi klinis.',
+  Berita:
+    'Kabar terbaru seputar inovasi teknologi skrining gigi, kesehatan masyarakat, dan pembaruan DentHub.',
+  Promo:
+    'Penawaran pemeriksaan rutin, voucher scaling mitra RSGM, dan program edukasi preventif DentHub.',
+  Artikel:
+    'Panduan edukasi perawatan gigi harian dan kesehatan rongga mulut berbasis referensi klinis.',
+};
+
+const CATEGORY_ICONS: Record<ArticleCategory, React.ComponentType<{ className?: string }>> = {
+  Berita: Newspaper,
+  Promo: Sparkles,
+  Artikel: BookOpen,
 };
 
 /**
- * News, Promo & Articles Digital-Library Portal (`BeritaPortalView.tsx`, docs/DESIGN.md §3.7):
- * - 4 sections inside standard `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`
- * - Section 1: Horizontally centered `max-w-2xl` search bar + arrowless category `<select className="appearance-none ...">`
- * - Sections 2, 3, & 4 (`Berita`, `Promo`, `Artikel`): dynamically reordered so the selected category
- *   moves to the top, each featuring an H2 heading and a horizontal scrollable shelf of vertical
- *   book/magazine-style cards showing ONLY the cover image and title.
- * - Step 1 Preview Modal: clicking any card opens a preview dialog with cover image, category badge,
- *   title, summary, close button, and prominent `Baca Selengkapnya` link to `/berita/[slug]`.
+ * News, Promo & Articles Digital-Library Portal (`BeritaPortalView.tsx`):
+ * - Section 1: Horizontally centered `max-w-2xl` search bar + custom styled accessible
+ *   category dropdown menu (`Berita`, `Promo`, `Artikel`) with no native browser arrow.
+ * - Sections 2, 3, & 4 (`Berita`, `Promo`, `Artikel`): dynamically reordered so the selected
+ *   category moves to the top, each featuring an H2 heading and a horizontal scrollable shelf
+ *   of vertical book/magazine cards showing ONLY cover image and title.
+ * - Step 1 Preview Modal: always-visible `×` close button, cover image with fallback, category
+ *   badge, title, summary, and prominent `Baca Selengkapnya` link to `/berita/[slug]`.
  */
 export function BeritaPortalView({
   initialArticles,
   initialCategory = 'Berita',
   initialPreviewArticle = null,
+  initialDropdownOpen = false,
 }: BeritaPortalViewProps) {
   const [articles, setArticles] = useState<ArticleItem[]>(initialArticles ?? []);
   const [isLoading, setIsLoading] = useState<boolean>(!initialArticles);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<ArticleCategory>(initialCategory);
+  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState<boolean>(initialDropdownOpen);
   const [previewArticle, setPreviewArticle] = useState<ArticleItem | null>(initialPreviewArticle);
+
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (initialArticles) return;
@@ -65,15 +90,29 @@ export function BeritaPortalView({
   }, [initialArticles]);
 
   useEffect(() => {
-    if (!previewArticle) return;
+    if (!previewArticle && !isCategoryMenuOpen) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setPreviewArticle(null);
+        if (previewArticle) setPreviewArticle(null);
+        if (isCategoryMenuOpen) setIsCategoryMenuOpen(false);
+      }
+    };
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isCategoryMenuOpen &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsCategoryMenuOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [previewArticle]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [previewArticle, isCategoryMenuOpen]);
 
   const orderedCategories = useMemo(
     () => getOrderedCategories(selectedCategory),
@@ -103,13 +142,15 @@ export function BeritaPortalView({
     return grouped;
   }, [articles, searchQuery]);
 
+  const ActiveCategoryIcon = CATEGORY_ICONS[selectedCategory];
+
   return (
     <main
       data-testid="berita-portal-page"
       className="mx-auto w-full max-w-7xl space-y-12 px-4 py-10 pb-24 sm:px-6 sm:py-12 lg:px-8"
     >
       {/* =====================================================================
-          SECTION 1: Centered Search Bar + Arrowless Category Selector
+          SECTION 1: Centered Search Bar + Custom Styled Category Dropdown
          ===================================================================== */}
       <section
         aria-labelledby="heading-berita-portal"
@@ -117,10 +158,6 @@ export function BeritaPortalView({
         className="space-y-6 text-center"
       >
         <div className="mx-auto max-w-2xl space-y-2.5">
-          <span className="inline-flex items-center gap-1.5 rounded-pill bg-brand-soft px-3.5 py-1 text-xs font-bold text-brand-dark">
-            <Newspaper className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-            <span>Portal Informasi &amp; Pustaka Digital DentHub</span>
-          </span>
           <h1
             id="heading-berita-portal"
             className="font-display text-3xl font-extrabold tracking-tight text-text sm:text-4xl"
@@ -133,7 +170,7 @@ export function BeritaPortalView({
           </p>
         </div>
 
-        {/* Centered Search Bar + Arrowless Category Dropdown Immediately to its Right */}
+        {/* Centered Search Bar + Custom Accessible Category Menu Immediately to its Right */}
         <div className="mx-auto flex w-full max-w-2xl items-center gap-2.5">
           <div className="relative flex-1">
             <Search
@@ -154,23 +191,62 @@ export function BeritaPortalView({
             />
           </div>
 
-          <label htmlFor="berita-category-select" className="sr-only">
-            Prioritaskan Kategori
-          </label>
-          <select
-            id="berita-category-select"
-            aria-label="Prioritaskan Kategori"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value as ArticleCategory)}
-            data-testid="berita-category-select"
-            className="h-12 shrink-0 cursor-pointer appearance-none rounded-pill border border-brand/30 bg-brand-soft px-5 text-center text-sm font-bold text-brand-dark shadow-sm transition-colors hover:bg-brand hover:text-surface focus:outline-none focus:ring-2 focus:ring-brand-ring"
-          >
-            {ARTICLE_CATEGORIES.map((category) => (
-              <option key={category} value={category} className="bg-surface text-text">
-                {category}
-              </option>
-            ))}
-          </select>
+          <div ref={dropdownRef} className="relative shrink-0">
+            <button
+              type="button"
+              id="berita-category-trigger"
+              aria-haspopup="listbox"
+              aria-expanded={isCategoryMenuOpen}
+              aria-label="Prioritaskan Kategori"
+              data-testid="berita-category-select"
+              onClick={() => setIsCategoryMenuOpen((prev) => !prev)}
+              className="inline-flex h-12 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-pill bg-brand px-6 py-3 text-sm font-semibold text-surface shadow-sm transition-colors hover:bg-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
+            >
+              <ActiveCategoryIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>{selectedCategory}</span>
+            </button>
+
+            {isCategoryMenuOpen && (
+              <div
+                role="listbox"
+                aria-labelledby="berita-category-trigger"
+                data-testid="berita-category-menu"
+                className="absolute right-0 top-full z-30 mt-2 min-w-[180px] rounded-2xl border border-border bg-surface p-1.5 text-left shadow-xl"
+              >
+                {ARTICLE_CATEGORIES.map((category) => {
+                  const Icon = CATEGORY_ICONS[category];
+                  const isActive = category === selectedCategory;
+                  return (
+                    <button
+                      key={category}
+                      type="button"
+                      role="option"
+                      aria-selected={isActive}
+                      data-testid={`berita-category-option-${category.toLowerCase()}`}
+                      onClick={() => {
+                        setSelectedCategory(category);
+                        setIsCategoryMenuOpen(false);
+                      }}
+                      className={[
+                        'flex w-full items-center justify-between gap-2.5 rounded-xl px-3.5 py-2.5 text-sm transition-colors',
+                        isActive
+                          ? 'bg-brand-soft font-semibold text-brand-dark'
+                          : 'font-medium text-text hover:bg-bg hover:text-brand-dark',
+                      ].join(' ')}
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                        <span>{category}</span>
+                      </span>
+                      {isActive && (
+                        <Check className="h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
@@ -228,8 +304,13 @@ export function BeritaPortalView({
                   >
                     <div className="aspect-[3/4] w-full overflow-hidden bg-surface-navy">
                       <img
-                        src={article.coverImageUrl || '/images/covers/artikel-default.svg'}
+                        src={article.coverImageUrl || DEFAULT_COVER_IMAGE}
                         alt={article.title}
+                        onError={(e) => {
+                          if (!e.currentTarget.src.endsWith(DEFAULT_COVER_IMAGE)) {
+                            e.currentTarget.src = DEFAULT_COVER_IMAGE;
+                          }
+                        }}
                         className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     </div>
@@ -271,15 +352,20 @@ export function BeritaPortalView({
               onClick={() => setPreviewArticle(null)}
               aria-label="Tutup pratinjau artikel"
               data-testid="berita-preview-close"
-              className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-pill bg-surface/90 text-text shadow-md transition-colors hover:bg-surface hover:text-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
+              className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-pill border border-border bg-surface text-text opacity-100 shadow-md transition-transform hover:scale-105 hover:bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
             >
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
 
             <div className="relative aspect-[16/10] w-full overflow-hidden bg-surface-navy">
               <img
-                src={previewArticle.coverImageUrl || '/images/covers/artikel-default.svg'}
+                src={previewArticle.coverImageUrl || DEFAULT_COVER_IMAGE}
                 alt={previewArticle.title}
+                onError={(e) => {
+                  if (!e.currentTarget.src.endsWith(DEFAULT_COVER_IMAGE)) {
+                    e.currentTarget.src = DEFAULT_COVER_IMAGE;
+                  }
+                }}
                 className="h-full w-full object-cover"
               />
               <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-pill bg-surface-sand px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-surface-navy shadow-sm">

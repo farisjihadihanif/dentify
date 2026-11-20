@@ -62,3 +62,4 @@ export {
   type AdminDashboardViewProps,
   type AdminTabKey,
 } from './AdminDashboardView';
+export { RichMessageContent, type RichMessageContentProps } from './RichMessageContent';

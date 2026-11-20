@@ -243,10 +243,7 @@ export function ScanWorkspace({
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
       <div className="text-center">
-        <span className="inline-block rounded-pill bg-brand-soft px-3.5 py-1 text-xs font-bold text-brand-dark">
-          AI Dental Screening • Computer Vision (.keras)
-        </span>
-        <h1 className="mt-2 text-2xl font-bold text-text sm:text-3xl">
+        <h1 className="text-2xl font-bold text-text sm:text-3xl">
           Pemindaian Kesehatan Gigi Mandiri
         </h1>
         <p className="mx-auto mt-1 max-w-2xl text-sm text-text-muted sm:text-base">

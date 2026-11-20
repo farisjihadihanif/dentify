@@ -1,5 +1,8 @@
 import React from 'react';
-import type { ClinicItem } from '../services/clinicService';
+import {
+  buildGoogleMapsDirectionsUrl,
+  type ClinicItem,
+} from '../services/clinicService';
 
 export interface ClinicCardProps {
   clinic: ClinicItem;
@@ -7,10 +10,12 @@ export interface ClinicCardProps {
 }
 
 /**
- * OpenStreetMap dental clinic card (docs/DESIGN.md §3.4 & §4).
- * Reused on /clinics and in ClinicEscalationCard on /scan and /chat.
+ * Dental clinic card reused on /clinics and in ClinicEscalationCard on /scan and /chat.
+ * External route navigation links open Google Maps turn-by-turn directions directly.
  */
 export function ClinicCard({ clinic, className = '' }: ClinicCardProps) {
+  const directionsUrl = buildGoogleMapsDirectionsUrl(clinic.latitude, clinic.longitude);
+
   return (
     <article
       data-testid="clinic-card"
@@ -49,7 +54,7 @@ export function ClinicCard({ clinic, className = '' }: ClinicCardProps) {
 
       <div className="shrink-0">
         <a
-          href={clinic.osm_url}
+          href={directionsUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex h-10 min-h-cta min-w-touch items-center justify-center whitespace-nowrap rounded-xl bg-brand px-4 text-sm font-semibold text-surface shadow-sm transition-colors hover:bg-brand-dark"

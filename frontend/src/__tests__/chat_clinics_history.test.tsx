@@ -131,14 +131,16 @@ describe('Global layout, identity, /profile, and /panduan (T-110, T-206)', () =>
     expect(navHtml).not.toContain('>DH<');
   });
 
-  it('AppFooter renders 3 parts and DeniMascot renders floating widget to /chat', () => {
+  it('AppFooter renders credits + stacked links and DeniMascot renders floating widget to /chat', () => {
     const footerHtml = renderToStaticMarkup(<AppFooter />);
     const left = footerHtml.indexOf('created by');
-    const center = footerHtml.indexOf('Denthub 2026');
+    const brand = footerHtml.indexOf('Denthub © 2026');
     const right = footerHtml.indexOf('Panduan Aplikasi');
+    const berita = footerHtml.indexOf('Promo, Berita &amp; Artikel');
     expect(left).toBeGreaterThan(-1);
-    expect(center).toBeGreaterThan(left);
-    expect(right).toBeGreaterThan(center);
+    expect(brand).toBeGreaterThan(left);
+    expect(right).toBeGreaterThan(brand);
+    expect(berita).toBeGreaterThan(right);
 
     const mascotHtml = renderToStaticMarkup(<DeniMascot />);
     expect(mascotHtml).toContain('data-testid="deni-mascot-widget"');
@@ -255,18 +257,41 @@ describe('Deni Chat (/chat – T-204)', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders /chat as a full-viewport workspace with sidebar, Deni mascot, and bottom quick-question chips', () => {
+  it('renders /chat as a full-viewport workspace with collapsible sidebar, Template Pertanyaan popover, + Tambah Foto, and RichMessageContent', () => {
     const html = renderToStaticMarkup(<ChatPage />);
 
     expect(html).toContain('data-testid="deni-fullscreen-workspace"');
     expect(html).toContain('data-testid="deni-sessions-sidebar"');
+    expect(html).toContain('data-testid="deni-sidebar-toggle-desktop"');
     expect(html).toContain('data-testid="deni-bottom-composer"');
+    expect(html).toContain('data-testid="deni-template-dropdown-btn"');
+    expect(html).toContain('Template Pertanyaan');
+    expect(html).toContain('data-testid="deni-add-photo-btn"');
+    expect(html).toContain('+ Tambah Foto');
     expect(html).toContain('Chat Baru');
-    for (const q of INITIAL_SUGGESTED_QUESTIONS) {
-      expect(html).toContain(q);
-    }
     expect(html).not.toContain('Konsultasi Kesehatan Gigi Bersama Deni');
     expect(html).not.toContain('Disclaimer Medis');
+
+    const popoverHtml = renderToStaticMarkup(
+      <DeniChat
+        initialTemplatePopoverOpen
+        initialMessages={[
+          {
+            role: 'assistant',
+            content: 'Halo Budi! **Langkah perawatan:**\n- Sikat gigi **dua kali** sehari\n- Hindari makanan manis**',
+            trigger_clinic_finder: false,
+            timestamp: '2026-11-21T06:00:00.000Z',
+          },
+        ]}
+      />,
+    );
+    expect(popoverHtml).toContain('data-testid="deni-template-popover"');
+    for (const q of INITIAL_SUGGESTED_QUESTIONS) {
+      expect(popoverHtml).toContain(q);
+    }
+    expect(popoverHtml).toContain('<strong class="font-semibold">Langkah perawatan:</strong>');
+    expect(popoverHtml).toContain('<ul class="list-disc');
+    expect(popoverHtml).not.toContain('**');
   });
 
   it('renders scan context card and ClinicEscalationCard when trigger_clinic_finder is true', () => {

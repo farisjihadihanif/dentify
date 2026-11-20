@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 560" width="420" height="560" role="img" aria-label="Cek Gigi Anak & Dewasa">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 560" width="420" height="560" role="img" aria-label="Cek Gigi Anak &amp; Dewasa">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#0E7490"/>
@@ -21,8 +21,8 @@
         <path d="M-18 4 L-4 18 L24 -14" stroke-width="6" stroke-linecap="round"/>
       </g>
   <text x="44" y="348" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" letter-spacing="2" fill="#FEF3C7" opacity="0.88">KONTROL KELUARGA</text>
-  <text x="44" y="392" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="800" fill="#FFFFFF">Cek Gigi Anak & Dewasa</text>
-  <text x="44" y="428" font-family="system-ui, -apple-system, sans-serif" font-size="17" font-weight="500" fill="#FEF3C7" opacity="0.9">Edukasi & Fluoride</text>
+  <text x="44" y="392" font-family="system-ui, -apple-system, sans-serif" font-size="26" font-weight="800" fill="#FFFFFF">Cek Gigi Anak &amp; Dewasa</text>
+  <text x="44" y="428" font-family="system-ui, -apple-system, sans-serif" font-size="17" font-weight="500" fill="#FEF3C7" opacity="0.9">Edukasi &amp; Fluoride</text>
   <line x1="44" y1="472" x2="376" y2="472" stroke="#FEF3C7" stroke-opacity="0.25" stroke-width="1"/>
-  <text x="44" y="504" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" letter-spacing="1" fill="#FFFFFF" opacity="0.85">DentHub • Edukasi Kesehatan Gigi</text>
+  <text x="44" y="504" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" letter-spacing="1" fill="#FFFFFF" opacity="0.85">DentHub &#x2022; Edukasi Kesehatan Gigi</text>
 </svg>

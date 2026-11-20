@@ -1,10 +1,11 @@
 """
 Deni LangChain + Gemini conversational dental assistant (T-201).
 
-Rules (AGENTS.md Rule 1, 3, 4; PRD.md §6.2; ARCHITECTURE.md §5.2, §5.4):
-- Uses Gemini strictly for Deni text consultation (never for image classification).
+Rules:
 - Provides two LangChain tools: `lookup_knowledge` and `trigger_clinic_finder`.
 - Uses Pydantic structured output matching `AgentChatResponse`.
+- Supports personalized greeting (`user_name`) and optional tooth photo attachment
+  (runs the DentHub CV screening model AND passes the photo + screening summary to Gemini multimodal).
 - Sanitizes all user input before prompt insertion (prompt-injection mitigation).
 - Deterministic severe-symptom keyword backstop that the LLM can NEVER downgrade.
 - 20-second timeout with graceful Indonesian static fallback.
@@ -13,12 +14,20 @@ Rules (AGENTS.md Rule 1, 3, 4; PRD.md §6.2; ARCHITECTURE.md §5.2, §5.4):
 from __future__ import annotations
 
 import asyncio
+import base64
 import re
 from typing import Any, Callable
 
 from app.core.config import Settings, get_settings
+from app.ml.inference import inference_service
 from app.ml.urgency import has_mild_symptoms, has_severe_symptoms
-from app.schemas import AgentChatRequest, AgentChatResponse, KnowledgeDoc, UrgencyLevel
+from app.schemas import (
+    AgentChatRequest,
+    AgentChatResponse,
+    KnowledgeDoc,
+    ScanContext,
+    UrgencyLevel,
+)
 
 URGENCY_RANK: dict[UrgencyLevel, int] = {
     "low": 0,
@@ -28,13 +37,14 @@ URGENCY_RANK: dict[UrgencyLevel, int] = {
 
 SYSTEM_PROMPT = """Anda adalah Deni, asisten AI kesehatan gigi preventif dari DentHub.
 Aturan wajib yang TIDAK BOLEH dilanggar:
-1. Selalu menjawab dalam Bahasa Indonesia yang empatik, tenang, sopan (sapa pengguna dengan "Anda"), dan mudah dipahami masyarakat umum.
+1. Selalu menjawab dalam Bahasa Indonesia yang empatik, hangat, sopan (sapa pengguna dengan "Anda", dan jika nama pengguna tersedia di `[Nama Pengguna]`, sapa secara personal dengan namanya secara natural), dan mudah dipahami masyarakat umum.
 2. DILARANG memberikan diagnosis medis klinis pasti. Gunakan bahasa edukatif/indikatif ("indikasi", "kemungkinan", "perlu diperiksa dokter gigi").
 3. DILARANG meresepkan obat, menyebut nama merek obat tertentu, atau menentukan dosis obat.
-4. Gunakan konteks hasil skrining (`scan_context`) dan basis pengetahuan (`knowledge_context`) jika tersedia.
-5. Jika pengguna melaporkan gejala akut/serius (nyeri hebat, berdenyut, bengkak, nanah, abses, demam, pendarahan terus-menerus, sulit membuka mulut), wajib menetapkan `urgency_level = "emergency"` dan `trigger_clinic_finder = true`.
-6. Berikan tepat 2 pertanyaan lanjutan singkat (`suggested_questions`) dalam Bahasa Indonesia yang relevan.
-7. Jangan menyertakan disclaimer di akhir jawaban karena disclaimer akan ditambahkan otomatis oleh sistem backend.
+4. Gunakan konteks hasil skrining (`scan_context`), foto gigi yang dilampirkan pengguna (bila ada), dan basis pengetahuan (`knowledge_context`) jika tersedia untuk menjawab secara spesifik dan personal.
+5. Format jawaban dengan rapi dan bersih: JANGAN menulis tanda bintang ganda mentah (`**`) atau simbol markdown yang berantakan. Gunakan paragraf singkat yang jelas dan daftar poin sederhana berawalan tanda hubung (`- `) bila perlu.
+6. Jika pengguna melaporkan gejala akut/serius (nyeri hebat, berdenyut, bengkak, nanah, abses, demam, pendarahan terus-menerus, sulit membuka mulut) atau hasil skrining foto menunjukkan urgensi darurat, wajib menetapkan `urgency_level = "emergency"` dan `trigger_clinic_finder = true`.
+7. Berikan tepat 2 pertanyaan lanjutan singkat (`suggested_questions`) dalam Bahasa Indonesia yang relevan.
+8. Jangan menyertakan disclaimer di akhir jawaban karena disclaimer akan ditambahkan otomatis oleh sistem backend.
 """
 
 INJECTION_PATTERNS = (
@@ -51,6 +61,51 @@ def sanitize_user_text(text: str) -> str:
     for pattern in INJECTION_PATTERNS:
         cleaned = pattern.sub("[filtered]", cleaned)
     return cleaned.strip()[:1000]
+
+
+def _extract_clean_base64_and_mime(
+    raw_base64: str | None,
+    fallback_mime: str | None = None,
+) -> tuple[str | None, str]:
+    if not raw_base64:
+        return None, fallback_mime or "image/jpeg"
+    stripped = raw_base64.strip()
+    mime = (fallback_mime or "image/jpeg").strip().lower()
+    if stripped.startswith("data:"):
+        header, _, payload = stripped.partition(",")
+        if ";" in header:
+            mime_part = header[5:].split(";", 1)[0].strip().lower()
+            if mime_part:
+                mime = mime_part
+        stripped = payload.strip()
+    if mime not in {"image/jpeg", "image/png", "image/webp"}:
+        mime = "image/jpeg"
+    return (stripped or None), mime
+
+
+def _screen_attached_photo(request: AgentChatRequest) -> tuple[ScanContext | None, str | None, str]:
+    clean_b64, mime = _extract_clean_base64_and_mime(
+        request.image_base64, request.image_mime_type
+    )
+    if not clean_b64:
+        return request.scan_context, None, mime
+
+    effective_scan_context = request.scan_context
+    try:
+        raw_bytes = base64.b64decode(clean_b64, validate=False)
+        if len(raw_bytes) >= 12 and inference_service.model is not None:
+            pred = inference_service.predict_bytes(raw_bytes, user_symptoms=request.message)
+            effective_scan_context = ScanContext(
+                primary_condition=pred.primary_condition,
+                confidence_score=pred.confidence_score,
+                urgency_level=pred.urgency_level,
+                user_symptoms=request.message[:500],
+            )
+    except Exception:
+        # Keep multimodal image for Gemini even if CV quality gate flags low resolution or model not loaded
+        pass
+
+    return effective_scan_context, clean_b64, mime
 
 
 def build_agent_tools(knowledge_docs: list[KnowledgeDoc]) -> tuple[list[Any], dict[str, bool]]:
@@ -87,6 +142,7 @@ def build_agent_tools(knowledge_docs: list[KnowledgeDoc]) -> tuple[list[Any], di
 def build_static_fallback(request: AgentChatRequest) -> AgentChatResponse:
     severe = has_severe_symptoms(request.message)
     mild = has_mild_symptoms(request.message)
+    greeting = f"Halo {sanitize_user_text(request.user_name)}! " if request.user_name else "Halo! "
 
     base_urgency: UrgencyLevel = (
         request.scan_context.urgency_level if request.scan_context else "low"
@@ -100,7 +156,7 @@ def build_static_fallback(request: AgentChatRequest) -> AgentChatResponse:
 
     if urgency == "emergency":
         reply = (
-            "Berdasarkan keluhan yang Anda sampaikan, terdapat tanda yang memerlukan pemeriksaan "
+            f"{greeting}Berdasarkan keluhan yang Anda sampaikan, terdapat tanda yang memerlukan pemeriksaan "
             "segera oleh dokter gigi. Hindari mengorek atau menekan area yang nyeri, berkumur perlahan "
             "dengan air hangat, dan segera kunjungi klinik dokter gigi terdekat melalui Clinic Finder DentHub."
         )
@@ -111,7 +167,7 @@ def build_static_fallback(request: AgentChatRequest) -> AgentChatResponse:
     elif request.scan_context:
         cond = request.scan_context.primary_condition
         reply = (
-            f"Terima kasih telah berkonsultasi dengan Deni. Berdasarkan konteks hasil skrining "
+            f"{greeting}Terima kasih telah berkonsultasi dengan Deni. Berdasarkan konteks hasil skrining "
             f"awal ({cond}), tetap jaga kebersihan gigi dengan menyikat gigi secara lembut dua kali "
             "sehari memakai pasta gigi berfluoride dan jadwalkan pemeriksaan ke dokter gigi untuk evaluasi langsung."
         )
@@ -121,7 +177,7 @@ def build_static_fallback(request: AgentChatRequest) -> AgentChatResponse:
         ]
     else:
         reply = (
-            "Halo! Untuk menjaga kesehatan gigi dan gusi, sikat gigi secara lembut dua kali sehari "
+            f"{greeting}Untuk menjaga kesehatan gigi dan gusi, sikat gigi secara lembut dua kali sehari "
             "dengan pasta gigi berfluoride, bersihkan sela gigi dengan benang gigi, dan lakukan "
             "pemeriksaan rutin ke dokter gigi setiap 6 bulan sekali."
         )
@@ -144,7 +200,7 @@ def enforce_safety_backstop(
     tool_triggered: bool = False,
 ) -> AgentChatResponse:
     """
-    Deterministic backstop (AGENTS.md Rule 3, TASK.md Decision 12):
+    Deterministic backstop:
     - Severe symptoms ALWAYS force urgency_level='emergency' and trigger_clinic_finder=True.
     - Never lower urgency below scan_context urgency if scan_context is emergency.
     - trigger_clinic_finder is True whenever urgency_level == 'emergency' or tool triggered.
@@ -180,14 +236,27 @@ def enforce_safety_backstop(
     )
 
 
-def _format_user_prompt(request: AgentChatRequest, sanitized_message: str) -> str:
+def _format_user_prompt(
+    request: AgentChatRequest,
+    sanitized_message: str,
+    has_attached_image: bool = False,
+) -> str:
     parts: list[str] = []
+    if request.user_name:
+        parts.append(f"[Nama Pengguna]\n{sanitize_user_text(request.user_name)}")
     if request.scan_context:
         sc = request.scan_context
         parts.append(
-            f"[Konteks Scan] Kondisi: {sc.primary_condition}, "
-            f"Keyakinan: {sc.confidence_score:.2f}, Urgensi: {sc.urgency_level}, "
+            f"[Konteks Scan Gigi] Kondisi: {sc.primary_condition}, "
+            f"Keyakinan Model CV: {sc.confidence_score:.2f}, Urgensi: {sc.urgency_level}, "
             f"Keluhan awal: {sanitize_user_text(sc.user_symptoms)}"
+        )
+    if has_attached_image:
+        parts.append(
+            "[Foto Gigi Dilampirkan]\n"
+            "Pengguna melampirkan foto gigi secara langsung pada pesan ini. "
+            "Amati ciri visual foto gigi tersebut bersama hasil skrining CV di atas untuk memberikan "
+            "penjelasan edukatif preventif (non-diagnostik)."
         )
     if request.knowledge_context:
         kb_lines = []
@@ -211,6 +280,8 @@ async def _invoke_gemini_structured(
     request: AgentChatRequest,
     sanitized_message: str,
     settings: Settings,
+    attached_image_b64: str | None = None,
+    attached_image_mime: str = "image/jpeg",
 ) -> tuple[AgentChatResponse, bool]:
     from langchain_core.messages import HumanMessage, SystemMessage
     from langchain_google_genai import ChatGoogleGenerativeAI
@@ -223,12 +294,28 @@ async def _invoke_gemini_structured(
         timeout=settings.llm_timeout_s,
     )
 
-    # Bind tools metadata & enforce Pydantic structured output
-    _ = tools  # tools available for agentic orchestration / introspection
+    _ = tools
     structured_llm = llm.with_structured_output(AgentChatResponse)
+    prompt_text = _format_user_prompt(
+        request,
+        sanitized_message,
+        has_attached_image=bool(attached_image_b64),
+    )
+
+    if attached_image_b64:
+        human_content: Any = [
+            {"type": "text", "text": prompt_text},
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:{attached_image_mime};base64,{attached_image_b64}"},
+            },
+        ]
+    else:
+        human_content = prompt_text
+
     messages = [
         SystemMessage(content=SYSTEM_PROMPT),
-        HumanMessage(content=_format_user_prompt(request, sanitized_message)),
+        HumanMessage(content=human_content),
     ]
     result = await structured_llm.ainvoke(messages)
     if not isinstance(result, AgentChatResponse):
@@ -239,29 +326,48 @@ async def _invoke_gemini_structured(
 async def run_deni_chat(
     request: AgentChatRequest,
     settings: Settings | None = None,
-    llm_invoker: Callable[
-        [AgentChatRequest, str, Settings], Any
-    ]
-    | None = None,
+    llm_invoker: Callable[..., Any] | None = None,
 ) -> AgentChatResponse:
     cfg = settings or get_settings()
     sanitized = sanitize_user_text(request.message)
-    invoker = llm_invoker or _invoke_gemini_structured
+
+    # If user attached a tooth photo, run local CV screening and enrich scan_context
+    effective_scan_context, clean_b64, image_mime = _screen_attached_photo(request)
+    enriched_request = (
+        request.model_copy(update={"scan_context": effective_scan_context})
+        if effective_scan_context != request.scan_context
+        else request
+    )
 
     if llm_invoker is None and not cfg.gemini_api_key:
-        return enforce_safety_backstop(request, build_static_fallback(request))
+        return enforce_safety_backstop(enriched_request, build_static_fallback(enriched_request))
 
     try:
-        raw_result = await asyncio.wait_for(
-            invoker(request, sanitized, cfg),
-            timeout=cfg.llm_timeout_s,
-        )
+        if llm_invoker is not None:
+            raw_result = await asyncio.wait_for(
+                llm_invoker(enriched_request, sanitized, cfg),
+                timeout=cfg.llm_timeout_s,
+            )
+        else:
+            raw_result = await asyncio.wait_for(
+                _invoke_gemini_structured(
+                    enriched_request,
+                    sanitized,
+                    cfg,
+                    attached_image_b64=clean_b64,
+                    attached_image_mime=image_mime,
+                ),
+                timeout=cfg.llm_timeout_s,
+            )
+
         if isinstance(raw_result, tuple):
             ai_response, tool_triggered = raw_result
         else:
             ai_response, tool_triggered = raw_result, False
         if not isinstance(ai_response, AgentChatResponse):
             ai_response = AgentChatResponse.model_validate(ai_response)
-        return enforce_safety_backstop(request, ai_response, tool_triggered=tool_triggered)
+        return enforce_safety_backstop(
+            enriched_request, ai_response, tool_triggered=tool_triggered
+        )
     except Exception:
-        return enforce_safety_backstop(request, build_static_fallback(request))
+        return enforce_safety_backstop(enriched_request, build_static_fallback(enriched_request))

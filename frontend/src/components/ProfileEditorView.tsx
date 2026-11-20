@@ -197,10 +197,7 @@ export function ProfileEditorView({
     >
       {/* Clean Page Header */}
       <div className="border-b border-border pb-5">
-        <span className="inline-block rounded-pill bg-brand-soft px-3.5 py-1 text-xs font-bold text-brand-dark">
-          Pengaturan Akun • DentHub Settings
-        </span>
-        <h1 className="mt-2 text-2xl font-bold text-text sm:text-3xl">Edit Profil Pengguna</h1>
+        <h1 className="text-2xl font-bold text-text sm:text-3xl">Edit Profil Pengguna</h1>
         <p className="mt-1 text-sm text-text-muted sm:text-base">
           Kelola identitas akun, keamanan kata sandi, dan sesi aktif DentHub Anda dalam satu tempat.
         </p>

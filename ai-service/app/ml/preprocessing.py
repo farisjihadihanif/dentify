@@ -1,11 +1,13 @@
+import io
 from dataclasses import dataclass
 
 import cv2
 import numpy as np
+from PIL import Image, ImageSequence
 
 INPUT_SIZE = 224
-MIN_DIMENSION = 224
-MIN_BLUR_VARIANCE = 30.0
+MIN_DIMENSION = 128
+MIN_BLUR_VARIANCE = 12.0
 MIN_MEAN_LUMINANCE = 35.0
 MAX_MEAN_LUMINANCE = 235.0
 
@@ -34,6 +36,51 @@ def apply_clahe_rgb(rgb_img: np.ndarray) -> np.ndarray:
     l_eq = clahe.apply(l_channel)
     merged = cv2.merge((l_eq, a_channel, b_channel))
     return cv2.cvtColor(merged, cv2.COLOR_LAB2RGB)
+
+
+def _decode_via_pillow(raw_bytes: bytes) -> np.ndarray | None:
+    """Decode JPEG/PNG/WEBP (including VP8X, alpha, palette, or animated WebP) safely into RGB uint8."""
+    try:
+        with Image.open(io.BytesIO(raw_bytes)) as img:
+            frame = next(ImageSequence.Iterator(img)) if getattr(img, "is_animated", False) else img
+            if frame.mode in ("RGBA", "LA") or (
+                frame.mode == "P" and "transparency" in frame.info
+            ):
+                rgba = frame.convert("RGBA")
+                bg = Image.new("RGBA", rgba.size, (255, 255, 255, 255))
+                composited = Image.alpha_composite(bg, rgba).convert("RGB")
+                return np.asarray(composited, dtype=np.uint8)
+            return np.asarray(frame.convert("RGB"), dtype=np.uint8)
+    except Exception:
+        return None
+
+
+def decode_bytes_to_rgb(raw_bytes: bytes) -> np.ndarray:
+    if not raw_bytes or len(raw_bytes) < 12:
+        raise ImageValidationError(
+            "INVALID_IMAGE",
+            "File gambar kosong atau tidak valid. Gunakan format JPEG, PNG, atau WEBP.",
+        )
+
+    is_webp = raw_bytes[:4] == b"RIFF" and raw_bytes[8:12] == b"WEBP"
+    if is_webp:
+        rgb = _decode_via_pillow(raw_bytes)
+        if rgb is not None and rgb.size > 0:
+            return rgb
+
+    np_arr = np.frombuffer(raw_bytes, dtype=np.uint8)
+    bgr = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+    if bgr is not None and bgr.size > 0:
+        return cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+
+    rgb_fallback = _decode_via_pillow(raw_bytes)
+    if rgb_fallback is not None and rgb_fallback.size > 0:
+        return rgb_fallback
+
+    raise ImageValidationError(
+        "INVALID_IMAGE",
+        "File gambar rusak atau format tidak didukung. Gunakan JPEG, PNG, atau WEBP.",
+    )
 
 
 def assess_image_quality(rgb_img: np.ndarray) -> tuple[float, float, bool, str | None]:
@@ -80,26 +127,14 @@ def assess_image_quality(rgb_img: np.ndarray) -> tuple[float, float, bool, str |
 
 def preprocess_rgb_for_model(rgb_img: np.ndarray, use_clahe: bool = True) -> np.ndarray:
     processed = apply_clahe_rgb(rgb_img) if use_clahe else rgb_img
-    resized = cv2.resize(processed, (INPUT_SIZE, INPUT_SIZE), interpolation=cv2.INTER_AREA)
-    return (resized.astype(np.float32) / 255.0)
+    h, w = processed.shape[:2]
+    interp = cv2.INTER_CUBIC if min(h, w) < INPUT_SIZE else cv2.INTER_AREA
+    resized = cv2.resize(processed, (INPUT_SIZE, INPUT_SIZE), interpolation=interp)
+    return resized.astype(np.float32) / 255.0
 
 
 def decode_and_preprocess_bytes(raw_bytes: bytes) -> PreprocessedImage:
-    if not raw_bytes or len(raw_bytes) < 12:
-        raise ImageValidationError(
-            "INVALID_IMAGE",
-            "File gambar kosong atau tidak valid. Gunakan format JPEG, PNG, atau WEBP.",
-        )
-
-    np_arr = np.frombuffer(raw_bytes, dtype=np.uint8)
-    bgr = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-    if bgr is None or bgr.size == 0:
-        raise ImageValidationError(
-            "INVALID_IMAGE",
-            "File gambar rusak atau format tidak didukung. Gunakan JPEG, PNG, atau WEBP.",
-        )
-
-    rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+    rgb = decode_bytes_to_rgb(raw_bytes)
     orig_h, orig_w = rgb.shape[:2]
 
     blur_score, mean_luminance, passed, reason = assess_image_quality(rgb)

@@ -6,10 +6,12 @@ import { CLINIC_DIRECTORY_SEED } from '../constants/clinicDirectorySeed';
 import { DENTAL_KNOWLEDGE_SEED } from '../constants/knowledgeSeed';
 import { Article, ClinicDirectory, DentalKnowledge, User } from '../models';
 import { logger } from '../utils/logger';
+import { crawlAndSaveDentalNews } from './crawlDentalNews';
 
 export interface SeedResult {
   knowledgeUpserted: number;
   articlesUpserted: number;
+  crawledArticlesUpserted: number;
   clinicsUpserted: number;
   adminSeeded: boolean;
 }
@@ -18,6 +20,7 @@ export async function runSeed(options?: {
   adminEmail?: string;
   adminPassword?: string;
   adminName?: string;
+  crawlExternalNews?: boolean;
 }): Promise<SeedResult> {
   const env = getEnv();
   let knowledgeUpserted = 0;
@@ -74,15 +77,34 @@ export async function runSeed(options?: {
     adminSeeded = true;
   }
 
-  return { knowledgeUpserted, articlesUpserted, clinicsUpserted, adminSeeded };
+  let crawledArticlesUpserted = 0;
+  const shouldCrawl = options?.crawlExternalNews ?? process.env.NODE_ENV !== 'test';
+  if (shouldCrawl) {
+    try {
+      crawledArticlesUpserted = await crawlAndSaveDentalNews();
+    } catch (err) {
+      logger.warn('External dental news crawl skipped', {
+        message: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  return {
+    knowledgeUpserted,
+    articlesUpserted,
+    crawledArticlesUpserted,
+    clinicsUpserted,
+    adminSeeded,
+  };
 }
 
 async function main(): Promise<void> {
   await connectDb();
-  const result = await runSeed();
+  const result = await runSeed({ crawlExternalNews: true });
   logger.info('Seed completed', {
     knowledgeUpserted: result.knowledgeUpserted,
     articlesUpserted: result.articlesUpserted,
+    crawledArticlesUpserted: result.crawledArticlesUpserted,
     clinicsUpserted: result.clinicsUpserted,
     adminSeeded: result.adminSeeded,
   });

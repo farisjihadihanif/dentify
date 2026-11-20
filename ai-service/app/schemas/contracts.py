@@ -63,7 +63,10 @@ class KnowledgeDoc(BaseModel):
 
 class AgentChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=1000)
+    user_name: str | None = Field(default=None, max_length=120)
     scan_context: ScanContext | None = None
+    image_base64: str | None = Field(default=None)
+    image_mime_type: str | None = Field(default=None, max_length=50)
     chat_history: list[ChatHistoryItem] = Field(default_factory=list, max_length=10)
     knowledge_context: list[KnowledgeDoc] = Field(default_factory=list)
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 export interface KineticMarqueeRibbonsProps {
   topPhrases?: readonly string[];
@@ -7,17 +7,19 @@ export interface KineticMarqueeRibbonsProps {
 }
 
 const DEFAULT_TOP_PHRASES = [
-  'AI DENTAL SCREENING',
-  'DETEKSI KARIES DINI',
-  'KARANG GIGI & GUSI',
-  'OPENCV CLAHE + KERAS',
+  "DENI AI SCREENING",
+  "DETEKSI KARIES SEJAK DINI",
+  "CEK KARANG GIGI & GUSI",
+  "BASED ON AI COMPUTER VISION",
+  "REKOMENDASI LANGKAH PERTAMA",
 ] as const;
 
 const DEFAULT_BOTTOM_PHRASES = [
-  'KONSULTASI AI DENI',
-  'PERAWATAN PREVENTIF',
-  'KLINIK OPENSTREETMAP',
-  'CEGAH SEJAK DINI',
+  "KONSULTASI WITH AI DENI",
+  "PERAWATAN PREVENTIF",
+  "CLINIC FINDER",
+  "CEK GIGI GRATIS",
+  "CEGAH SEJAK DINI",
 ] as const;
 
 function FourPointStarIcon() {
@@ -43,10 +45,20 @@ function FourPointStarIcon() {
 export function KineticMarqueeRibbons({
   topPhrases = DEFAULT_TOP_PHRASES,
   bottomPhrases = DEFAULT_BOTTOM_PHRASES,
-  testId = 'kinetic-marquee-ribbons',
+  testId = "kinetic-marquee-ribbons",
 }: KineticMarqueeRibbonsProps) {
-  const repeatedTop = [...topPhrases, ...topPhrases, ...topPhrases, ...topPhrases];
-  const repeatedBottom = [...bottomPhrases, ...bottomPhrases, ...bottomPhrases, ...bottomPhrases];
+  const repeatedTop = [
+    ...topPhrases,
+    ...topPhrases,
+    ...topPhrases,
+    ...topPhrases,
+  ];
+  const repeatedBottom = [
+    ...bottomPhrases,
+    ...bottomPhrases,
+    ...bottomPhrases,
+    ...bottomPhrases,
+  ];
 
   return (
     <div
@@ -64,9 +76,9 @@ export function KineticMarqueeRibbons({
             >
               <span
                 className={[
-                  'font-display text-xl font-extrabold uppercase tracking-tight sm:text-3xl lg:text-4xl',
-                  idx % 2 === 1 ? 'kinetic-stroke-text' : 'text-surface',
-                ].join(' ')}
+                  "font-display text-xl font-extrabold uppercase tracking-tight sm:text-3xl lg:text-4xl",
+                  idx % 2 === 1 ? "kinetic-stroke-text" : "text-surface",
+                ].join(" ")}
               >
                 {phrase}
               </span>
@@ -86,9 +98,9 @@ export function KineticMarqueeRibbons({
             >
               <span
                 className={[
-                  'font-display text-xl font-extrabold uppercase tracking-tight sm:text-3xl lg:text-4xl',
-                  idx % 2 === 0 ? 'kinetic-stroke-text' : 'text-surface',
-                ].join(' ')}
+                  "font-display text-xl font-extrabold uppercase tracking-tight sm:text-3xl lg:text-4xl",
+                  idx % 2 === 0 ? "kinetic-stroke-text" : "text-surface",
+                ].join(" ")}
               >
                 {phrase}
               </span>

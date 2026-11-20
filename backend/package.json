@@ -12,6 +12,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "seed": "tsx src/scripts/seed.ts",
+    "crawl:news": "tsx src/scripts/crawlDentalNews.ts",
     "test": "vitest run",
     "lint": "eslint . && tsc --noEmit"
   },

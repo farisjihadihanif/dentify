@@ -14,6 +14,11 @@ export interface ClinicItem {
   phone?: string | null;
   opening_hours?: string | null;
   osm_url: string;
+  google_maps_url?: string;
+}
+
+export function buildGoogleMapsDirectionsUrl(lat: number, lng: number): string {
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 }
 
 export interface ClinicsResponsePayload {

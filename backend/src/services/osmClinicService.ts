@@ -13,6 +13,11 @@ export interface ClinicItem {
   phone: string | null;
   opening_hours: string | null;
   osm_url: string;
+  google_maps_url?: string;
+}
+
+export function buildGoogleMapsDirectionsUrl(lat: number, lng: number): string {
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 }
 
 export interface ClinicsSearchResult {
@@ -204,7 +209,8 @@ async function searchSeededDirectoryFallback(
       distance_km: haversineDistanceKm(lat, lng, doc.latitude, doc.longitude),
       phone: doc.phone ?? null,
       opening_hours: doc.opening_hours ?? null,
-      osm_url: doc.osm_url,
+      osm_url: buildGoogleMapsDirectionsUrl(doc.latitude, doc.longitude),
+      google_maps_url: buildGoogleMapsDirectionsUrl(doc.latitude, doc.longitude),
     }))
     .sort((a, b) => a.distance_km - b.distance_km);
 
@@ -272,7 +278,8 @@ export async function searchNearbyClinics(
         distance_km: haversineDistanceKm(lat, lng, elLat, elLng),
         phone: tags.phone ?? tags['contact:phone'] ?? null,
         opening_hours: tags.opening_hours ?? null,
-        osm_url: `https://www.openstreetmap.org/?mlat=${elLat}&mlon=${elLng}#map=17/${elLat}/${elLng}`,
+        osm_url: buildGoogleMapsDirectionsUrl(elLat, elLng),
+        google_maps_url: buildGoogleMapsDirectionsUrl(elLat, elLng),
       });
     }
 

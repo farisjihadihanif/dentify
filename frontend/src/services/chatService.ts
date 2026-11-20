@@ -16,6 +16,8 @@ export interface SendChatMessageInput {
   sessionId?: string | null;
   scanId?: string | null;
   history?: GuestHistoryItem[];
+  imageBase64?: string | null;
+  imageMimeType?: 'image/jpeg' | 'image/png' | 'image/webp' | null;
 }
 
 export interface ChatTurnResponseData {
@@ -39,6 +41,7 @@ export interface ChatMessageItem {
   urgency_level?: UrgencyLevel;
   trigger_clinic_finder: boolean;
   is_fallback?: boolean;
+  attached_image_url?: string | null;
   timestamp: string;
 }
 
@@ -89,6 +92,8 @@ export async function sendDeniMessage(
   };
   if (input.sessionId) body.session_id = input.sessionId;
   if (input.scanId) body.scan_id = input.scanId;
+  if (input.imageBase64) body.image_base64 = input.imageBase64;
+  if (input.imageMimeType) body.image_mime_type = input.imageMimeType;
   if (input.history && input.history.length > 0) {
     body.history = input.history.slice(-10);
   }

@@ -120,6 +120,11 @@ export function BeritaArticleDetailView({
           <img
             src={article.coverImageUrl || '/images/covers/artikel-default.svg'}
             alt={article.title}
+            onError={(e) => {
+              if (!e.currentTarget.src.endsWith('/images/covers/artikel-default.svg')) {
+                e.currentTarget.src = '/images/covers/artikel-default.svg';
+              }
+            }}
             className="h-full w-full object-cover"
           />
         </div>

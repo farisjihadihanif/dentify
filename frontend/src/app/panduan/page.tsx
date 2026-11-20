@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { motion, useReducedMotion } from 'framer-motion';
+import React, { useState } from "react";
+import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowUpRight,
   BookOpen,
@@ -16,107 +16,110 @@ import {
   Stethoscope,
   Sun,
   UserCheck,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   DENTIST_WORLD_ARTICLES,
   DentalArticleModal,
   type DentalEducationArticle,
-} from '../../components/DentalArticleModal';
-import { KineticMarqueeRibbons } from '../../components/KineticMarqueeRibbons';
+} from "../../components/DentalArticleModal";
+import { KineticMarqueeRibbons } from "../../components/KineticMarqueeRibbons";
 
-const ARTICLE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  'scaling-rutin': Sparkles,
-  'penambalan-karies': Stethoscope,
-  'tanda-darurat-klinik': ShieldAlert,
-  'persiapan-kunjungan': Clock,
+const ARTICLE_ICONS: Record<
+  string,
+  React.ComponentType<{ className?: string }>
+> = {
+  "scaling-rutin": Sparkles,
+  "penambalan-karies": Stethoscope,
+  "tanda-darurat-klinik": ShieldAlert,
+  "persiapan-kunjungan": Clock,
 };
 
 const STACKED_CARD_THEMES = [
   {
-    card: 'bg-bg text-text border-surface/20',
-    num: 'text-brand',
-    badge: 'bg-brand-soft text-brand-dark',
-    meta: 'text-text-muted',
-    desc: 'text-text-muted',
-    cta: 'text-brand-dark',
-    divider: 'bg-border',
+    card: "bg-bg text-text border-surface/20",
+    num: "text-brand",
+    badge: "bg-brand-soft text-brand-dark",
+    meta: "text-text-muted",
+    desc: "text-text-muted",
+    cta: "text-brand-dark",
+    divider: "bg-border",
   },
   {
-    card: 'bg-surface-mint text-text border-surface/20',
-    num: 'text-brand-dark',
-    badge: 'bg-surface text-brand-dark',
-    meta: 'text-text-muted',
-    desc: 'text-text-muted',
-    cta: 'text-brand-dark',
-    divider: 'bg-brand/20',
+    card: "bg-surface-mint text-text border-surface/20",
+    num: "text-brand-dark",
+    badge: "bg-surface text-brand-dark",
+    meta: "text-text-muted",
+    desc: "text-text-muted",
+    cta: "text-brand-dark",
+    divider: "bg-brand/20",
   },
   {
-    card: 'bg-surface-teal text-surface border-surface/25',
-    num: 'text-surface',
-    badge: 'bg-surface/15 text-surface',
-    meta: 'text-surface/85',
-    desc: 'text-surface/90',
-    cta: 'text-surface',
-    divider: 'bg-surface/25',
+    card: "bg-surface-teal text-surface border-surface/25",
+    num: "text-surface",
+    badge: "bg-surface/15 text-surface",
+    meta: "text-surface/85",
+    desc: "text-surface/90",
+    cta: "text-surface",
+    divider: "bg-surface/25",
   },
   {
-    card: 'bg-surface-sand text-text border-surface/20',
-    num: 'text-status-yellow',
-    badge: 'bg-surface text-text',
-    meta: 'text-text-muted',
-    desc: 'text-text-muted',
-    cta: 'text-text',
-    divider: 'bg-status-yellow/25',
+    card: "bg-surface-sand text-text border-surface/20",
+    num: "text-status-yellow",
+    badge: "bg-surface text-text",
+    meta: "text-text-muted",
+    desc: "text-text-muted",
+    cta: "text-text",
+    divider: "bg-status-yellow/25",
   },
 ] as const;
 
 const GUIDE_SECTIONS = [
   {
-    step: '01',
-    badge: 'Tahap 1 • Akun',
-    title: 'Daftar & Masuk ke Akun DentHub',
+    step: "01",
+    badge: "Tahap 1 • Akun",
+    title: "Daftar & Masuk ke Akun DentHub",
     description:
-      'Untuk menggunakan fitur AI Dental Scan dan mengelola Profil Anda, masuklah ke akun DentHub melalui menu Profil atau halaman Login. Halaman Beranda, Tanya Deni, Klinik, dan Panduan tetap dapat dibaca kapan saja.',
+      "Untuk menggunakan fitur AI Dental Scan dan mengelola Profil Anda, masuklah ke akun DentHub melalui menu Profil atau halaman Login. Halaman Beranda, Tanya Deni, Klinik, dan Panduan tetap dapat dibaca kapan saja.",
     icon: UserCheck,
   },
   {
-    step: '02',
-    badge: 'Tahap 2 • Pencahayaan',
-    title: 'Tips Mengambil Foto Gigi yang Akurat',
+    step: "02",
+    badge: "Tahap 2 • Pencahayaan",
+    title: "Tips Mengambil Foto Gigi yang Akurat",
     description:
-      'Gunakan pencahayaan ruangan yang terang (atau lampu flash ponsel), bersihkan sisa makanan terlebih dahulu, buka mulut dengan jelas, dan pastikan kamera fokus pada area gigi atau gusi yang ingin diperiksa.',
+      "Gunakan pencahayaan ruangan yang terang (atau lampu flash ponsel), bersihkan sisa makanan terlebih dahulu, buka mulut dengan jelas, dan pastikan kamera fokus pada area gigi atau gusi yang ingin diperiksa.",
     icon: Sun,
   },
   {
-    step: '03',
-    badge: 'Tahap 3 • AI Scan',
-    title: 'Gunakan Fitur AI Scan & Riwayat di Sidebar',
+    step: "03",
+    badge: "Tahap 3 • AI Scan",
+    title: "Gunakan Fitur AI Scan & Riwayat di Sidebar",
     description:
-      'Di halaman Scan, Anda dapat memotret lewat Kamera Langsung atau menyertakan file foto (JPG/PNG/WEBP ≤ 5 MB). Seluruh riwayat scan tersimpan rapi di Sidebar kiri dan dapat dibuka kembali kapan saja.',
+      "Di halaman Scan, Anda dapat memotret lewat Kamera Langsung atau menyertakan file foto (JPG/PNG/WEBP ≤ 5 MB). Seluruh riwayat scan tersimpan rapi di Sidebar kiri dan dapat dibuka kembali kapan saja.",
     icon: Camera,
   },
   {
-    step: '04',
-    badge: 'Tahap 4 • Laporan',
-    title: 'Unduh Hasil Laporan Screening',
+    step: "04",
+    badge: "Tahap 4 • Laporan",
+    title: "Unduh Hasil Laporan Screening",
     description:
       'Setelah analisis selesai, klik tombol "Unduh Hasil" untuk menyimpan kartu laporan lengkap (berisi kondisi terdeteksi, skor keyakinan AI, tingkat urgensi, serta daftar anjuran Do’s & Don’ts) ke perangkat Anda.',
     icon: Download,
   },
   {
-    step: '05',
-    badge: 'Tahap 5 • Deni AI',
-    title: 'Konsultasi dengan Maskot AI Deni',
+    step: "05",
+    badge: "Tahap 5 • Deni AI",
+    title: "Konsultasi dengan Maskot AI Deni",
     description:
       'Klik maskot Deni yang mengambang di pojok kanan bawah layar ("Tanya Deni") atau menu Deni di Navbar untuk berkonsultasi mengenai hasil scan maupun keluhan gigi harian Anda.',
     icon: MessageCircleHeart,
   },
   {
-    step: '06',
-    badge: 'Tahap 6 • Klinik',
-    title: 'Temukan Klinik Gigi Terdekat',
+    step: "06",
+    badge: "Tahap 6 • Klinik",
+    title: "Temukan Klinik Gigi Terdekat",
     description:
-      'Buka menu Klinik untuk mencari lokasi praktik dokter gigi terdekat berbasis OpenStreetMap melalui GPS otomatis atau pencarian kota manual.',
+      "Buka menu Klinik untuk mencari lokasi praktik dokter gigi terdekat berbasis OpenStreetMap melalui GPS otomatis atau pencarian kota manual.",
     icon: MapPin,
   },
 ] as const;
@@ -130,23 +133,25 @@ const GUIDE_SECTIONS = [
  */
 export default function PanduanPage() {
   const prefersReducedMotion = useReducedMotion();
-  const [selectedArticle, setSelectedArticle] = useState<DentalEducationArticle | null>(null);
+  const [selectedArticle, setSelectedArticle] =
+    useState<DentalEducationArticle | null>(null);
 
   return (
-    <main className="w-full bg-bg pb-24">
+    <main className="w-full bg-surface-navy">
       <KineticMarqueeRibbons
         testId="panduan-kinetic-ribbon"
         topPhrases={[
-          'PANDUAN SKRINING MANDIRI',
-          'FOTO TERANG & FOKUS',
-          'UNDUH LAPORAN HASIL AI',
-          'KONSULTASI DENI AI',
+          "PANDUAN SKRINING MANDIRI",
+          "FOTO TERANG & FOKUS",
+          "UNDUH LAPORAN HASIL AI",
+          "KONSULTASI WITH DENI AI",
         ]}
         bottomPhrases={[
-          'DUNIA DENTIST & PERAWATAN GIGI',
-          'REFERENSI WHO • ADA • KEMENKES RI',
-          'CEGAH KARIES SEJAK DINI',
-          'KLINIK TERDEKAT OSM',
+          "DUNIA DENTIST & PERAWATAN GIGI",
+          "REFERENSI WHO • ADA • KEMENKES RI",
+          "CEGAH KARIES SEJAK DINI",
+          "KLINIK TERDEKAT",
+          "CLINIC FINDER",
         ]}
       />
 
@@ -177,20 +182,24 @@ export default function PanduanPage() {
                 Panduan Lengkap Penggunaan Aplikasi DentHub AI
               </h1>
               <p className="mt-3 text-sm text-surface/80 sm:text-base">
-                Pelajari cara melakukan screening kesehatan gigi mandiri, mengunduh laporan hasil,
-                berkonsultasi dengan Deni, hingga menemukan klinik dokter gigi terdekat.
+                Pelajari cara melakukan screening kesehatan gigi mandiri,
+                mengunduh laporan hasil, berkonsultasi dengan Deni, hingga
+                menemukan klinik dokter gigi terdekat.
               </p>
             </motion.div>
 
             <div className="mx-auto mt-14 w-full max-w-[1380px] space-y-8">
               {GUIDE_SECTIONS.map((item, index) => {
                 const Icon = item.icon;
-                const theme = STACKED_CARD_THEMES[index % STACKED_CARD_THEMES.length];
+                const theme =
+                  STACKED_CARD_THEMES[index % STACKED_CARD_THEMES.length];
                 return (
                   <motion.article
                     key={item.step}
                     initial={
-                      prefersReducedMotion ? false : { opacity: 0, y: 32, scale: 0.97 }
+                      prefersReducedMotion
+                        ? false
+                        : { opacity: 0, y: 32, scale: 0.97 }
                     }
                     whileInView={{ opacity: 1, y: 0, scale: 1 }}
                     whileHover={prefersReducedMotion ? undefined : { y: -4 }}
@@ -199,7 +208,7 @@ export default function PanduanPage() {
                       prefersReducedMotion
                         ? { duration: 0 }
                         : {
-                            type: 'spring',
+                            type: "spring",
                             stiffness: 130,
                             damping: 20,
                             delay: index * 0.05,
@@ -207,40 +216,51 @@ export default function PanduanPage() {
                     }
                     style={{ top: `${4.5 + index * 1.25}rem` }}
                     className={[
-                      'group sticky flex min-h-[250px] items-center rounded-[2rem] border p-7 shadow-xl transition-all duration-200 hover:shadow-2xl sm:min-h-[290px] sm:p-11',
+                      "group sticky flex min-h-[250px] items-center rounded-[2rem] border p-7 shadow-xl transition-all duration-200 hover:shadow-2xl sm:min-h-[290px] sm:p-11",
                       theme.card,
-                    ].join(' ')}
+                    ].join(" ")}
                   >
                     <div className="flex w-full flex-col gap-6 sm:flex-row sm:items-center sm:gap-10">
                       <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:w-56 sm:flex-col sm:items-start sm:justify-center">
                         <span
                           className={[
-                            'font-display text-6xl font-extrabold leading-none tracking-tight transition-transform duration-200 group-hover:scale-105 sm:text-7xl',
+                            "font-display text-6xl font-extrabold leading-none tracking-tight transition-transform duration-200 group-hover:scale-105 sm:text-7xl",
                             theme.num,
-                          ].join(' ')}
+                          ].join(" ")}
                         >
                           {item.step}
                         </span>
                         <span
                           className={[
-                            'inline-flex items-center gap-1.5 rounded-pill px-4 py-1.5 text-xs font-bold',
+                            "inline-flex items-center gap-1.5 rounded-pill px-4 py-1.5 text-xs font-bold",
                             theme.badge,
-                          ].join(' ')}
+                          ].join(" ")}
                         >
-                          <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          <Icon
+                            className="h-3.5 w-3.5 shrink-0"
+                            aria-hidden="true"
+                          />
                           <span>{item.badge}</span>
                         </span>
                       </div>
 
                       <div
-                        className={['hidden h-28 w-px sm:block', theme.divider].join(' ')}
+                        className={[
+                          "hidden h-28 w-px sm:block",
+                          theme.divider,
+                        ].join(" ")}
                         aria-hidden="true"
                       />
 
                       <div className="flex-1 space-y-2.5">
-                        <h2 className="text-2xl font-extrabold sm:text-3xl">{item.title}</h2>
+                        <h2 className="text-2xl font-extrabold sm:text-3xl">
+                          {item.title}
+                        </h2>
                         <p
-                          className={['text-base leading-relaxed sm:text-lg', theme.desc].join(' ')}
+                          className={[
+                            "text-base leading-relaxed sm:text-lg",
+                            theme.desc,
+                          ].join(" ")}
                         >
                           {item.description}
                         </p>
@@ -294,15 +314,17 @@ export default function PanduanPage() {
                 Informasi Seputar Dunia Dentist &amp; Perawatan Gigi
               </h2>
               <p className="mt-3 text-sm text-surface/80 sm:text-base">
-                Klik salah satu kartu topik di bawah ini untuk membaca artikel edukasi lengkap yang
-                merujuk pada pedoman WHO, ADA, dan Kemenkes RI.
+                Klik salah satu kartu topik di bawah ini untuk membaca artikel
+                edukasi lengkap yang merujuk pada pedoman WHO, ADA, dan Kemenkes
+                RI.
               </p>
             </motion.div>
 
             <div className="mx-auto mt-14 w-full max-w-[1380px] space-y-8">
               {DENTIST_WORLD_ARTICLES.map((article, index) => {
                 const Icon = ARTICLE_ICONS[article.id] ?? BookOpen;
-                const theme = STACKED_CARD_THEMES[index % STACKED_CARD_THEMES.length];
+                const theme =
+                  STACKED_CARD_THEMES[index % STACKED_CARD_THEMES.length];
                 return (
                   <motion.button
                     key={article.id}
@@ -310,7 +332,9 @@ export default function PanduanPage() {
                     data-testid={`dentist-article-card-${article.id}`}
                     onClick={() => setSelectedArticle(article)}
                     initial={
-                      prefersReducedMotion ? false : { opacity: 0, y: 32, scale: 0.97 }
+                      prefersReducedMotion
+                        ? false
+                        : { opacity: 0, y: 32, scale: 0.97 }
                     }
                     whileInView={{ opacity: 1, y: 0, scale: 1 }}
                     whileHover={prefersReducedMotion ? undefined : { y: -4 }}
@@ -319,7 +343,7 @@ export default function PanduanPage() {
                       prefersReducedMotion
                         ? { duration: 0 }
                         : {
-                            type: 'spring',
+                            type: "spring",
                             stiffness: 135,
                             damping: 20,
                             delay: index * 0.06,
@@ -327,61 +351,75 @@ export default function PanduanPage() {
                     }
                     style={{ top: `${4.5 + index * 1.25}rem` }}
                     className={[
-                      'group sticky flex min-h-[250px] w-full cursor-pointer items-center rounded-[2rem] border p-7 text-left shadow-xl transition-all duration-200 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring sm:min-h-[290px] sm:p-11',
+                      "group sticky flex min-h-[250px] w-full cursor-pointer items-center rounded-[2rem] border p-7 text-left shadow-xl transition-all duration-200 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring sm:min-h-[290px] sm:p-11",
                       theme.card,
-                    ].join(' ')}
+                    ].join(" ")}
                   >
                     <div className="flex w-full flex-col gap-6 sm:flex-row sm:items-center sm:gap-10">
                       <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:w-56 sm:flex-col sm:items-start sm:justify-center">
                         <span
                           className={[
-                            'font-display text-6xl font-extrabold leading-none tracking-tight transition-transform duration-200 group-hover:scale-105 sm:text-7xl',
+                            "font-display text-6xl font-extrabold leading-none tracking-tight transition-transform duration-200 group-hover:scale-105 sm:text-7xl",
                             theme.num,
-                          ].join(' ')}
+                          ].join(" ")}
                         >
                           {article.stepNumber}
                         </span>
                         <span
                           className={[
-                            'inline-flex items-center gap-1.5 rounded-pill px-4 py-1.5 text-xs font-bold',
+                            "inline-flex items-center gap-1.5 rounded-pill px-4 py-1.5 text-xs font-bold",
                             theme.badge,
-                          ].join(' ')}
+                          ].join(" ")}
                         >
-                          <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          <Icon
+                            className="h-3.5 w-3.5 shrink-0"
+                            aria-hidden="true"
+                          />
                           <span>{article.category}</span>
                         </span>
                       </div>
 
                       <div
-                        className={['hidden h-28 w-px sm:block', theme.divider].join(' ')}
+                        className={[
+                          "hidden h-28 w-px sm:block",
+                          theme.divider,
+                        ].join(" ")}
                         aria-hidden="true"
                       />
 
                       <div className="flex-1 space-y-2.5">
                         <div
                           className={[
-                            'flex flex-wrap items-center gap-2 text-xs font-semibold',
+                            "flex flex-wrap items-center gap-2 text-xs font-semibold",
                             theme.meta,
-                          ].join(' ')}
+                          ].join(" ")}
                         >
                           <span>{article.readTime}</span>
                           <span>•</span>
                           <span>Referensi WHO / ADA / Kemenkes RI</span>
                         </div>
-                        <h3 className="text-2xl font-extrabold sm:text-3xl">{article.title}</h3>
+                        <h3 className="text-2xl font-extrabold sm:text-3xl">
+                          {article.title}
+                        </h3>
                         <p
-                          className={['text-base leading-relaxed sm:text-lg', theme.desc].join(' ')}
+                          className={[
+                            "text-base leading-relaxed sm:text-lg",
+                            theme.desc,
+                          ].join(" ")}
                         >
                           {article.summary}
                         </p>
                         <div className="pt-1">
                           <span
                             className={[
-                              'inline-flex items-center gap-1.5 text-xs font-bold',
+                              "inline-flex items-center gap-1.5 text-xs font-bold",
                               theme.cta,
-                            ].join(' ')}
+                            ].join(" ")}
                           >
-                            <BookOpen className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                            <BookOpen
+                              className="h-3.5 w-3.5 shrink-0"
+                              aria-hidden="true"
+                            />
                             <span>Baca Artikel Lengkap</span>
                             <ArrowUpRight
                               className="h-4 w-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
@@ -394,6 +432,83 @@ export default function PanduanPage() {
                   </motion.button>
                 );
               })}
+            </div>
+          </div>
+        </section>
+
+        {/* =====================================================================
+            SECTION 3: Bottom Kinetic Marquee & Oversized Interactive DENTHUB. Wordmark
+           ===================================================================== */}
+        <section
+          aria-label="Penutup Interaktif DentHub"
+          data-testid="panduan-bottom-wordmark"
+          className="w-full overflow-hidden border-t border-surface/15 bg-surface-navy pb-20 pt-10 text-surface md:pb-24"
+        >
+          {/* Compact Navy-Integrated Kinetic Marquee Strip */}
+          <div className="w-full overflow-hidden border-y border-surface/15 bg-surface/5 py-3">
+            <motion.div
+              aria-hidden="true"
+              className="flex w-max items-center gap-8 whitespace-nowrap font-display text-xs font-extrabold uppercase tracking-[0.22em] text-surface-mint sm:text-sm"
+              animate={prefersReducedMotion ? undefined : { x: ['0%', '-50%'] }}
+              transition={
+                prefersReducedMotion
+                  ? undefined
+                  : { duration: 22, ease: 'linear', repeat: Infinity }
+              }
+            >
+              {[0, 1].map((dup) => (
+                <div key={dup} className="flex shrink-0 items-center gap-8">
+                  <span>CEGAH GIGI BERLUBANG SEJAK DINI</span>
+                  <span className="text-brand-ring">•</span>
+                  <span>SKRINING AI PREVENTIF</span>
+                  <span className="text-brand-ring">•</span>
+                  <span>KONSULTASI DENI 24/7</span>
+                  <span className="text-brand-ring">•</span>
+                  <span>KLINIK GIGI TERDEKAT</span>
+                  <span className="text-brand-ring">•</span>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* Oversized Full-Width Interactive DENTHUB. Display Wordmark */}
+          <div className="mx-auto flex w-full max-w-[1380px] flex-col items-center justify-center px-4 pt-12 text-center sm:px-8 sm:pt-16">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-surface/65">
+              Kesehatan Gigi Preventif Untuk Semua
+            </p>
+            <div
+              aria-label="DENTHUB."
+              className="flex select-none flex-wrap items-baseline justify-center font-display text-[4.5rem] font-black leading-none tracking-tighter sm:text-[8rem] lg:text-[11rem]"
+            >
+              {Array.from('DENTHUB').map((char, idx) => (
+                <motion.span
+                  key={`${char}-${idx}`}
+                  whileHover={
+                    prefersReducedMotion
+                      ? undefined
+                      : {
+                          y: -14,
+                          scale: 1.09,
+                          rotate: idx % 2 === 0 ? -4 : 4,
+                        }
+                  }
+                  transition={{ type: 'spring', stiffness: 360, damping: 18 }}
+                  className="inline-block cursor-default text-surface transition-colors duration-200 hover:text-surface-mint"
+                >
+                  {char}
+                </motion.span>
+              ))}
+              <motion.span
+                whileHover={
+                  prefersReducedMotion
+                    ? undefined
+                    : { y: -16, scale: 1.25, rotate: 12 }
+                }
+                transition={{ type: 'spring', stiffness: 420, damping: 16 }}
+                className="inline-block cursor-default text-brand-ring"
+              >
+                .
+              </motion.span>
             </div>
           </div>
         </section>

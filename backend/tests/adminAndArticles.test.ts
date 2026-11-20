@@ -3,6 +3,7 @@ import request from 'supertest';
 import { createApp } from '../src/app';
 import { setupTestDb, clearTestDb, teardownTestDb } from './helpers/testDb';
 import { Article, User } from '../src/models';
+import { parsePubMedArticlesXml } from '../src/scripts/crawlDentalNews';
 import { runSeed } from '../src/scripts/seed';
 
 describe('T-208 Public Articles API & Admin CMS + User Management API', () => {
@@ -175,5 +176,36 @@ describe('T-208 Public Articles API & Admin CMS + User Management API', () => {
       .delete(`/api/v1/admin/users/${userId}`)
       .set('Authorization', `Bearer ${token}`);
     expect(deleteOtherRes.status).toBe(200);
+  });
+
+  it('parses PubMed XML abstracts cleanly into structured CrawledDentalArticle items with attribution', () => {
+    const sampleXml = `
+      <PubmedArticleSet>
+        <PubmedArticle>
+          <MedlineCitation>
+            <PMID>39991234</PMID>
+            <Article>
+              <Journal><Title>Journal of Preventive Dentistry</Title></Journal>
+              <ArticleTitle>Fluoride &amp; Early Caries Prevention in Adults.</ArticleTitle>
+              <Abstract>
+                <AbstractText>Twice-daily fluoride toothpaste reduces early enamel demineralization significantly.</AbstractText>
+              </Abstract>
+            </Article>
+            <DateCompleted><Year>2026</Year></DateCompleted>
+          </MedlineCitation>
+        </PubmedArticle>
+      </PubmedArticleSet>
+    `;
+    const parsed = parsePubMedArticlesXml(sampleXml, {
+      query: 'dental caries',
+      category: 'Berita',
+      coverImageUrl: '/images/covers/berita-ai.svg',
+      topicLabelId: 'Pencegahan Karies Gigi',
+    });
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0].title).toBe('Fluoride & Early Caries Prevention in Adults');
+    expect(parsed[0].slug).toContain('pubmed-39991234');
+    expect(parsed[0].content).toContain('https://pubmed.ncbi.nlm.nih.gov/39991234/');
+    expect(parsed[0].coverImageUrl).toBe('/images/covers/berita-ai.svg');
   });
 });

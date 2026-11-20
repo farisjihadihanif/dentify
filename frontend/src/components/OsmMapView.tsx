@@ -2,7 +2,10 @@
 
 import React from 'react';
 import dynamic from 'next/dynamic';
-import type { ClinicItem } from '../services/clinicService';
+import {
+  buildGoogleMapsDirectionsUrl,
+  type ClinicItem,
+} from '../services/clinicService';
 
 export interface OsmMapViewProps {
   centerLat: number;
@@ -40,9 +43,10 @@ export function OsmMapView({
   locationLabel,
   className = '',
 }: OsmMapViewProps) {
-  const directOsmUrl = `https://www.openstreetmap.org/#map=15/${centerLat.toFixed(
-    5,
-  )}/${centerLng.toFixed(5)}`;
+  const directMapsUrl = buildGoogleMapsDirectionsUrl(
+    Number(centerLat.toFixed(5)),
+    Number(centerLng.toFixed(5)),
+  );
 
   return (
     <section
@@ -68,12 +72,12 @@ export function OsmMapView({
         </div>
 
         <a
-          href={directOsmUrl}
+          href={directMapsUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex min-h-touch items-center rounded-card border border-border bg-bg px-3 py-1.5 text-badge font-semibold text-brand-dark hover:bg-brand-soft"
         >
-          Buka di OpenStreetMap.org ↗
+          Buka di Google Maps ↗
         </a>
       </div>
 

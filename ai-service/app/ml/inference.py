@@ -126,8 +126,23 @@ class DentalInferenceService:
 
         preprocessed = decode_and_preprocess_bytes(raw_bytes)
         assert self.model is not None
-        raw_preds = self.model(preprocessed.tensor, training=False).numpy()[0]
-        probs_vec = np.asarray(raw_preds, dtype=np.float64)
+
+        # Batched 4-view TTA (original, horizontal flip, 90% center crop, cropped flip)
+        base = preprocessed.tensor[0]
+        h, w = base.shape[:2]
+        margin = max(1, int(min(h, w) * 0.05))
+        cropped = cv2.resize(
+            base[margin : h - margin, margin : w - margin, :],
+            (w, h),
+            interpolation=cv2.INTER_LINEAR,
+        )
+        tta_batch = np.stack(
+            [base, base[:, ::-1, :], cropped, cropped[:, ::-1, :]],
+            axis=0,
+        ).astype(np.float32)
+
+        raw_preds = self.model(tta_batch, training=False).numpy()
+        probs_vec = np.mean(np.asarray(raw_preds, dtype=np.float64), axis=0)
         total = float(np.sum(probs_vec))
         if total > 0:
             probs_vec = probs_vec / total

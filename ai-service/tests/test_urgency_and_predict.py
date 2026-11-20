@@ -175,6 +175,29 @@ def test_predict_returns_valid_schema_and_fast_latency(client: TestClient) -> No
     assert len(body["detections"]) == 1
 
 
+def test_predict_accepts_small_valid_webp_image(client: TestClient) -> None:
+    from PIL import Image
+
+    rng = np.random.default_rng(11)
+    img_arr = rng.integers(80, 195, size=(160, 160, 3), dtype=np.uint8)
+    cv2.rectangle(img_arr, (24, 24), (136, 136), (235, 235, 225), thickness=4)
+    cv2.circle(img_arr, (80, 80), 22, (70, 50, 40), thickness=-1)
+
+    buf = io.BytesIO()
+    Image.fromarray(img_arr).save(buf, format="WEBP", quality=80)
+    webp_bytes = buf.getvalue()
+
+    resp = client.post(
+        "/internal/predict",
+        headers={"X-Internal-Key": "test-key-predict"},
+        files={"image": ("small-tooth.webp", io.BytesIO(webp_bytes), "image/webp")},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["primary_condition"] == "caries"
+    assert body["quality"]["passed"] is True
+
+
 def test_custom_keras_model_roundtrip_reload(tmp_path: Path) -> None:
     from app.ml.custom_model import (
         ClassWeightedFocalLoss,
@@ -182,7 +205,11 @@ def test_custom_keras_model_roundtrip_reload(tmp_path: Path) -> None:
         load_denthub_model,
     )
 
-    model = build_denthub_model(input_shape=(224, 224, 3), num_classes=4)
+    model = build_denthub_model(
+        input_shape=(224, 224, 3),
+        num_classes=4,
+        backbone_weights=None,
+    )
     model.compile(optimizer="adam", loss=ClassWeightedFocalLoss())
     out_file = tmp_path / "test_denthub.keras"
     model.save(out_file)

@@ -10,7 +10,7 @@ import {
   type UrgencyLevel,
 } from '../constants/domain';
 import { DENTAL_KNOWLEDGE_SEED } from '../constants/knowledgeSeed';
-import { ChatSession, DentalKnowledge, ScanRecord, type IChatSessionDocument } from '../models';
+import { ChatSession, DentalKnowledge, ScanRecord, User, type IChatSessionDocument } from '../models';
 import type { AuthenticatedRequest } from '../middlewares/rateLimiter';
 import { requestAgentChat, type AiChatKnowledgeItem } from '../services/aiServiceClient';
 import { ApiError } from '../utils/ApiError';
@@ -64,6 +64,13 @@ export async function postChatMessage(
     }
 
     const userId = req.user ? new mongoose.Types.ObjectId(req.user.id) : null;
+    let userName: string | undefined;
+    if (userId) {
+      const userDoc = await User.findById(userId).select('full_name').lean();
+      if (userDoc?.full_name) {
+        userName = userDoc.full_name;
+      }
+    }
 
     // Resolve optional scan_id (owner-checked)
     let linkedScan = null;
@@ -121,6 +128,9 @@ export async function postChatMessage(
     try {
       const aiReply = await requestAgentChat({
         message: input.message,
+        user_name: userName,
+        image_base64: input.image_base64,
+        image_mime_type: input.image_mime_type,
         scan_context: scanContext,
         chat_history: chatHistory,
         knowledge_context: knowledgeContext,
