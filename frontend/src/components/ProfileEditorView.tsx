@@ -143,7 +143,7 @@ export function ProfileEditorView({ initialUser = null }: ProfileEditorViewProps
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-4 pb-12 pt-24 sm:px-6 sm:pt-28">
+    <div className="mx-auto max-w-2xl space-y-6 px-4 py-10 sm:px-6 sm:py-12">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <span className="inline-block rounded-pill bg-brand-soft px-3.5 py-1 text-xs font-bold text-brand-dark">

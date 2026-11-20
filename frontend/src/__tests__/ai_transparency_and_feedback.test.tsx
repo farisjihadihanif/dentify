@@ -2,7 +2,10 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AiFeedbackControl } from '../components/AiFeedbackControl';
+import { AppFooter } from '../components/AppFooter';
 import { DeniChat, FALLBACK_DENI_BANNER_TEXT } from '../components/DeniChat';
+import { DeniMascot } from '../components/DeniMascot';
+import { FloatingNavbar } from '../components/FloatingNavbar';
 import {
   LOW_CONFIDENCE_WARNING_TEXT,
   ScanResultCard,
@@ -136,5 +139,16 @@ describe('T-207: AI transparency labels, honest confidence, fallback banner, and
     });
     expect(result.id).toBe('fb_001');
     expect(result.rating).toBe('inaccurate');
+  });
+
+  it('positions FloatingNavbar at bottom-center with pb-24 footer clearance and DeniMascot bottom-24 offset', () => {
+    const navHtml = renderToStaticMarkup(<FloatingNavbar />);
+    const footerHtml = renderToStaticMarkup(<AppFooter />);
+    const mascotHtml = renderToStaticMarkup(<DeniMascot />);
+
+    expect(navHtml).toContain('bottom-5');
+    expect(navHtml).toContain('sm:bottom-6');
+    expect(footerHtml).toContain('pb-24');
+    expect(mascotHtml).toContain('bottom-24');
   });
 });

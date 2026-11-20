@@ -42,7 +42,7 @@ export function AuthGuard({
 
   if (!authorized && checked) {
     return (
-      <div className="mx-auto max-w-xl space-y-6 px-4 pb-12 pt-24 sm:pt-28">
+      <div className="mx-auto max-w-xl space-y-6 px-4 py-10 sm:py-12">
         <section
           aria-label="Halaman Wajib Login"
           data-testid="auth-guard-prompt"

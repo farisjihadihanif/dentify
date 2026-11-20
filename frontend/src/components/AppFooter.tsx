@@ -12,7 +12,7 @@ export function AppFooter() {
   return (
     <footer
       data-testid="app-footer"
-      className="mt-auto border-t border-border bg-surface text-badge text-text-muted"
+      className="mt-auto border-t border-border bg-surface pb-24 text-badge text-text-muted"
     >
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-5 sm:flex-row sm:px-6 lg:px-8">
         <p className="font-medium text-text">

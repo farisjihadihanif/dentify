@@ -27,7 +27,7 @@ export function DeniMascot() {
   return (
     <div
       data-testid="deni-mascot-widget"
-      className="fixed bottom-5 right-5 z-50 flex flex-col items-end"
+      className="fixed bottom-24 right-4 z-50 flex flex-col items-end sm:bottom-24 sm:right-6"
     >
       <Link
         href="/chat"

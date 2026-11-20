@@ -64,7 +64,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 pb-12 pt-24 sm:px-6">
+    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-12 sm:px-6">
       <div className="mb-6 text-center">
         <Link
           href="/"

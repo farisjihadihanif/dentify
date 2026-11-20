@@ -71,7 +71,7 @@ export default function HomePage() {
       <section
         aria-label="Hero Dunia Dentist 3D"
         data-testid="home-section-1-hero"
-        className="bg-dental-grid relative flex min-h-screen items-center overflow-hidden bg-gradient-to-b from-brand-soft/60 via-bg to-bg pb-12 pt-24 sm:pt-28"
+        className="bg-dental-grid relative flex min-h-screen items-center overflow-hidden bg-gradient-to-b from-brand-soft/60 via-bg to-bg py-12 sm:py-16"
       >
         <div className="mx-auto grid w-full max-w-6xl items-center gap-8 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
           {/* Kolom Teks Tajam & Kontras Tinggi (Tanpa Kotak Blur Sensor) */}

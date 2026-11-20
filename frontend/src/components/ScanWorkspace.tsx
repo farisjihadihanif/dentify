@@ -241,7 +241,7 @@ export function ScanWorkspace({
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 pb-12 pt-24 sm:px-6 sm:pt-28 lg:px-8">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
       <div className="text-center">
         <span className="inline-block rounded-pill bg-brand-soft px-3.5 py-1 text-xs font-bold text-brand-dark">
           AI Dental Screening • Computer Vision (.keras)

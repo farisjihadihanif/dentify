@@ -57,7 +57,7 @@ const GUIDE_SECTIONS = [
 
 export default function PanduanPage() {
   return (
-    <main className="mx-auto max-w-5xl space-y-8 px-4 pb-12 pt-24 sm:px-6 sm:pt-28 lg:px-8">
+    <main className="mx-auto max-w-5xl space-y-8 px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
       <div className="text-center">
         <span className="inline-block rounded-pill bg-brand-soft px-3.5 py-1 text-xs font-bold text-brand-dark">
           Pusat Bantuan • Panduan Pengguna DentHub

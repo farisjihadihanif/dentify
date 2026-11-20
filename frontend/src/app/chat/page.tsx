@@ -3,7 +3,7 @@ import { DeniChat } from '../../components/DeniChat';
 
 export default function ChatPage() {
   return (
-    <main className="mx-auto max-w-6xl space-y-6 px-4 pb-12 pt-24 sm:px-6 sm:pt-28 lg:px-8">
+    <main className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
       <div className="flex flex-col items-center gap-2 text-center">
         <span className="inline-block rounded-pill bg-brand-soft px-3.5 py-1 text-xs font-bold text-accent-deni">
           Asisten AI Interaktif • Deni

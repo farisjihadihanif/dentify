@@ -42,7 +42,7 @@ const DENTIST_WORLD_CARDS = [
  */
 export default function ClinicsPage() {
   return (
-    <main className="mx-auto max-w-6xl space-y-10 px-4 pb-12 pt-24 sm:px-6 sm:pt-28 lg:px-8">
+    <main className="mx-auto max-w-6xl space-y-10 px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
       {/* =====================================================================
           SECTION 1: Bagian Atas — Informasi tentang Dunia Dentist
          ===================================================================== */}

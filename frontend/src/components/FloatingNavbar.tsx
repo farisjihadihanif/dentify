@@ -21,17 +21,17 @@ export const NAV_DOCK_ITEMS: readonly NavDockItem[] = [
 ];
 
 /**
- * Navbar Tengah bergaya Mobile-App Dock (`FloatingNavbar.tsx`):
- * - Diposisikan melayang di tengah atas (`fixed top-4 inset-x-0 z-50`) dengan efek glassmorphism
- * - Menggunakan `DentHubLogo` resmi (ikon garis gigi biru dengan cincin orbit miring)
- * - Berisi tepat 5 ikon yang merepresentasikan: Home (`/`), Scan (`/scan`), Deni (`/chat`),
- *   Klinik (`/clinics`), dan Profile (`/profile`).
+ * Floating Bottom-Center Dock (`FloatingNavbar.tsx`, docs/DESIGN.md §0):
+ * - Fixed at bottom-center (`fixed inset-x-0 bottom-5 sm:bottom-6 z-50`) with subtle glassmorphism
+ * - Uses official `DentHubLogo` (blue tooth outline with tilted orbital ring)
+ * - Contains exactly 5 items: Beranda (`/`), Scan (`/scan`), Deni (`/chat`),
+ *   Klinik (`/clinics`), and Profil (`/profile`).
  */
 export function FloatingNavbar() {
   const pathname = usePathname() || '/';
 
   return (
-    <header className="pointer-events-none fixed inset-x-0 top-3.5 z-50 flex justify-center px-3">
+    <header className="pointer-events-none fixed inset-x-0 bottom-5 z-50 flex justify-center px-3 sm:bottom-6">
       <nav
         aria-label="Navigasi Utama DentHub"
         data-testid="floating-navbar"
