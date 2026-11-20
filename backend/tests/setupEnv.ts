@@ -1,0 +1,10 @@
+process.env.NODE_ENV = 'test';
+process.env.JWT_SECRET = 'test-jwt-secret-key-at-least-32-chars-long';
+process.env.JWT_EXPIRES_IN = '7d';
+process.env.BCRYPT_SALT_ROUNDS = '10';
+process.env.CORS_ORIGINS = 'http://localhost:3000';
+process.env.AI_SERVICE_URL = 'http://127.0.0.1:8000';
+process.env.AI_SERVICE_API_KEY = 'test-internal-key';
+process.env.ADMIN_EMAIL = 'admin@denthub.test';
+process.env.ADMIN_PASSWORD = 'AdminStrongPassword123!';
+process.env.ADMIN_NAME = 'Admin DentHub Test';
