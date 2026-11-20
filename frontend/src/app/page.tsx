@@ -15,9 +15,18 @@ import {
 } from 'lucide-react';
 import { DentistWorld3DCanvas } from '../components/DentistWorld3DCanvas';
 
+const KINETIC_RIBBON_ITEMS = [
+  '01 Ambil Foto Gigi',
+  'OpenCV CLAHE & Deep Learning (.keras)',
+  '02 Skrining Indikasi Karies & Karang Gigi',
+  '03 Rekomendasi Perawatan Do’s & Don’ts',
+  '04 Konsultasi AI Deni & Klinik OpenStreetMap',
+] as const;
+
 const TIMELINE_FLOW_STEPS = [
   {
     step: '01',
+    badge: 'Tahap 1 • Foto',
     title: '01 Unggah Foto / Kamera Langsung',
     subtitle: 'Ambil Foto Gigi dengan Panduan Pencahayaan',
     description:
@@ -26,6 +35,7 @@ const TIMELINE_FLOW_STEPS = [
   },
   {
     step: '02',
+    badge: 'Tahap 2 • Analisis AI',
     title: '02 AI Menganalisis Kondisi Gigi',
     subtitle: 'Preprocessing OpenCV CLAHE & Deep Learning (.keras)',
     description:
@@ -34,6 +44,7 @@ const TIMELINE_FLOW_STEPS = [
   },
   {
     step: '03',
+    badge: 'Tahap 3 • Laporan',
     title: '03 Dapatkan Hasil & Unduh Laporan',
     subtitle: "Rekomendasi Perawatan Do's & Don'ts Terstruktur",
     description:
@@ -42,6 +53,7 @@ const TIMELINE_FLOW_STEPS = [
   },
   {
     step: '04',
+    badge: 'Tahap 4 • Tindak Lanjut',
     title: '04 Konsultasi Deni & Klinik Terdekat',
     subtitle: 'Asisten AI Deni & Peta OpenStreetMap',
     description:
@@ -52,8 +64,8 @@ const TIMELINE_FLOW_STEPS = [
 
 /**
  * Home Page DentHub (`src/app/page.tsx`, docs/DESIGN.md §3.1) — 3 Sections:
- * 1. Section 1: Interactive 3D Dental Screening Hero (scanning beam, drag-to-rotate, clickable hotspots).
- * 2. Section 2: Full-bleed edge-to-edge (`w-full`) animated application flow timeline.
+ * 1. Section 1: Unified full-viewport edge-to-edge interactive 3D tooth + orbiting dental instruments stage.
+ * 2. Section 2: Full-bleed kinetic marquee + bold rounded stacked step cards (ekare-creative style).
  * 3. Section 3: AI Scan & Tanya Deni feature preview cards.
  */
 export default function HomePage() {
@@ -62,25 +74,31 @@ export default function HomePage() {
   return (
     <main className="bg-bg text-text">
       {/* =====================================================================
-          SECTION 1: Full-Screen Hero dengan Animasi 3D Pemeriksaan Gigi Interaktif
+          SECTION 1: Unified Full-Hero Interactive 3D Tooth + Dental Instruments
          ===================================================================== */}
       <section
         aria-label="Hero Dunia Dentist 3D"
         data-testid="home-section-1-hero"
-        className="bg-dental-grid relative flex min-h-screen items-center overflow-hidden bg-gradient-to-b from-brand-soft/60 via-bg to-bg py-12 sm:py-16"
+        className="bg-dental-grid relative flex min-h-[calc(100svh-4rem)] w-full items-center overflow-hidden bg-gradient-to-b from-brand-soft/70 via-bg to-bg"
       >
-        <div className="mx-auto grid w-full max-w-6xl items-center gap-8 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
-          <div className="relative z-10 space-y-5 text-center lg:col-span-6 lg:text-left">
+        {/* Full-Section Interactive 3D Stage */}
+        <div className="absolute inset-0 h-full w-full">
+          <DentistWorld3DCanvas />
+        </div>
+
+        {/* Hero Copy Floating Directly Over Full-Stage 3D (pointer-events-none except CTA) */}
+        <div className="pointer-events-none relative z-10 mx-auto flex w-full max-w-6xl flex-col justify-start px-4 py-14 sm:px-6 lg:justify-center lg:px-8">
+          <div className="max-w-xl space-y-5 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 rounded-pill border border-brand/25 bg-surface px-3.5 py-1 text-xs font-bold text-brand-dark shadow-sm">
-              <ShieldCheck className="h-4 w-4 shrink-0 text-brand" />
-              <span>AI Dental Screening • Pemeriksaan 3D Interaktif</span>
+              <ShieldCheck className="h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
+              <span>AI Dental Screening • Dunia Dentist 3D</span>
             </div>
 
             <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-text sm:text-5xl">
               Cegah Gigi Berlubang Sejak Dini
             </h1>
 
-            <p className="mx-auto max-w-xl text-base leading-relaxed text-text-muted sm:text-lg lg:mx-0">
+            <p className="mx-auto max-w-lg text-base leading-relaxed text-text-muted sm:text-lg lg:mx-0">
               Dapatkan pemeriksaan gigi online gratis dan temukan solusi untuk masalah gigi Anda!
             </p>
 
@@ -88,87 +106,121 @@ export default function HomePage() {
               <Link
                 href="/scan"
                 data-testid="hero-cta-cek-sekarang"
-                className="inline-flex h-11 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-pill bg-brand px-6 text-base font-bold text-surface shadow-md transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark"
+                className="pointer-events-auto inline-flex h-11 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-pill bg-brand px-6 text-base font-bold text-surface shadow-md transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark"
               >
                 <span>Cek Sekarang!</span>
-                <ArrowRight className="h-4 w-4 shrink-0" />
+                <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
               </Link>
             </div>
-          </div>
-
-          <div className="relative h-[430px] w-full sm:h-[490px] lg:col-span-6 lg:h-[540px]">
-            <DentistWorld3DCanvas />
           </div>
         </div>
       </section>
 
       {/* =====================================================================
-          SECTION 2: Full-Bleed Edge-to-Edge Alur Aplikasi dengan Animasi Scroll & Hover
+          SECTION 2: Kinetic Marquee + Stacked Step Cards (ekare-creative Style)
          ===================================================================== */}
       <section
         id="alur-aplikasi"
         aria-labelledby="heading-alur-aplikasi"
         data-testid="home-section-2-flow"
-        className="w-full border-y border-border bg-surface py-16 sm:py-20"
+        className="w-full border-y border-border bg-bg"
       >
-        <div className="w-full px-4 sm:px-8 lg:px-14 xl:px-20">
-          <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
-            className="text-center"
-          >
-            <span className="inline-block rounded-pill bg-brand-soft px-3.5 py-1 text-xs font-bold text-brand-dark">
-              Alur Penggunaan Aplikasi
-            </span>
-            <h2
-              id="heading-alur-aplikasi"
-              className="mt-2.5 text-2xl font-bold text-text sm:text-3xl"
+        {/* Kinetic Marquee Ribbon */}
+        <div
+          aria-hidden="true"
+          data-testid="home-kinetic-ribbon"
+          className="w-full overflow-hidden border-b border-border bg-brand-soft py-3"
+        >
+          <div className="animate-kinetic-marquee flex items-center gap-8 whitespace-nowrap text-xs font-bold uppercase tracking-wider text-brand-dark sm:text-sm">
+            {[...KINETIC_RIBBON_ITEMS, ...KINETIC_RIBBON_ITEMS].map((label, idx) => (
+              <span key={`${label}-${idx}`} className="inline-flex items-center gap-4">
+                <span>{label}</span>
+                <span className="h-1.5 w-1.5 rounded-pill bg-brand-ring" />
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="w-full px-4 py-14 sm:px-8 sm:py-20 lg:px-14">
+          <div className="w-full rounded-[2rem] border border-border bg-brand-soft/60 p-6 shadow-sm sm:p-10 lg:p-14">
+            <motion.div
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.45 }}
+              className="mx-auto max-w-3xl text-center"
             >
-              Cara Kerja DentHub dari Awal hingga Solusi
-            </h2>
-            <p className="mx-auto mt-2 max-w-3xl text-sm text-text-muted sm:text-base">
-              Ikuti 4 langkah berurutan di bawah ini untuk memeriksa kondisi gigi Anda secara mandiri
-              dan terarah.
-            </p>
-          </motion.div>
+              <span className="inline-block rounded-pill border border-brand/20 bg-surface px-3.5 py-1 text-xs font-bold text-brand-dark">
+                Alur Penggunaan Aplikasi
+              </span>
+              <h2
+                id="heading-alur-aplikasi"
+                className="mt-3 text-2xl font-bold text-text sm:text-4xl"
+              >
+                Cara Kerja DentHub dari Awal hingga Solusi
+              </h2>
+              <p className="mt-2.5 text-sm text-text-muted sm:text-base">
+                Ikuti 4 langkah berurutan di bawah ini untuk memeriksa kondisi gigi Anda secara
+                mandiri dan terarah.
+              </p>
+            </motion.div>
 
-          <div className="relative mt-12 w-full space-y-6 before:absolute before:bottom-4 before:left-5 before:top-4 before:w-0.5 before:rounded-pill before:bg-brand/30 sm:before:left-6">
-            {TIMELINE_FLOW_STEPS.map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <motion.article
-                  key={item.step}
-                  initial={prefersReducedMotion ? false : { opacity: 0, x: -24 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  whileHover={prefersReducedMotion ? undefined : { y: -3 }}
-                  viewport={{ once: true, amount: 0.2 }}
-                  transition={{
-                    duration: prefersReducedMotion ? 0 : 0.4,
-                    delay: prefersReducedMotion ? 0 : index * 0.08,
-                  }}
-                  className="group relative flex w-full items-start gap-4 pl-1 sm:gap-6 sm:pl-2"
-                >
-                  <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-pill bg-brand font-bold text-surface shadow-sm ring-4 ring-surface transition-transform duration-200 group-hover:scale-110 sm:h-11 sm:w-11">
-                    <Icon className="h-5 w-5" aria-hidden="true" />
-                  </div>
+            {/* Stacked Step Cards */}
+            <div className="mx-auto mt-10 max-w-5xl space-y-5">
+              {TIMELINE_FLOW_STEPS.map((item, index) => {
+                const Icon = item.icon;
+                return (
+                  <motion.article
+                    key={item.step}
+                    initial={
+                      prefersReducedMotion ? false : { opacity: 0, y: 36, scale: 0.97 }
+                    }
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    whileHover={prefersReducedMotion ? undefined : { y: -4 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={
+                      prefersReducedMotion
+                        ? { duration: 0 }
+                        : {
+                            type: 'spring',
+                            stiffness: 125,
+                            damping: 20,
+                            delay: index * 0.06,
+                          }
+                    }
+                    style={{ top: `${5 + index * 1.1}rem` }}
+                    className="group sticky rounded-[1.5rem] border border-border bg-surface p-6 shadow-sm transition-all duration-200 hover:border-brand/50 hover:shadow-lg sm:p-8"
+                  >
+                    <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-8">
+                      {/* Oversized Left Step Number + Pill Badge Underneath */}
+                      <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:w-44 sm:flex-col sm:items-start sm:justify-center">
+                        <span className="font-display text-5xl font-extrabold leading-none tracking-tight text-brand transition-transform duration-200 group-hover:scale-105 sm:text-6xl">
+                          {item.step}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 rounded-pill bg-brand-soft px-3 py-1 text-xs font-bold text-brand-dark">
+                          <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          <span>{item.badge}</span>
+                        </span>
+                      </div>
 
-                  <div className="flex-1 rounded-card border border-border bg-bg p-5 shadow-sm transition-all duration-200 group-hover:border-brand/50 group-hover:bg-surface group-hover:shadow-md sm:p-6">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="rounded-pill bg-brand-soft px-3 py-0.5 text-xs font-bold text-brand-dark">
-                        Langkah {item.step}
-                      </span>
-                      <span className="text-xs font-medium text-text-muted">{item.subtitle}</span>
+                      <div className="hidden h-20 w-px bg-border sm:block" aria-hidden="true" />
+
+                      <div className="flex-1 space-y-1.5">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                          {item.subtitle}
+                        </p>
+                        <h3 className="text-xl font-bold text-text transition-colors group-hover:text-brand-dark sm:text-2xl">
+                          {item.title}
+                        </h3>
+                        <p className="text-sm leading-relaxed text-text-muted sm:text-base">
+                          {item.description}
+                        </p>
+                      </div>
                     </div>
-                    <h3 className="mt-2 text-lg font-bold text-text sm:text-xl">{item.title}</h3>
-                    <p className="mt-1.5 text-sm leading-relaxed text-text-muted sm:text-base">
-                      {item.description}
-                    </p>
-                  </div>
-                </motion.article>
-              );
-            })}
+                  </motion.article>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
@@ -179,7 +231,7 @@ export default function HomePage() {
       <section
         aria-labelledby="heading-preview-fitur"
         data-testid="home-section-3-preview"
-        className="mx-auto max-w-6xl space-y-10 px-4 py-16 sm:px-6 lg:px-8"
+        className="mx-auto max-w-6xl space-y-10 px-4 pb-24 pt-16 sm:px-6 lg:px-8"
       >
         <div className="text-center">
           <span className="inline-block rounded-pill bg-brand-soft px-3.5 py-1 text-xs font-bold text-brand-dark">

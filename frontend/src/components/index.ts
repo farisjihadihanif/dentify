@@ -36,3 +36,9 @@ export { AppFooter } from './AppFooter';
 export { DeniMascot } from './DeniMascot';
 export { AuthGuard, type AuthGuardProps } from './AuthGuard';
 export { DentistWorld3DCanvas } from './DentistWorld3DCanvas';
+export {
+  DentalArticleModal,
+  DENTIST_WORLD_ARTICLES,
+  type DentalArticleModalProps,
+  type DentalEducationArticle,
+} from './DentalArticleModal';

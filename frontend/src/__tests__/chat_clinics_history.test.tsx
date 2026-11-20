@@ -10,6 +10,10 @@ import { ClinicCard } from '../components/ClinicCard';
 import { ClinicFinderView, RADIUS_OPTIONS_KM } from '../components/ClinicFinderView';
 import { DeniChat } from '../components/DeniChat';
 import { DeniMascot } from '../components/DeniMascot';
+import {
+  DENTIST_WORLD_ARTICLES,
+  DentalArticleModal,
+} from '../components/DentalArticleModal';
 import { DentHubLogo } from '../components/DentHubLogo';
 import { DEFAULT_HISTORY_EMPTY_TEXT, EmptyState } from '../components/EmptyState';
 import { FloatingNavbar, NAV_DOCK_ITEMS } from '../components/FloatingNavbar';
@@ -144,12 +148,33 @@ describe('Global layout, identity, /profile, and /panduan (T-110, T-206)', () =>
     expect(mascotHtml).toContain('href="/chat"');
   });
 
-  it('renders /panduan (vertical steps + Dunia Dentist section) and /profile and updates profile via PUT /auth/me envelope', async () => {
+  it('renders /panduan (stacked vertical steps + clickable Dunia Dentist cards + cited article pop-up modal) and /profile', async () => {
     const guideHtml = renderToStaticMarkup(<PanduanPage />);
+    expect(guideHtml).toContain('data-testid="panduan-kinetic-ribbon"');
     expect(guideHtml).toContain('data-testid="panduan-section-1-steps"');
     expect(guideHtml).toContain('data-testid="panduan-section-2-dentist-world"');
-    expect(guideHtml).toContain('Informasi Seputar Dunia Dentist');
+    expect(guideHtml).toContain('Informasi Seputar Dunia Dentist &amp; Perawatan Gigi');
+    expect(guideHtml).toContain('Baca Artikel Lengkap');
+    expect(guideHtml).toContain('cursor-pointer');
     expect(guideHtml).not.toContain('Disclaimer Medis');
+
+    // Article reader modal open & closed states + authoritative sources
+    const closedModalHtml = renderToStaticMarkup(
+      <DentalArticleModal article={null} onClose={vi.fn()} />,
+    );
+    expect(closedModalHtml).toBe('');
+
+    const openModalHtml = renderToStaticMarkup(
+      <DentalArticleModal article={DENTIST_WORLD_ARTICLES[0]} onClose={vi.fn()} />,
+    );
+    expect(openModalHtml).toContain('role="dialog"');
+    expect(openModalHtml).toContain('aria-modal="true"');
+    expect(openModalHtml).toContain('Pemeriksaan Rutin &amp; Scaling Karang Gigi (Tiap 6 Bulan)');
+    expect(openModalHtml).toContain('Poin Praktis untuk Anda');
+    expect(openModalHtml).toContain('data-testid="dental-article-sources"');
+    expect(openModalHtml).toContain('WHO');
+    expect(openModalHtml).toContain('Kemenkes RI');
+    expect(openModalHtml).toContain('Tutup Artikel');
 
     const profileHtml = renderToStaticMarkup(
       <ProfileEditorView

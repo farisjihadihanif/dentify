@@ -55,10 +55,12 @@ describe('Audit Responsivitas Mobile (360px–1920px), Pembersihan Kamera, & Pen
     },
   );
 
-  it('AppFooter tidak menampilkan Disclaimer Medis dan tetap ringkas dengan jarak bawah pb-20', () => {
+  it('AppFooter tidak menampilkan Disclaimer Medis dan tetap ramping (py-3 tanpa pb-24/pb-20 internal)', () => {
     const footerHtml = renderToStaticMarkup(<AppFooter />);
     expect(footerHtml).not.toContain('Disclaimer Medis');
-    expect(footerHtml).toContain('pb-20');
+    expect(footerHtml).toContain('py-3');
+    expect(footerHtml).not.toContain('pb-24');
+    expect(footerHtml).not.toContain('pb-20');
   });
 
   it('seluruh tombol interaktif utama memenuhi standar touch target minimal 44x44px (min-h-touch / min-w-touch)', () => {

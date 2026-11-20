@@ -91,13 +91,33 @@
   animation: deni-tooltip-bounce 1.2s ease-in-out infinite;
 }
 
+@keyframes kinetic-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-kinetic-marquee {
+  display: flex;
+  width: max-content;
+  animation: kinetic-marquee 28s linear infinite;
+}
+
+.animate-kinetic-marquee:hover {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
 
   .animate-deni-float,
-  .animate-deni-tooltip-bounce {
+  .animate-deni-tooltip-bounce,
+  .animate-kinetic-marquee {
     animation: none;
   }
 }
