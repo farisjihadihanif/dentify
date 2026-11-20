@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Centralized CSS design token variables for DentHub (docs/DESIGN.md §2).
+ * Aligned with /images/denthub-logo.png and /images/deni-mascot.png.
+ */
+:root {
+  --color-brand: #0369A1;
+  --color-brand-dark: #075985;
+  --color-brand-ring: #0284C7;
+  --color-brand-soft: #F0F9FF;
+  --color-surface: #FFFFFF;
+  --color-bg: #F8FAFC;
+  --color-text: #0F172A;
+  --color-text-muted: #475569;
+  --color-border: #E2E8F0;
+  --color-status-green: #15803D;
+  --color-status-yellow: #B45309;
+  --color-status-red: #B91C1C;
+  --color-accent-deni: #0F766E;
+  --color-accent-deni-soft: #E6F7F7;
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans), 'Plus Jakarta Sans', system-ui, sans-serif;
+    line-height: 1.5;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100vh;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display), 'Bricolage Grotesque', system-ui, sans-serif;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+.bg-dental-grid {
+  background-image: radial-gradient(rgba(3, 105, 161, 0.12) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+@keyframes deni-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1.5deg);
+  }
+  50% {
+    transform: translateY(-9px) rotate(1.5deg);
+  }
+}
+
+.animate-deni-float {
+  animation: deni-float 3.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-deni-float {
+    animation: none;
+  }
+}
