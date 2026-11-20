@@ -67,6 +67,53 @@ PRE_AUGMENTED_OR_DUPE_EXPORT_KEYWORDS: tuple[str, ...] = (
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
 
 
+def load_dotenv_file(env_path: Path) -> dict[str, str]:
+    """Load key=value pairs from a local .env file into os.environ without external deps."""
+    loaded: dict[str, str] = {}
+    if not env_path.exists():
+        return loaded
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, val = line.split("=", 1)
+        key = key.strip()
+        val = val.strip().strip('"').strip("'")
+        if key and val:
+            os.environ[key] = val
+            loaded[key] = val
+    return loaded
+
+
+def configure_kaggle_auth(env_path: Path) -> bool:
+    """
+    Load `data-science/.env` and authenticate `kagglehub` using `KAGGLE_API_TOKEN`
+    (or legacy `KAGGLE_USERNAME` + `KAGGLE_KEY`) without requiring a `kaggle.json` file.
+    """
+    load_dotenv_file(env_path)
+    token = os.getenv("KAGGLE_API_TOKEN", "").strip()
+    username = os.getenv("KAGGLE_USERNAME", "").strip()
+    key = os.getenv("KAGGLE_KEY", "").strip()
+    if not token and not (username and key):
+        return False
+
+    import kagglehub.config as kh_config
+
+    if token:
+        kh_config.set_kaggle_api_token(token)
+        return True
+    kh_config.set_kaggle_credentials(username, key)
+    return True
+
+
+def download_kaggle_dataset(slug: str, env_path: Path) -> Path:
+    """Authenticate via `data-science/.env` and download a Kaggle dataset via kagglehub."""
+    configure_kaggle_auth(env_path)
+    import kagglehub
+
+    return Path(kagglehub.dataset_download(slug))
+
+
 def classify_path_for_cleaning(path: Path) -> tuple[str | None, str]:
     """
     Return `(canonical_label, status_reason)`.
@@ -405,6 +452,7 @@ def run_wrangling(
     oral_diseases_dir: Path,
     yolo_cavity_dir: Path,
     local_dentalscan_dir: Path,
+    extra_sources: list[tuple[str, Path]] | None = None,
     max_per_class: int | None = 500,
 ) -> dict[str, Any]:
     yolo_audit = audit_excluded_yolo_dataset(yolo_cavity_dir)
@@ -415,6 +463,9 @@ def run_wrangling(
         sources.append(("local_dentalscan", local_dentalscan_dir))
     if oral_diseases_dir.exists():
         sources.append(("oral_diseases", oral_diseases_dir))
+    for extra_name, extra_dir in extra_sources or []:
+        if extra_dir.exists():
+            sources.append((extra_name, extra_dir))
 
     if not sources:
         raise RuntimeError("No local or cached Kaggle dataset folders found.")
@@ -564,15 +615,43 @@ def main() -> None:
         type=Path,
         default=Path(r"D:\project\DentiScanAI\Capstone DS\dentalscan\dentalscan"),
     )
+    parser.add_argument(
+        "--env-file",
+        type=Path,
+        default=base / ".env",
+        help="Path to data-science/.env containing KAGGLE_API_TOKEN",
+    )
+    parser.add_argument(
+        "--download-kaggle",
+        action="store_true",
+        help="Authenticate with KAGGLE_API_TOKEN from .env and download/refresh Kaggle datasets",
+    )
+    parser.add_argument(
+        "--kaggle-caries-slug",
+        type=str,
+        default="jehanbhathena/dental-caries-dataset",
+        help="Optional 3rd Kaggle dataset slug downloaded when --download-kaggle is enabled",
+    )
     parser.add_argument("--max-per-class", type=int, default=500)
     args = parser.parse_args()
+
+    oral_dir = args.oral_diseases_dir
+    extra_sources: list[tuple[str, Path]] = []
+    if args.download_kaggle:
+        configure_kaggle_auth(args.env_file)
+        if not oral_dir.exists():
+            oral_dir = download_kaggle_dataset("salmansajid05/oral-diseases", args.env_file)
+        if args.kaggle_caries_slug:
+            caries_dir = download_kaggle_dataset(args.kaggle_caries_slug, args.env_file)
+            extra_sources.append(("kaggle_dental_caries", caries_dir))
 
     run_wrangling(
         processed_dir=args.processed_dir,
         notebooks_dir=args.notebooks_dir,
-        oral_diseases_dir=args.oral_diseases_dir,
+        oral_diseases_dir=oral_dir,
         yolo_cavity_dir=args.yolo_cavity_dir,
         local_dentalscan_dir=args.local_dentalscan_dir,
+        extra_sources=extra_sources,
         max_per_class=args.max_per_class,
     )
 
