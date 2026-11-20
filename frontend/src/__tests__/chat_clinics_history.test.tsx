@@ -107,9 +107,8 @@ describe('Global layout, identity, /profile, and /panduan (T-110, T-206)', () =>
     vi.restoreAllMocks();
   });
 
-  it('FloatingNavbar has exact 5 Indonesian items (Beranda, Scan, Deni, Klinik, Profil) and DentHubLogo', () => {
+  it('FloatingNavbar has clickable DentHubLogo to / plus 4 nav items (Scan, Deni, Klinik, Profil) without Beranda', () => {
     expect(NAV_DOCK_ITEMS.map((item) => item.label)).toEqual([
-      'Beranda',
       'Scan',
       'Deni',
       'Klinik',
@@ -120,7 +119,11 @@ describe('Global layout, identity, /profile, and /panduan (T-110, T-206)', () =>
     expect(logoHtml).toContain('DentHub');
 
     const navHtml = renderToStaticMarkup(<FloatingNavbar />);
+    expect(navHtml).toContain('data-testid="navbar-logo-home-link"');
+    expect(navHtml).toContain('href="/"');
+    expect(navHtml).toContain('aria-current="page"');
     expect(navHtml).toContain('data-testid="denthub-logo"');
+    expect(navHtml).not.toContain('>Beranda<');
     expect(navHtml).not.toContain('>DH<');
   });
 
@@ -141,9 +144,12 @@ describe('Global layout, identity, /profile, and /panduan (T-110, T-206)', () =>
     expect(mascotHtml).toContain('href="/chat"');
   });
 
-  it('renders /panduan and /profile and updates profile via PUT /auth/me envelope', async () => {
+  it('renders /panduan (vertical steps + Dunia Dentist section) and /profile and updates profile via PUT /auth/me envelope', async () => {
     const guideHtml = renderToStaticMarkup(<PanduanPage />);
-    expect(guideHtml).toContain('Panduan');
+    expect(guideHtml).toContain('data-testid="panduan-section-1-steps"');
+    expect(guideHtml).toContain('data-testid="panduan-section-2-dentist-world"');
+    expect(guideHtml).toContain('Informasi Seputar Dunia Dentist');
+    expect(guideHtml).not.toContain('Disclaimer Medis');
 
     const profileHtml = renderToStaticMarkup(
       <ProfileEditorView
@@ -200,17 +206,18 @@ describe('Deni Chat (/chat – T-204)', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders /chat with sidebar, Deni mascot, suggested questions, and disclaimer', () => {
+  it('renders /chat as a full-viewport workspace with sidebar, Deni mascot, and bottom quick-question chips', () => {
     const html = renderToStaticMarkup(<ChatPage />);
 
-    expect(html).toContain('Konsultasi Kesehatan Gigi Bersama Deni');
+    expect(html).toContain('data-testid="deni-fullscreen-workspace"');
     expect(html).toContain('data-testid="deni-sessions-sidebar"');
+    expect(html).toContain('data-testid="deni-bottom-composer"');
     expect(html).toContain('Chat Baru');
     for (const q of INITIAL_SUGGESTED_QUESTIONS) {
       expect(html).toContain(q);
     }
-    expect(html).toContain('Tanya Deni');
-    expect(html).toContain('Disclaimer Medis');
+    expect(html).not.toContain('Konsultasi Kesehatan Gigi Bersama Deni');
+    expect(html).not.toContain('Disclaimer Medis');
   });
 
   it('renders scan context card and ClinicEscalationCard when trigger_clinic_finder is true', () => {
@@ -295,10 +302,12 @@ describe('Clinics (/clinics – T-205) and Scan History service', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders /clinics with 2 sections, Leaflet OSM view, radius filter, and manual location form', () => {
+  it('renders /clinics focused only on nearest clinic search and Leaflet OSM map (without Dunia Dentist education)', () => {
     const pageHtml = renderToStaticMarkup(<ClinicsPage />);
-    expect(pageHtml).toContain('data-testid="clinics-section-1-dentist-world"');
-    expect(pageHtml).toContain('data-testid="clinics-section-2-locations"');
+    expect(pageHtml).toContain('data-testid="clinics-section-locations"');
+    expect(pageHtml).not.toContain('data-testid="clinics-section-1-dentist-world"');
+    expect(pageHtml).not.toContain('Informasi Seputar Dunia Dentist');
+    expect(pageHtml).not.toContain('Disclaimer Medis');
 
     for (const km of RADIUS_OPTIONS_KM) {
       expect(pageHtml).toContain(`${km} km`);

@@ -64,6 +64,8 @@ describe('Landing Page 3 Section & Layar Pemindaian Gigi dengan Sidebar (T-110)'
 
     expect(html).toContain('data-testid="home-section-1-hero"');
     expect(html).toContain('data-testid="dentist-3d-canvas"');
+    expect(html).toContain('data-testid="hero-hotspot-auto"');
+    expect(html).toContain('data-testid="hero-hotspot-caries"');
     expect(html).toContain('Cegah Gigi Berlubang Sejak Dini');
     expect(html).toContain(
       'Dapatkan pemeriksaan gigi online gratis dan temukan solusi untuk masalah gigi Anda!',
@@ -72,6 +74,7 @@ describe('Landing Page 3 Section & Layar Pemindaian Gigi dengan Sidebar (T-110)'
     expect(html).toContain('href="/scan"');
 
     expect(html).toContain('data-testid="home-section-2-flow"');
+    expect(html).toContain('w-full border-y');
     expect(html).toContain('01 Unggah Foto / Kamera Langsung');
     expect(html).toContain('02 AI Menganalisis Kondisi Gigi');
     expect(html).toContain('03 Dapatkan Hasil &amp; Unduh Laporan');
@@ -79,7 +82,7 @@ describe('Landing Page 3 Section & Layar Pemindaian Gigi dengan Sidebar (T-110)'
 
     expect(html).toContain('data-testid="home-section-3-preview"');
     expect(html).toContain('Tanyakan ke Deni');
-    expect(html).toContain('Disclaimer Medis');
+    expect(html).not.toContain('Disclaimer Medis');
   });
 
   it('Layar Pemindaian (/scan & ScanWorkspace) merender Sidebar Riwayat Scan ("+ Tambah Scan Baru"), panduan pencahayaan, tab kamera/galeri, dan input keluhan', () => {

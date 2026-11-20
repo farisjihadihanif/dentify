@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { AppButton } from '../../components/AppButton';
 import { DentHubLogo } from '../../components/DentHubLogo';
 import { ErrorBanner } from '../../components/ErrorBanner';
-import { MedicalDisclaimerBanner } from '../../components/MedicalDisclaimerBanner';
 import { loginUser } from '../../services/authService';
 import { mapApiError, type MappedUiError } from '../../services/errorMapper';
 
@@ -142,10 +141,6 @@ export default function LoginPage() {
           </p>
         </div>
       </section>
-
-      <div className="mt-6">
-        <MedicalDisclaimerBanner compact />
-      </div>
     </main>
   );
 }

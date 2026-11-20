@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Lock } from 'lucide-react';
 import { isAuthenticated } from '../services/authService';
-import { MedicalDisclaimerBanner } from './MedicalDisclaimerBanner';
 
 export interface AuthGuardProps {
   children: ReactNode;
@@ -74,8 +73,6 @@ export function AuthGuard({
             </Link>
           </div>
         </section>
-
-        <MedicalDisclaimerBanner compact />
       </div>
     );
   }

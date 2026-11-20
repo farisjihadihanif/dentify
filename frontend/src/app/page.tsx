@@ -14,7 +14,6 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { DentistWorld3DCanvas } from '../components/DentistWorld3DCanvas';
-import { MedicalDisclaimerBanner } from '../components/MedicalDisclaimerBanner';
 
 const TIMELINE_FLOW_STEPS = [
   {
@@ -52,13 +51,10 @@ const TIMELINE_FLOW_STEPS = [
 ] as const;
 
 /**
- * Home Page DentHub (`src/app/page.tsx`) — Tepat 3 Section Utama:
- * 1. Section 1: Full-Screen Hero (`min-h-screen`) dengan animasi 3D Dunia Dentist yang tajam dan jernih
- *    (tanpa kotak blur di atas objek 3D), H1 "Cegah kerusakan gigi sejak dini", paragraf
- *    "Cek online secara gratis dan temukan solusi untuk penyakit anda!", dan satu tombol CTA ramping
- *    "Cek Sekarang!" menuju `/scan`.
- * 2. Section 2: Alur Aplikasi yang memanjang ke bawah (Vertical Timeline dengan animasi scroll Framer Motion).
- * 3. Section 3: Preview Fitur Scan dan Tanyakan ke Deni (beserta Banner Disclaimer Medis wajib).
+ * Home Page DentHub (`src/app/page.tsx`, docs/DESIGN.md §3.1) — 3 Sections:
+ * 1. Section 1: Interactive 3D Dental Screening Hero (scanning beam, drag-to-rotate, clickable hotspots).
+ * 2. Section 2: Full-bleed edge-to-edge (`w-full`) animated application flow timeline.
+ * 3. Section 3: AI Scan & Tanya Deni feature preview cards.
  */
 export default function HomePage() {
   const prefersReducedMotion = useReducedMotion();
@@ -66,7 +62,7 @@ export default function HomePage() {
   return (
     <main className="bg-bg text-text">
       {/* =====================================================================
-          SECTION 1: Full-Screen Hero dengan Animasi 3D Dunia Dentist Jernih
+          SECTION 1: Full-Screen Hero dengan Animasi 3D Pemeriksaan Gigi Interaktif
          ===================================================================== */}
       <section
         aria-label="Hero Dunia Dentist 3D"
@@ -74,11 +70,10 @@ export default function HomePage() {
         className="bg-dental-grid relative flex min-h-screen items-center overflow-hidden bg-gradient-to-b from-brand-soft/60 via-bg to-bg py-12 sm:py-16"
       >
         <div className="mx-auto grid w-full max-w-6xl items-center gap-8 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
-          {/* Kolom Teks Tajam & Kontras Tinggi (Tanpa Kotak Blur Sensor) */}
           <div className="relative z-10 space-y-5 text-center lg:col-span-6 lg:text-left">
             <div className="inline-flex items-center gap-2 rounded-pill border border-brand/25 bg-surface px-3.5 py-1 text-xs font-bold text-brand-dark shadow-sm">
               <ShieldCheck className="h-4 w-4 shrink-0 text-brand" />
-              <span>AI Dental Screening • Dunia Dentist 3D</span>
+              <span>AI Dental Screening • Pemeriksaan 3D Interaktif</span>
             </div>
 
             <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-text sm:text-5xl">
@@ -101,67 +96,80 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Kolom Visual 3D Dunia Dentist (100% Jernih Tanpa Tutupan Blur) */}
-          <div className="relative h-[340px] w-full sm:h-[420px] lg:col-span-6 lg:h-[500px]">
+          <div className="relative h-[430px] w-full sm:h-[490px] lg:col-span-6 lg:h-[540px]">
             <DentistWorld3DCanvas />
           </div>
         </div>
       </section>
 
       {/* =====================================================================
-          SECTION 2: Alur Aplikasi yang Memanjang ke Bawah (Vertical Timeline)
+          SECTION 2: Full-Bleed Edge-to-Edge Alur Aplikasi dengan Animasi Scroll & Hover
          ===================================================================== */}
       <section
         id="alur-aplikasi"
         aria-labelledby="heading-alur-aplikasi"
         data-testid="home-section-2-flow"
-        className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8"
+        className="w-full border-y border-border bg-surface py-16 sm:py-20"
       >
-        <div className="text-center">
-          <span className="inline-block rounded-pill bg-brand-soft px-3.5 py-1 text-xs font-bold text-brand-dark">
-            Alur Penggunaan Aplikasi
-          </span>
-          <h2 id="heading-alur-aplikasi" className="mt-2.5 text-2xl font-bold text-text sm:text-3xl">
-            Cara Kerja DentHub dari Awal hingga Solusi
-          </h2>
-          <p className="mx-auto mt-2 max-w-2xl text-sm text-text-muted sm:text-base">
-            Ikuti 4 langkah berurutan di bawah ini untuk memeriksa kondisi gigi Anda secara mandiri
-            dan terarah.
-          </p>
-        </div>
+        <div className="w-full px-4 sm:px-8 lg:px-14 xl:px-20">
+          <motion.div
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
+            className="text-center"
+          >
+            <span className="inline-block rounded-pill bg-brand-soft px-3.5 py-1 text-xs font-bold text-brand-dark">
+              Alur Penggunaan Aplikasi
+            </span>
+            <h2
+              id="heading-alur-aplikasi"
+              className="mt-2.5 text-2xl font-bold text-text sm:text-3xl"
+            >
+              Cara Kerja DentHub dari Awal hingga Solusi
+            </h2>
+            <p className="mx-auto mt-2 max-w-3xl text-sm text-text-muted sm:text-base">
+              Ikuti 4 langkah berurutan di bawah ini untuk memeriksa kondisi gigi Anda secara mandiri
+              dan terarah.
+            </p>
+          </motion.div>
 
-        <div className="relative mt-10 space-y-6 before:absolute before:bottom-4 before:left-5 before:top-4 before:w-0.5 before:rounded-pill before:bg-brand/30 sm:before:left-6">
-          {TIMELINE_FLOW_STEPS.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <motion.article
-                key={item.step}
-                initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.25 }}
-                transition={{
-                  duration: prefersReducedMotion ? 0 : 0.35,
-                  delay: prefersReducedMotion ? 0 : index * 0.07,
-                }}
-                className="relative flex items-start gap-4 pl-1 sm:gap-5 sm:pl-2"
-              >
-                <div className="relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-pill bg-brand font-bold text-surface shadow-sm ring-4 ring-bg sm:h-10 sm:w-10">
-                  <Icon className="h-4 w-4" />
-                </div>
-
-                <div className="flex-1 rounded-card border border-border bg-surface p-5 shadow-sm transition-shadow hover:shadow-md">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="rounded-pill bg-brand-soft px-2.5 py-0.5 text-xs font-bold text-brand-dark">
-                      Langkah {item.step}
-                    </span>
-                    <span className="text-xs font-medium text-text-muted">{item.subtitle}</span>
+          <div className="relative mt-12 w-full space-y-6 before:absolute before:bottom-4 before:left-5 before:top-4 before:w-0.5 before:rounded-pill before:bg-brand/30 sm:before:left-6">
+            {TIMELINE_FLOW_STEPS.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <motion.article
+                  key={item.step}
+                  initial={prefersReducedMotion ? false : { opacity: 0, x: -24 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  whileHover={prefersReducedMotion ? undefined : { y: -3 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{
+                    duration: prefersReducedMotion ? 0 : 0.4,
+                    delay: prefersReducedMotion ? 0 : index * 0.08,
+                  }}
+                  className="group relative flex w-full items-start gap-4 pl-1 sm:gap-6 sm:pl-2"
+                >
+                  <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-pill bg-brand font-bold text-surface shadow-sm ring-4 ring-surface transition-transform duration-200 group-hover:scale-110 sm:h-11 sm:w-11">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
                   </div>
-                  <h3 className="mt-1.5 text-lg font-bold text-text">{item.title}</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-text-muted">{item.description}</p>
-                </div>
-              </motion.article>
-            );
-          })}
+
+                  <div className="flex-1 rounded-card border border-border bg-bg p-5 shadow-sm transition-all duration-200 group-hover:border-brand/50 group-hover:bg-surface group-hover:shadow-md sm:p-6">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="rounded-pill bg-brand-soft px-3 py-0.5 text-xs font-bold text-brand-dark">
+                        Langkah {item.step}
+                      </span>
+                      <span className="text-xs font-medium text-text-muted">{item.subtitle}</span>
+                    </div>
+                    <h3 className="mt-2 text-lg font-bold text-text sm:text-xl">{item.title}</h3>
+                    <p className="mt-1.5 text-sm leading-relaxed text-text-muted sm:text-base">
+                      {item.description}
+                    </p>
+                  </div>
+                </motion.article>
+              );
+            })}
+          </div>
         </div>
       </section>
 
@@ -171,7 +179,7 @@ export default function HomePage() {
       <section
         aria-labelledby="heading-preview-fitur"
         data-testid="home-section-3-preview"
-        className="mx-auto max-w-6xl space-y-10 px-4 pb-16 pt-6 sm:px-6 lg:px-8"
+        className="mx-auto max-w-6xl space-y-10 px-4 py-16 sm:px-6 lg:px-8"
       >
         <div className="text-center">
           <span className="inline-block rounded-pill bg-brand-soft px-3.5 py-1 text-xs font-bold text-brand-dark">
@@ -224,7 +232,10 @@ export default function HomePage() {
                   </span>
                 </div>
                 <p className="mt-2.5 flex items-start gap-1.5 text-xs text-text-muted">
-                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-status-green" aria-hidden="true" />
+                  <CheckCircle2
+                    className="mt-0.5 h-3.5 w-3.5 shrink-0 text-status-green"
+                    aria-hidden="true"
+                  />
                   <span>
                     Dilengkapi daftar anjuran (Do&apos;s), pantangan (Don&apos;ts), tombol Unduh
                     Hasil, dan riwayat scan di sidebar.
@@ -301,8 +312,6 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-
-        <MedicalDisclaimerBanner />
       </section>
     </main>
   );

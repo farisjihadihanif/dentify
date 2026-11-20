@@ -1,16 +1,21 @@
 'use client';
 
-import React, { useCallback, useEffect, useState, type FormEvent } from 'react';
+import React, { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { AlertCircle, MessageSquare, Plus, Sparkles, Trash2 } from 'lucide-react';
+import {
+  AlertCircle,
+  MessageSquare,
+  PanelLeft,
+  Plus,
+  Send,
+  Sparkles,
+  Trash2,
+  X,
+} from 'lucide-react';
 import { AiFeedbackControl } from './AiFeedbackControl';
 import { AppButton } from './AppButton';
 import { ClinicEscalationCard } from './ClinicEscalationCard';
 import { ErrorBanner } from './ErrorBanner';
-import {
-  MedicalDisclaimerBanner,
-  STANDARD_CHAT_DISCLAIMER,
-} from './MedicalDisclaimerBanner';
 import { StatusBadge, type UrgencyLevel } from './StatusBadge';
 import { isAuthenticated } from '../services/authService';
 import {
@@ -46,7 +51,9 @@ const WELCOME_DENI_MESSAGE =
   'Halo! Saya Deni, asisten AI kesehatan gigi preventif Anda di DentHub. Silakan pilih pertanyaan cepat di bawah atau tuliskan keluhan gigi dan gusi yang ingin Anda tanyakan.';
 
 /**
- * Main interactive consultation panel with Deni (docs/DESIGN.md §3.3 & §8.3).
+ * Full-viewport interactive AI consultation panel with Deni (docs/DESIGN.md §3.3 & §8.3).
+ * Claude / Gemini / ChatGPT-style workspace: clean left history sidebar, full-height scrollable
+ * conversation thread, and quick-question prompt chips anchored right above the bottom input bar.
  */
 export function DeniChat({
   initialScanId = null,
@@ -80,12 +87,12 @@ export function DeniChat({
   const [hasTriggeredClinic, setHasTriggeredClinic] = useState<boolean>(
     Boolean(initialScanReport?.trigger_clinic_finder || initialTriggeredClinics.length > 0),
   );
-  const [disclaimer, setDisclaimer] = useState<string>(STANDARD_CHAT_DISCLAIMER);
   const [inputMessage, setInputMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [cooldownLeft, setCooldownLeft] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [uiError, setUiError] = useState<MappedUiError | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const loadSessionsHistory = useCallback(async () => {
     const auth = isAuthenticated();
@@ -145,10 +152,15 @@ export function DeniChat({
     return () => window.clearInterval(timer);
   }, [cooldownLeft]);
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
+  }, [messages.length, isSending]);
+
   const handleStartNewChat = () => {
     setSessionId(null);
     setUiError(null);
     setInputMessage('');
+    setSidebarOpen(false);
     setMessages([
       {
         role: 'assistant',
@@ -220,9 +232,6 @@ export function DeniChat({
         setSessionId(response.session_id);
       }
       setCurrentUrgency(response.urgency_level);
-      if (response.medical_disclaimer) {
-        setDisclaimer(response.medical_disclaimer);
-      }
       if (response.suggested_questions?.length) {
         setSuggestedQuestions(response.suggested_questions);
       }
@@ -261,84 +270,95 @@ export function DeniChat({
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-12">
-      <div className="lg:hidden">
-        <AppButton variant="secondary" size="sm" onClick={() => setSidebarOpen((prev) => !prev)}>
-          <MessageSquare className="h-4 w-4 shrink-0" />
-          <span>{sidebarOpen ? 'Tutup Riwayat Chat' : 'Buka Riwayat Chat'}</span>
-        </AppButton>
-      </div>
-
-      {/* Sidebar: + Chat Baru & saved sessions */}
+    <div
+      data-testid="deni-fullscreen-workspace"
+      className="relative flex h-full w-full overflow-hidden bg-bg"
+    >
+      {/* Left History Sidebar (Clean Claude/Gemini/ChatGPT style) */}
       <aside
         aria-label="Sidebar Sesi Percakapan Deni"
         data-testid="deni-sessions-sidebar"
         className={[
-          'space-y-4 rounded-card border border-border bg-surface p-4 shadow-sm lg:col-span-4 lg:block',
-          sidebarOpen ? 'block' : 'hidden',
+          'z-30 flex h-full w-72 shrink-0 flex-col border-r border-border bg-surface p-4',
+          sidebarOpen
+            ? 'fixed inset-y-0 left-0 shadow-xl lg:static lg:shadow-none'
+            : 'hidden lg:flex',
         ].join(' ')}
       >
-        <div className="flex items-center gap-3 border-b border-border pb-3">
-          <img
-            src="/images/deni-mascot.png"
-            alt="Maskot Deni"
-            className="h-12 w-12 shrink-0 object-contain"
-          />
-          <div>
-            <p className="text-card-title font-bold text-text">Tanya Deni</p>
-            <p className="text-badge text-text-muted">Asisten Kesehatan Gigi Preventif</p>
+        <div className="flex items-center justify-between gap-2 border-b border-border pb-3">
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/images/deni-mascot.png"
+              alt="Maskot Deni"
+              className="h-10 w-10 shrink-0 object-contain"
+            />
+            <div>
+              <h1 className="text-base font-bold leading-tight text-text">Deni</h1>
+              <p className="text-xs text-text-muted">Asisten Gigi DentHub</p>
+            </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Tutup sidebar riwayat"
+            className="inline-flex h-9 w-9 min-h-touch min-w-touch items-center justify-center rounded-lg text-text-muted hover:bg-brand-soft hover:text-brand-dark lg:hidden"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
         </div>
 
-        <AppButton
-          variant="primary"
-          size="md"
-          fullWidth
-          onClick={handleStartNewChat}
-          data-testid="new-chat-btn"
-        >
-          <Plus className="h-4 w-4 shrink-0" />
-          <span>Chat Baru</span>
-        </AppButton>
+        <div className="mt-3">
+          <AppButton
+            variant="primary"
+            size="md"
+            fullWidth
+            onClick={handleStartNewChat}
+            data-testid="new-chat-btn"
+          >
+            <Plus className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>Chat Baru</span>
+          </AppButton>
+        </div>
 
-        <div className="border-t border-border pt-3">
-          <p className="inline-flex items-center gap-1.5 text-badge font-bold text-text">
-            <MessageSquare className="h-4 w-4 text-brand-dark" />
+        <div className="mt-4 flex min-h-0 flex-1 flex-col border-t border-border pt-3">
+          <p className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-text-muted">
+            <MessageSquare className="h-3.5 w-3.5 text-brand-dark" aria-hidden="true" />
             <span>Riwayat Konsultasi ({sessionsList.length})</span>
           </p>
 
           {!loggedIn && sessionsList.length === 0 ? (
-            <div className="mt-2 space-y-2 rounded-card border border-dashed border-border bg-bg p-3 text-badge text-text-muted">
+            <div className="mt-3 space-y-2.5 rounded-card border border-dashed border-border bg-bg p-3 text-xs text-text-muted">
               <p>Masuk untuk menyimpan riwayat percakapan Anda bersama Deni.</p>
               <Link
                 href="/login?redirect=/chat"
-                className="inline-flex h-9 min-h-touch items-center justify-center whitespace-nowrap rounded-lg border border-border bg-surface px-3.5 text-xs font-semibold text-brand-dark hover:bg-brand-soft"
+                className="inline-flex h-9 min-h-touch w-full items-center justify-center whitespace-nowrap rounded-lg border border-border bg-surface px-3 text-xs font-semibold text-brand-dark hover:bg-brand-soft"
               >
                 Masuk untuk Menyimpan Riwayat
               </Link>
             </div>
           ) : sessionsList.length === 0 ? (
-            <p className="mt-2 rounded-card border border-dashed border-border bg-bg p-3 text-badge text-text-muted">
+            <p className="mt-3 rounded-card border border-dashed border-border bg-bg p-3 text-xs text-text-muted">
               Belum ada sesi percakapan tersimpan. Mulai pertanyaan pertama Anda bersama Deni.
             </p>
           ) : (
-            <ul className="mt-2 max-h-80 space-y-2 overflow-y-auto pr-1">
+            <ul className="mt-3 flex-1 space-y-1.5 overflow-y-auto pb-20 pr-1">
               {sessionsList.map((sess) => {
                 const active = sessionId === sess.id;
                 return (
-                  <li key={sess.id} className="flex items-center gap-1.5">
+                  <li key={sess.id} className="flex items-center gap-1">
                     <button
                       type="button"
                       onClick={() => void handleOpenSavedSession(sess.id)}
                       className={[
-                        'min-w-0 flex-1 rounded-card border p-3 text-left transition-colors',
+                        'min-w-0 flex-1 rounded-xl border px-3 py-2.5 text-left transition-colors',
                         active
                           ? 'border-brand bg-brand-soft'
-                          : 'border-border bg-bg hover:bg-brand-soft/60',
+                          : 'border-transparent bg-bg hover:border-border hover:bg-brand-soft/60',
                       ].join(' ')}
                     >
-                      <p className="truncate text-badge font-bold text-text">{sess.title}</p>
-                      <p className="mt-0.5 text-xs text-text-muted">
+                      <p className="truncate text-xs font-bold text-text">{sess.title}</p>
+                      <p className="mt-0.5 text-[11px] text-text-muted">
                         {formatJakartaDateTime(sess.updated_at)}
                       </p>
                     </button>
@@ -346,9 +366,9 @@ export function DeniChat({
                       type="button"
                       aria-label={`Hapus sesi ${sess.title}`}
                       onClick={() => void handleDeleteSession(sess.id)}
-                      className="inline-flex h-9 w-9 min-h-touch min-w-touch shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:border-status-red hover:text-status-red"
+                      className="inline-flex h-9 w-9 min-h-touch min-w-touch shrink-0 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-bg hover:text-status-red"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
                     </button>
                   </li>
                 );
@@ -358,59 +378,75 @@ export function DeniChat({
         </div>
       </aside>
 
-      {/* Main chat area */}
-      <div className="space-y-6 lg:col-span-8">
-        {(scanReport || scanId) && (
-          <section
-            aria-label="Konteks Hasil Pemindaian Gigi"
-            data-testid="chat-scan-context-card"
-            className="flex flex-col justify-between gap-3 rounded-card border border-border bg-brand-soft p-4 sm:flex-row sm:items-center"
-          >
-            <div>
-              <p className="text-badge font-semibold text-brand-dark">
-                Konteks Hasil Skrining Terhubung
-              </p>
-              <h2 className="text-card-title text-text">
-                {scanReport
-                  ? `${scanReport.condition_label} (${Math.round(
-                      scanReport.confidence_score * 100,
-                    )}%)`
-                  : `ID Pemindaian: ${scanId}${
-                      initialCondition ? ` • Kondisi: ${initialCondition}` : ''
-                    }`}
-              </h2>
+      {/* Main Full-Height Conversation Pane */}
+      <div className="flex min-w-0 flex-1 flex-col bg-bg">
+        {/* Compact utility top bar (mobile sidebar toggle + active scan context) */}
+        <div className="flex items-center justify-between gap-3 border-b border-border bg-surface px-4 py-2.5 sm:px-6">
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen((prev) => !prev)}
+              aria-label={sidebarOpen ? 'Tutup Riwayat Chat' : 'Buka Riwayat Chat'}
+              className="inline-flex h-9 min-h-touch items-center gap-1.5 rounded-lg border border-border bg-bg px-3 text-xs font-semibold text-text hover:bg-brand-soft lg:hidden"
+            >
+              <PanelLeft className="h-4 w-4 shrink-0 text-brand-dark" aria-hidden="true" />
+              <span>Riwayat</span>
+            </button>
+
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 rounded-pill bg-accent-deni-soft px-2.5 py-0.5 text-xs font-semibold text-accent-deni">
+                <Sparkles className="h-3 w-3 shrink-0" aria-hidden="true" />
+                <span>Deni AI</span>
+              </span>
+              <span className="hidden text-xs text-text-muted sm:inline">
+                Konsultasi Kesehatan Gigi Preventif
+              </span>
             </div>
-
-            <StatusBadge urgency={scanReport?.urgency_level ?? currentUrgency} />
-          </section>
-        )}
-
-        {uiError && <ErrorBanner error={uiError} onDismiss={() => setUiError(null)} />}
-
-        <section aria-label="Pertanyaan Cepat yang Disarankan" className="space-y-2">
-          <p className="text-badge font-semibold text-text-muted">
-            Pertanyaan cepat untuk ditanyakan ke Deni:
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {suggestedQuestions.map((question) => (
-              <button
-                key={question}
-                type="button"
-                disabled={isSending || cooldownLeft > 0}
-                onClick={() => void handleSendQuestion(question)}
-                className="inline-flex min-h-touch items-center rounded-pill border border-border bg-surface px-3.5 py-2 text-left text-xs font-medium text-brand-dark transition-colors hover:bg-brand-soft disabled:opacity-60"
-              >
-                {question}
-              </button>
-            ))}
           </div>
-        </section>
 
+          <button
+            type="button"
+            onClick={handleStartNewChat}
+            className="inline-flex h-9 min-h-touch items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-xs font-semibold text-brand-dark transition-colors hover:bg-brand-soft lg:hidden"
+          >
+            <Plus className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span>Baru</span>
+          </button>
+        </div>
+
+        {/* Scrollable Full-Height Message Area */}
         <section
           aria-label="Percakapan Deni"
-          className="space-y-4 rounded-card border border-border bg-surface p-4 shadow-sm sm:p-6"
+          className="flex-1 overflow-y-auto px-4 py-5 sm:px-6"
         >
-          <div className="max-h-[28rem] space-y-4 overflow-y-auto pr-1">
+          <div className="mx-auto max-w-3xl space-y-5">
+            {(scanReport || scanId) && (
+              <section
+                aria-label="Konteks Hasil Pemindaian Gigi"
+                data-testid="chat-scan-context-card"
+                className="flex flex-col justify-between gap-3 rounded-card border border-border bg-brand-soft p-3.5 sm:flex-row sm:items-center"
+              >
+                <div>
+                  <p className="text-xs font-semibold text-brand-dark">
+                    Konteks Hasil Skrining Terhubung
+                  </p>
+                  <h2 className="text-sm font-bold text-text">
+                    {scanReport
+                      ? `${scanReport.condition_label} (${Math.round(
+                          scanReport.confidence_score * 100,
+                        )}%)`
+                      : `ID Pemindaian: ${scanId}${
+                          initialCondition ? ` • Kondisi: ${initialCondition}` : ''
+                        }`}
+                  </h2>
+                </div>
+
+                <StatusBadge urgency={scanReport?.urgency_level ?? currentUrgency} />
+              </section>
+            )}
+
+            {uiError && <ErrorBanner error={uiError} onDismiss={() => setUiError(null)} />}
+
             {messages.map((msg, idx) => {
               const isUser = msg.role === 'user';
               const targetId = sessionId ? `${sessionId}:${idx}` : `guest-msg-${idx}`;
@@ -431,10 +467,10 @@ export function DeniChat({
                   )}
                   <div
                     className={[
-                      'max-w-xl rounded-card px-4 py-3 text-body',
+                      'max-w-2xl rounded-card px-4 py-3 text-body',
                       isUser
                         ? 'bg-brand text-surface'
-                        : 'border border-border bg-accent-deni-soft/60 text-text',
+                        : 'border border-border bg-surface text-text shadow-sm',
                     ].join(' ')}
                   >
                     <div className="mb-1.5 flex flex-wrap items-center gap-2">
@@ -442,7 +478,7 @@ export function DeniChat({
                       {!isUser && (
                         <span
                           data-testid="deni-ai-label"
-                          className="inline-flex items-center gap-1 rounded-pill border border-accent-deni/30 bg-surface px-2.5 py-0.5 text-xs font-semibold text-accent-deni"
+                          className="inline-flex items-center gap-1 rounded-pill border border-accent-deni/30 bg-accent-deni-soft px-2.5 py-0.5 text-xs font-semibold text-accent-deni"
                         >
                           <Sparkles className="h-3 w-3 shrink-0" aria-hidden="true" />
                           <span>Dibuat oleh AI</span>
@@ -454,7 +490,7 @@ export function DeniChat({
                       <p
                         role="status"
                         data-testid="deni-fallback-label"
-                        className="mb-2 inline-flex items-center gap-1.5 rounded-lg border border-status-yellow/40 bg-surface px-2.5 py-1 text-xs font-semibold text-status-yellow"
+                        className="mb-2 inline-flex items-center gap-1.5 rounded-lg border border-status-yellow/40 bg-bg px-2.5 py-1 text-xs font-semibold text-status-yellow"
                       >
                         <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         <span>{FALLBACK_DENI_BANNER_TEXT}</span>
@@ -481,48 +517,70 @@ export function DeniChat({
                 <span>Deni sedang menyusun panduan perawatan...</span>
               </div>
             )}
+
+            {hasTriggeredClinic && (
+              <ClinicEscalationCard
+                initialClinics={initialTriggeredClinics}
+                scanId={scanId || scanReport?.id || null}
+                sourceLabel="Deni mendeteksi indikasi darurat. Segera kunjungi dokter gigi terdekat:"
+                testId="deni-clinic-escalation"
+              />
+            )}
+
+            <div ref={messagesEndRef} />
           </div>
-
-          {hasTriggeredClinic && (
-            <ClinicEscalationCard
-              initialClinics={initialTriggeredClinics}
-              scanId={scanId || scanReport?.id || null}
-              sourceLabel="Deni mendeteksi indikasi darurat. Segera kunjungi dokter gigi terdekat:"
-              testId="deni-clinic-escalation"
-            />
-          )}
-
-          <form
-            onSubmit={handleFormSubmit}
-            className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row"
-          >
-            <label htmlFor="deni-message-input" className="sr-only">
-              Tulis pertanyaan konsultasi gigi Anda untuk Deni
-            </label>
-            <input
-              id="deni-message-input"
-              name="message"
-              type="text"
-              maxLength={1000}
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Ketik pertanyaan atau keluhan gigi Anda kepada Deni..."
-              className="h-11 min-h-touch flex-1 rounded-xl border border-border bg-surface px-4 text-base text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand"
-            />
-            <AppButton
-              type="submit"
-              variant="primary"
-              size="md"
-              loading={isSending}
-              loadingText="Mengirim..."
-              disabled={!inputMessage.trim() || cooldownLeft > 0}
-            >
-              {cooldownLeft > 0 ? `Tunggu ${cooldownLeft}d` : 'Tanya Deni'}
-            </AppButton>
-          </form>
         </section>
 
-        <MedicalDisclaimerBanner message={disclaimer} />
+        {/* Bottom Docked Prompt Chips + Composer (with clearance above bottom floating navbar) */}
+        <div
+          data-testid="deni-bottom-composer"
+          className="border-t border-border bg-surface px-4 pb-24 pt-3 sm:px-6"
+        >
+          <div className="mx-auto max-w-3xl space-y-2.5">
+            <section aria-label="Pertanyaan Cepat yang Disarankan">
+              <div className="flex flex-wrap gap-1.5">
+                {suggestedQuestions.map((question) => (
+                  <button
+                    key={question}
+                    type="button"
+                    disabled={isSending || cooldownLeft > 0}
+                    onClick={() => void handleSendQuestion(question)}
+                    className="inline-flex min-h-touch items-center rounded-pill border border-border bg-bg px-3 py-1.5 text-left text-xs font-medium text-brand-dark transition-colors hover:border-brand/40 hover:bg-brand-soft disabled:opacity-60"
+                  >
+                    {question}
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <form onSubmit={handleFormSubmit} className="flex items-center gap-2">
+              <label htmlFor="deni-message-input" className="sr-only">
+                Tulis pertanyaan konsultasi gigi Anda untuk Deni
+              </label>
+              <input
+                id="deni-message-input"
+                name="message"
+                type="text"
+                maxLength={1000}
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                placeholder="Ketik pertanyaan atau keluhan gigi Anda kepada Deni..."
+                className="h-11 min-h-touch flex-1 rounded-xl border border-border bg-bg px-4 text-base text-text placeholder:text-text-muted focus:border-brand focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand-ring"
+              />
+              <AppButton
+                type="submit"
+                variant="primary"
+                size="md"
+                loading={isSending}
+                loadingText="Mengirim..."
+                disabled={!inputMessage.trim() || cooldownLeft > 0}
+              >
+                <Send className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>{cooldownLeft > 0 ? `Tunggu ${cooldownLeft}d` : 'Kirim'}</span>
+              </AppButton>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );

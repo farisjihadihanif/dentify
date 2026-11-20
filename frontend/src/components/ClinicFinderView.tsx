@@ -4,7 +4,6 @@ import React, { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { AppButton } from './AppButton';
 import { ClinicCard } from './ClinicCard';
 import { ErrorBanner } from './ErrorBanner';
-import { MedicalDisclaimerBanner } from './MedicalDisclaimerBanner';
 import { OsmMapView } from './OsmMapView';
 import {
   DEFAULT_COORDINATES,
@@ -244,8 +243,6 @@ export function ClinicFinderView({
           </div>
         )}
       </section>
-
-      <MedicalDisclaimerBanner compact />
     </div>
   );
 }

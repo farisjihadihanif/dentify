@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ScanLine, MessageCircleHeart, MapPin, UserCircle2 } from 'lucide-react';
+import { ScanLine, MessageCircleHeart, MapPin, UserCircle2 } from 'lucide-react';
 import { DentHubLogo } from './DentHubLogo';
 
 export interface NavDockItem {
@@ -13,7 +13,6 @@ export interface NavDockItem {
 }
 
 export const NAV_DOCK_ITEMS: readonly NavDockItem[] = [
-  { label: 'Beranda', href: '/', icon: Home },
   { label: 'Scan', href: '/scan', icon: ScanLine },
   { label: 'Deni', href: '/chat', icon: MessageCircleHeart },
   { label: 'Klinik', href: '/clinics', icon: MapPin },
@@ -23,35 +22,41 @@ export const NAV_DOCK_ITEMS: readonly NavDockItem[] = [
 /**
  * Floating Bottom-Center Dock (`FloatingNavbar.tsx`, docs/DESIGN.md §0):
  * - Fixed at bottom-center (`fixed inset-x-0 bottom-5 sm:bottom-6 z-50`) with subtle glassmorphism
- * - Uses official `DentHubLogo` (blue tooth outline with tilted orbital ring)
- * - Contains exactly 5 items: Beranda (`/`), Scan (`/scan`), Deni (`/chat`),
- *   Klinik (`/clinics`), and Profil (`/profile`).
+ * - Clickable `DentHubLogo` on the left navigates to `/` (active styling when on `/`)
+ * - Followed by 4 nav items: Scan (`/scan`), Deni (`/chat`), Klinik (`/clinics`), Profil (`/profile`).
  */
 export function FloatingNavbar() {
   const pathname = usePathname() || '/';
+  const isHomeActive = pathname === '/';
 
   return (
     <header className="pointer-events-none fixed inset-x-0 bottom-5 z-50 flex justify-center px-3 sm:bottom-6">
       <nav
         aria-label="Navigasi Utama DentHub"
         data-testid="floating-navbar"
-        className="pointer-events-auto flex items-center gap-1 rounded-pill border border-border/90 bg-surface/95 px-2.5 py-1.5 shadow-md backdrop-blur-md sm:gap-1.5 sm:px-4"
+        className="pointer-events-auto flex items-center gap-1 rounded-pill border border-border/90 bg-surface/95 px-2 py-1.5 shadow-md backdrop-blur-md sm:gap-1.5 sm:px-3"
       >
         <Link
           href="/"
           aria-label="Beranda DentHub"
-          className="hidden items-center pr-2 sm:inline-flex"
+          aria-current={isHomeActive ? 'page' : undefined}
+          data-testid="navbar-logo-home-link"
+          className={[
+            'inline-flex h-9 min-h-touch min-w-touch items-center justify-center rounded-pill px-2.5 transition-all duration-150 sm:px-3',
+            isHomeActive
+              ? 'bg-brand-soft ring-2 ring-brand-ring'
+              : 'hover:bg-brand-soft/80',
+          ].join(' ')}
         >
-          <DentHubLogo size={30} showText />
+          <DentHubLogo size={26} showText className="gap-1.5" />
         </Link>
+
+        <span className="h-5 w-px bg-border" aria-hidden="true" />
 
         <ul className="flex items-center gap-1">
           {NAV_DOCK_ITEMS.map((item) => {
             const Icon = item.icon;
-            const isActive =
-              item.href === '/'
-                ? pathname === '/'
-                : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
             return (
               <li key={item.href}>
@@ -60,7 +65,7 @@ export function FloatingNavbar() {
                   aria-current={isActive ? 'page' : undefined}
                   title={item.label}
                   className={[
-                    'inline-flex h-9 min-h-touch min-w-touch items-center justify-center gap-1.5 whitespace-nowrap rounded-pill px-3 text-xs font-semibold transition-all duration-150 sm:px-3.5 sm:text-sm',
+                    'inline-flex h-9 min-h-touch min-w-touch items-center justify-center gap-1.5 whitespace-nowrap rounded-pill px-2.5 text-xs font-semibold transition-all duration-150 sm:px-3.5 sm:text-sm',
                     isActive
                       ? 'bg-brand text-surface shadow-sm'
                       : 'text-text-muted hover:bg-brand-soft hover:text-brand-dark',

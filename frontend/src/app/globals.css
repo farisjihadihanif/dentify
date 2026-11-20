@@ -77,12 +77,27 @@
   animation: deni-float 3.6s ease-in-out infinite;
 }
 
+@keyframes deni-tooltip-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-deni-tooltip-bounce {
+  animation: deni-tooltip-bounce 1.2s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
 
-  .animate-deni-float {
+  .animate-deni-float,
+  .animate-deni-tooltip-bounce {
     animation: none;
   }
 }

@@ -11,7 +11,6 @@ import { useRouter } from 'next/navigation';
 import { Camera, CheckCircle2, LogOut, Save, UserCircle2, KeyRound } from 'lucide-react';
 import { AppButton } from './AppButton';
 import { ErrorBanner } from './ErrorBanner';
-import { MedicalDisclaimerBanner } from './MedicalDisclaimerBanner';
 import {
   clearStoredSession,
   fetchCurrentUser,
@@ -347,8 +346,6 @@ export function ProfileEditorView({ initialUser = null }: ProfileEditorViewProps
           </AppButton>
         </form>
       </section>
-
-      <MedicalDisclaimerBanner compact />
     </div>
   );
 }
