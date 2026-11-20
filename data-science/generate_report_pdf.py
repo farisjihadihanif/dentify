@@ -50,10 +50,10 @@ def build_pdf(out_path: Path) -> None:
 
     styles = getSampleStyleSheet()
     h1 = ParagraphStyle(
-        "DentH1", parent=styles["Heading1"], textColor=colors.HexColor("#0E7490"), spaceAfter=10
+        "DentH1", parent=styles["Heading1"], textColor=colors.HexColor("#075985"), spaceAfter=10
     )
     h2 = ParagraphStyle(
-        "DentH2", parent=styles["Heading2"], textColor=colors.HexColor("#0891B2"), spaceBefore=12, spaceAfter=6
+        "DentH2", parent=styles["Heading2"], textColor=colors.HexColor("#0369A1"), spaceBefore=12, spaceAfter=6
     )
     body = ParagraphStyle("DentBody", parent=styles["BodyText"], leading=15, spaceAfter=8)
 
@@ -84,12 +84,12 @@ def build_pdf(out_path: Path) -> None:
     story.append(Paragraph("2. Data Wrangling, Manual Cleaning & Leak-Free Splitting", h2))
     story.append(
         Paragraph(
-            f"Raw candidate files scanned: {assessment.get('raw_files_scanned', 'N/A')}. "
-            f"Off-target/unmapped labels dropped: {assessment.get('dropped_unmapped_label', 'N/A')}; "
-            f"corrupt files dropped: {assessment.get('dropped_corrupt', 'N/A')}; "
+            f"Raw candidate files scanned across included sources: {assessment.get('raw_files_scanned_included_sources', 'N/A')}. "
+            f"Pre-augmented/duplicate exports dropped: {assessment.get('dropped_pre_augmented_or_dupe_export', 'N/A')}; "
+            f"off-target clinical classes dropped: {assessment.get('dropped_off_target_class', 'N/A')}; "
             f"perceptual-hash near-duplicates removed (64-bit dHash, Hamming <= 4): {assessment.get('dropped_duplicates', 'N/A')}. "
             f"Final clean unique images: {assessment.get('final_clean_images', 'N/A')} partitioned via "
-            "stratified group splitting BEFORE augmentation with zero train/val/test overlap verified by assertion.",
+            "stratified group splitting (70/15/15) BEFORE augmentation with zero train/val/test overlap verified by assertion.",
             body,
         )
     )

@@ -1,0 +1,18 @@
+{
+  "num_test_images": 255,
+  "baseline_accuracy": 0.6784,
+  "clahe_accuracy": 0.8157,
+  "accuracy_delta": 0.1373,
+  "baseline_macro_f1": 0.6608,
+  "clahe_macro_f1": 0.7784,
+  "contingency": {
+    "both_correct": 161,
+    "baseline_only_correct": 12,
+    "clahe_only_correct": 47,
+    "both_wrong": 35
+  },
+  "mcnemar_chi2_cc": 19.5932,
+  "mcnemar_p_value": 5e-06,
+  "statistically_significant_alpha_0_05": true,
+  "conclusion": "On 255 identical held-out test images, CLAHE preprocessing (Variant B) achieved 81.57% accuracy (Macro F1 0.7784) vs Baseline (Variant A) at 67.84% accuracy (Macro F1 0.6608), a delta of +13.73 percentage points. Discordant pairs: A-only=12, B-only=47. Exact McNemar p-value=0.0000 (statistically significant at alpha=0.05; Variant B accuracy is higher than Variant A)."
+}

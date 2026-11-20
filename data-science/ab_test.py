@@ -114,7 +114,7 @@ def run_mcnemar_ab_test(
     x_pos = np.arange(len(metrics_names))
     w = 0.34
     axes[0].bar(x_pos - w / 2, [acc_a, f1_a], width=w, label="A: Baseline (No CLAHE)", color="#64748B")
-    axes[0].bar(x_pos + w / 2, [acc_b, f1_b], width=w, label="B: CLAHE", color="#0891B2")
+    axes[0].bar(x_pos + w / 2, [acc_b, f1_b], width=w, label="B: CLAHE", color="#0369A1")
     axes[0].set_xticks(x_pos)
     axes[0].set_xticklabels(metrics_names)
     axes[0].set_ylim(0, 1.08)
