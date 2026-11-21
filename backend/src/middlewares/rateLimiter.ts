@@ -39,7 +39,7 @@ export function createRateLimiter(options: {
   });
 }
 
-// API_SPECS §3.5 rate limits
+// API route rate limits
 export const authRateLimiter = createRateLimiter({ max: 10 });
 export const scanAndChatRateLimiter = createRateLimiter({ max: 20 });
 export const clinicsRateLimiter = createRateLimiter({ max: 30 });

@@ -1,6 +1,6 @@
 /**
  * Helper pemformatan tanggal UTC ISO 8601 ke zona waktu lokal `Asia/Jakarta` (WIB)
- * sesuai `AGENTS.md › Database & Waktu` dan `DATABASE.md §1`.
+ * menggunakan zona waktu Asia/Jakarta.
  */
 
 export function formatJakartaDateTime(isoString: string | Date | undefined | null): string {

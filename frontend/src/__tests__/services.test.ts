@@ -4,7 +4,7 @@ import { attachAuthInterceptor, resolveApiBaseUrl } from '../services/apiClient'
 import { clearAuthToken, getAuthToken, hasAuthToken, setAuthToken } from '../services/authStorage';
 import { mapApiError } from '../services/errorMapper';
 
-describe('errorMapper (DESIGN.md §5)', () => {
+describe('errorMapper', () => {
   it('maps core API error codes to exact Indonesian messages and UI actions', () => {
     expect(mapApiError('UNAUTHENTICATED')).toEqual({
       code: 'UNAUTHENTICATED',
@@ -75,7 +75,7 @@ describe('errorMapper (DESIGN.md §5)', () => {
   });
 });
 
-describe('apiClient and authStorage (DESIGN.md §5 & AGENTS.md §8)', () => {
+describe('apiClient and authStorage', () => {
   beforeEach(() => {
     clearAuthToken();
   });

@@ -1,5 +1,5 @@
 """
-Generate DentHub Capstone Technical Report PDF (T-403, PRD.md §16).
+Generate DentHub Capstone Technical Report PDF.
 
 Compiles problem discovery, data wrangling & cleaning, EDA & feature engineering,
 custom TensorFlow/Keras architecture & training results, Deni LangChain agent & OSM
@@ -132,7 +132,7 @@ def build_pdf(out_path: Path) -> None:
         ["Metric", "Held-Out Test Result", "Notes"],
         ["Test Accuracy", f"{tm.get('accuracy', 0) * 100:.2f}%", "Multi-class 4-condition screening"],
         ["Test Macro F1", f"{tm.get('macro_f1', 0):.4f}", "Balanced across caries/calculus/gingivitis/healthy"],
-        ["Probability MAE", f"{tm.get('mae', 0):.4f}", "Mean absolute error vs one-hot targets (PRD §16)"],
+        ["Probability MAE", f"{tm.get('mae', 0):.4f}", "Mean absolute error vs one-hot targets"],
         ["Test Samples", str(tm.get("num_samples", 0)), "Zero overlap with train/val (dHash verified)"],
     ]
     tbl = Table(metrics_table_data, colWidths=[4.2 * cm, 4.2 * cm, 7.6 * cm])
@@ -166,7 +166,7 @@ def build_pdf(out_path: Path) -> None:
             "Express + TypeScript + MongoDB gateway (Railway/Render), and internal FastAPI CV + Deni LangChain "
             "service protected by X-Internal-Key. User dental photos are processed strictly in memory and never "
             "persisted. Every scan and Deni reply attaches canonical Indonesian medical disclaimers, deterministic "
-            "urgency escalation rules (PRD §6.1), and OpenStreetMap Overpass/Nominatim clinic lookup with fallback.",
+            "urgency escalation rules, and OpenStreetMap Overpass/Nominatim clinic lookup with fallback.",
             body,
         )
     )

@@ -1,5 +1,5 @@
 """
-Feature Engineering & Exploratory Data Analysis (T-105, PRD.md §5.1, §16, ARCHITECTURE.md §11).
+Feature Engineering & Exploratory Data Analysis.
 
 Computes brightness, sharpness, RGB/HSV color statistics, CLAHE contrast gain, and luminance
 histograms on every cleaned image; exports `engineered_features.csv`, explanatory charts under
@@ -152,8 +152,8 @@ def build_wrangling_eda_notebook(
     nb.cells = [
         nbf.v4.new_markdown_cell(
             "# DentHub (CC26-PSU285) – Data Wrangling, Cleaning, Feature Engineering & EDA\n\n"
-            "This notebook documents the complete data science workflow required by `docs/ARCHITECTURE.md §11` "
-            "and `docs/PRD.md §16`: multi-source dental image gathering, quality assessment, manual cleaning, "
+            "This notebook documents the complete DentHub data science workflow: "
+            "multi-source dental image gathering, quality assessment, manual cleaning, "
             "perceptual-hash deduplication, stratified group splitting **before** augmentation, engineered "
             "image-quality features, and explanatory charts backing every conclusion."
         ),

@@ -106,7 +106,7 @@ const SAMPLE_SCAN_REPORT: ScanReportData = {
   created_at: '2026-11-18T09:30:00.000Z',
 };
 
-describe('Global layout, identity, /profile, and /panduan (T-110, T-206)', () => {
+describe('Global layout, identity, /profile, and /panduan', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -252,7 +252,7 @@ describe('Global layout, identity, /profile, and /panduan (T-110, T-206)', () =>
   });
 });
 
-describe('Deni Chat (/chat – T-204)', () => {
+describe('Deni Chat (/chat)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -388,7 +388,7 @@ describe('Deni Chat (/chat – T-204)', () => {
   });
 });
 
-describe('Clinics (/clinics – T-205) and Scan History service', () => {
+describe('Clinics (/clinics) and Scan History service', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });

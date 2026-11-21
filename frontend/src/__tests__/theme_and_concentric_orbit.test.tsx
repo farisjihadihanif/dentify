@@ -5,6 +5,7 @@ import HomePage from '../app/page';
 import PanduanPage from '../app/panduan/page';
 import LoginPage from '../app/login/page';
 import RegisterPage from '../app/register/page';
+import { AppFooter } from '../components/AppFooter';
 import { AdminDashboardView } from '../components/AdminDashboardView';
 import { BeritaArticleDetailView } from '../components/BeritaArticleDetailView';
 import {
@@ -12,6 +13,7 @@ import {
   ConcentricDentalOrbit,
 } from '../components/ConcentricDentalOrbit';
 import { DeniMascot } from '../components/DeniMascot';
+import { FloatingNavbar } from '../components/FloatingNavbar';
 import { KineticMarqueeRibbons } from '../components/KineticMarqueeRibbons';
 import { ProfileEditorView } from '../components/ProfileEditorView';
 import {
@@ -19,6 +21,7 @@ import {
   ScanResultCard,
 } from '../components/ScanResultCard';
 import { StatusBadge } from '../components/StatusBadge';
+import { computeAvatarFrameLayout } from '../utils/imageHelper';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -222,5 +225,30 @@ describe('Clinical Light Mode, 12-Instrument Orbit Hero, Profile Adjuster, Admin
     const marqueeHtml = renderToStaticMarkup(<KineticMarqueeRibbons />);
     expect(marqueeHtml).toContain('bg-surface-teal py-3.5 text-white');
     expect(marqueeHtml).toContain('bg-surface-navy py-3.5 text-white');
+  });
+
+  it('AppFooter links Faris Jihadi Hanif Lubis to Instagram without visited color shift, FloatingNavbar stays compact on mobile, and computeAvatarFrameLayout matches 1:1 between 144px preview and 320px export', () => {
+    const defaultFooter = renderToStaticMarkup(<AppFooter pathnameOverride="/" />);
+    expect(defaultFooter).toContain('href="https://www.instagram.com/farisjihadihanif/"');
+    expect(defaultFooter).toContain('target="_blank"');
+    expect(defaultFooter).toContain('rel="noopener noreferrer"');
+    expect(defaultFooter).toContain('visited:text-brand-dark');
+
+    const panduanFooter = renderToStaticMarkup(<AppFooter pathnameOverride="/panduan" />);
+    expect(panduanFooter).toContain('visited:text-white');
+
+    const navHtml = renderToStaticMarkup(<FloatingNavbar pathnameOverride="/" />);
+    expect(navHtml).toContain('bottom-3');
+    expect(navHtml).toContain('px-1.5 py-1');
+    expect(navHtml).toContain('h-8 shrink-0');
+    expect(navHtml).toContain('text-[11px]');
+
+    // Exact 1:1 normalized geometry parity between 144px circular preview and 320px canvas export
+    const preview = computeAvatarFrameLayout(144, 1600, 900, 1.6, 25, -18);
+    const exported = computeAvatarFrameLayout(320, 1600, 900, 1.6, 25, -18);
+    expect(preview.drawW / 144).toBeCloseTo(exported.drawW / 320, 6);
+    expect(preview.drawH / 144).toBeCloseTo(exported.drawH / 320, 6);
+    expect(preview.left / 144).toBeCloseTo(exported.left / 320, 6);
+    expect(preview.top / 144).toBeCloseTo(exported.top / 320, 6);
   });
 });

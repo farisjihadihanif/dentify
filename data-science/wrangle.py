@@ -1,5 +1,5 @@
 """
-DentHub Data Wrangling & Manual Cleaning Pipeline (T-104, ARCHITECTURE.md §11, PRD.md §16).
+DentHub Data Wrangling & Manual Cleaning Pipeline.
 
 Steps:
 1. Gather dental datasets from Kaggle cache/API + local curated intraoral photos.
@@ -309,7 +309,7 @@ def write_data_dictionary(out_path: Path, report: dict[str, Any]) -> None:
         "",
         "## 1. Unified Canonical Target Classes",
         "",
-        "| `label` | Indonesian Display Label | Urgency Baseline (`PRD §6.1`) |",
+        "| `label` | Indonesian Display Label | Urgency Baseline |",
         "|---|---|---|",
         "| `caries` | Indikasi Karies Gigi (Gigi Berlubang) | `medium` (`emergency` if conf ≥ 0.85 or severe symptoms) |",
         "| `calculus` | Indikasi Karang Gigi | `medium` (`emergency` if severe symptoms) |",
@@ -324,7 +324,7 @@ def write_data_dictionary(out_path: Path, report: dict[str, Any]) -> None:
         "| Kaggle `salmansajid05/oral-diseases` | `Calculus/Calculus` | Mapped → `calculus` | Kaggle open research / educational terms |",
         "| Kaggle `salmansajid05/oral-diseases` | `Gingivitis/Gingivitis` | Mapped → `gingivitis` | Kaggle open research / educational terms |",
         "| Kaggle `salmansajid05/oral-diseases` | `caries augmented data set`, `*_augmented_*`, `*_yolo_annotated_*` | **Removed** (pre-augmented / duplicate exports) | Kaggle open research / educational terms |",
-        "| Kaggle `salmansajid05/oral-diseases` | `hypodontia`, `Mouth Ulcer`, `Tooth Discoloration` | **Removed** (out-of-scope conditions per `PRD §5.2`) | Kaggle open research / educational terms |",
+        "| Kaggle `salmansajid05/oral-diseases` | `hypodontia`, `Mouth Ulcer`, `Tooth Discoloration` | **Removed** (out-of-scope conditions) | Kaggle open research / educational terms |",
         "| Kaggle `shahjahanabdullatif/dental-cavity-detection-dataset` | `Yolo_Dataset/{train,val,test}` (IDs `0`, `1`) | **Removed** after manual audit (missing class YAML, mixed severe pathology in both IDs, caption overlays, `.rf.` pre-augmentations) | CC BY-SA 4.0 |",
         "| Kaggle `hamza202404/al-zahrawi-twenty-oral-teeth-mouth-diseases` (authenticated 3rd Kaggle source) | `Healthy Teeth`, `Data caries`, `Calculus A`, `Gingivitis A` (`al-Zahrawi.csv`) | Mapped → `healthy`, `caries`, `calculus`, `gingivitis` (dropped `Normal` `.rf.` segments & 15 off-target oral cancer/lesion classes) | CC0: Public Domain |",
         "| Local `dentalscan` supplement (brief `jehanbhathena/dental-caries-dataset` remains 403/private on Kaggle) | `gigi caries`, `karang gigi`, `gigi sehat`, `gusi sehat` | Mapped → `caries`, `calculus`, `healthy` | Internal Capstone `CC26-PSU285` research set |",
@@ -385,8 +385,8 @@ def write_wrangling_notebook(notebook_path: Path, report: dict[str, Any]) -> Non
     nb = nbf.v4.new_notebook()
     nb.cells = [
         nbf.v4.new_markdown_cell(
-            "# DentHub (T-104) – Data Gathering, Assessment, Manual Cleaning & Leak-Free Splitting\n\n"
-            "References: `docs/ARCHITECTURE.md §11`, `docs/PRD.md §16`, `docs/TASK.md (T-104)`.\n\n"
+            "# DentHub – Data Gathering, Assessment, Manual Cleaning & Leak-Free Splitting\n\n"
+            "DentHub Computer Vision dataset curation and split verification.\n\n"
             "## 1. Dataset Sources & Licenses\n\n"
             "| # | Dataset | Origin / Path | License | Usage Decision |\n"
             "|---|---|---|---|---|\n"
@@ -404,12 +404,12 @@ def write_wrangling_notebook(notebook_path: Path, report: dict[str, Any]) -> Non
             "2. **Dropped out-of-scope oral conditions in `oral-diseases`** "
             f"(`{report['dropped_off_target_class']}` files removed):\n"
             "   - Removed `hypodontia`, `Mouth Ulcer`, and `Tooth Discoloration`.\n"
-            "   - *Why:* `PRD.md §5.2` and `AGENTS.md §10` restrict DentHub MVP strictly to `caries`, `calculus`, `gingivitis`, and `healthy`.\n"
+            "   - *Why:* DentHub MVP focuses strictly on `caries`, `calculus`, `gingivitis`, and `healthy`.\n"
             "3. **Excluded `shahjahanabdullatif/dental-cavity-detection-dataset` after manual visual inspection** "
             f"(`{yolo_audit['total_images']}` files audited):\n"
             "   - Inspected sample images & YOLO label files (`-13-_jpg`, `00000_png_jpg`, `-23-_jpg`, `-1-_jpg`, `-10-_jpg`, `-100-_jpg`).\n"
             "   - *Findings:* No `data.yaml`/`classes.txt` ships with the dataset; class `0`-only samples included severe cavities with Korean YouTube caption banners (`00000_png_jpg`) AND severe gingivitis (`-23-_jpg`), while class `1`-only samples included severe caries (`-100-_jpg`) AND clean teeth (`-10-_jpg`), plus 90-degree Roboflow `.rf.` rotations with black corner borders.\n"
-            "   - *Why removed:* Treating ambiguous numeric IDs as `healthy` or `caries` would poison labels and violate mentor guidance (`PRD §6.1` quality over volume).\n"
+            "   - *Why removed:* Treating ambiguous numeric IDs as `healthy` or `caries` would poison labels (prioritizing label quality over volume).\n"
             "4. **Relabelled & unified surviving folders to canonical 4-class taxonomy**:\n"
             "   - `caries orignal data set/done`, `gigi caries` → **`caries`**\n"
             "   - `Calculus`, `karang gigi` → **`calculus`**\n"
@@ -426,7 +426,7 @@ def write_wrangling_notebook(notebook_path: Path, report: dict[str, Any]) -> Non
         nbf.v4.new_markdown_cell(
             "## 3. Stratified Split BEFORE Augmentation & Anti-Leakage Proof\n\n"
             "All clean unique images were partitioned using `StratifiedGroupKFold` grouped by perceptual-hash `cluster_id` "
-            "(~70% train / ~15% val / ~15% test) **before any image augmentation** (augmentation occurs exclusively inside the training pipeline in `T-106`).\n\n"
+            "(~70% train / ~15% val / ~15% test) **before any image augmentation** (augmentation occurs exclusively inside the training pipeline).\n\n"
             "| Class | Train | Val | Test | Total |\n"
             "|---|---:|---:|---:|---:|\n"
             f"{table_rows}\n"
@@ -666,7 +666,7 @@ def run_wrangling(
 def main() -> None:
     base = Path(__file__).resolve().parent
     kaggle_cache = Path.home() / ".cache" / "kagglehub" / "datasets"
-    parser = argparse.ArgumentParser(description="DentHub T-104 data wrangling & manual cleaning.")
+    parser = argparse.ArgumentParser(description="DentHub data wrangling & manual cleaning.")
     parser.add_argument("--processed-dir", type=Path, default=base / "data" / "processed")
     parser.add_argument("--notebooks-dir", type=Path, default=base / "notebooks")
     parser.add_argument(

@@ -66,7 +66,7 @@ export async function optionalAuthMiddleware(
       next();
       return;
     }
-    // Invalid/expired token on an optional-auth route MUST return 401 (API_SPECS §2)
+    // Invalid/expired token on an optional-auth route MUST return 401
     req.user = await resolveBearerUser(authHeader);
     next();
   } catch (err) {

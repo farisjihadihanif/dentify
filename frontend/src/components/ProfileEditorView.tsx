@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, {
   useEffect,
@@ -7,9 +7,9 @@ import React, {
   type ChangeEvent,
   type FormEvent,
   type PointerEvent as ReactPointerEvent,
-} from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+} from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Camera,
   CheckCircle2,
@@ -25,9 +25,9 @@ import {
   User,
   UserCircle2,
   ZoomIn,
-} from 'lucide-react';
-import { AppButton } from './AppButton';
-import { ErrorBanner } from './ErrorBanner';
+} from "lucide-react";
+import { AppButton } from "./AppButton";
+import { ErrorBanner } from "./ErrorBanner";
 import {
   clearStoredSession,
   fetchCurrentUser,
@@ -35,14 +35,17 @@ import {
   isAuthenticated,
   updateCurrentUserProfile,
   type AuthUser,
-} from '../services/authService';
-import { mapApiError, type MappedUiError } from '../services/errorMapper';
+} from "../services/authService";
+import { mapApiError, type MappedUiError } from "../services/errorMapper";
 import {
   compressImageFileToDataUrl,
+  computeAvatarFrameLayout,
   renderFramedAvatarDataUrl,
-} from '../utils/imageHelper';
+} from "../utils/imageHelper";
 
-export type ProfileSectionTab = 'general' | 'security' | 'session';
+const AVATAR_PREVIEW_SIZE = 144;
+
+export type ProfileSectionTab = "general" | "security" | "session";
 
 export interface ProfileEditorViewProps {
   initialUser?: AuthUser | null;
@@ -50,9 +53,9 @@ export interface ProfileEditorViewProps {
 }
 
 const SETTINGS_TABS = [
-  { key: 'general' as const, label: 'Profil Umum', icon: User },
-  { key: 'security' as const, label: 'Keamanan & Kata Sandi', icon: KeyRound },
-  { key: 'session' as const, label: 'Sesi & Akun', icon: Shield },
+  { key: "general" as const, label: "Profil Umum", icon: User },
+  { key: "security" as const, label: "Keamanan & Kata Sandi", icon: KeyRound },
+  { key: "session" as const, label: "Sesi & Akun", icon: Shield },
 ] as const;
 
 /**
@@ -62,7 +65,7 @@ const SETTINGS_TABS = [
  */
 export function ProfileEditorView({
   initialUser = null,
-  initialSection = 'general',
+  initialSection = "general",
 }: ProfileEditorViewProps) {
   const router = useRouter();
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
@@ -75,23 +78,37 @@ export function ProfileEditorView({
 
   const stored = initialUser ?? getStoredUser();
 
-  const [activeSection, setActiveSection] = useState<ProfileSectionTab>(initialSection);
-  const [role, setRole] = useState<'user' | 'admin'>(stored?.role ?? 'user');
-  const [fullName, setFullName] = useState<string>(stored?.full_name || '');
-  const [username, setUsername] = useState<string>(stored?.username || '');
-  const [email, setEmail] = useState<string>(stored?.email || '');
-  const [avatar, setAvatar] = useState<string>(stored?.avatar || '');
+  const [activeSection, setActiveSection] =
+    useState<ProfileSectionTab>(initialSection);
+  const [role, setRole] = useState<"user" | "admin">(stored?.role ?? "user");
+  const [fullName, setFullName] = useState<string>(stored?.full_name || "");
+  const [username, setUsername] = useState<string>(stored?.username || "");
+  const [email, setEmail] = useState<string>(stored?.email || "");
+  const [avatar, setAvatar] = useState<string>(stored?.avatar || "");
 
   // Interactive avatar frame adjuster state
   const [pendingAvatarSrc, setPendingAvatarSrc] = useState<string | null>(null);
+  const [pendingNaturalSize, setPendingNaturalSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
   const [avatarZoom, setAvatarZoom] = useState<number>(1.15);
   const [avatarOffsetX, setAvatarOffsetX] = useState<number>(0);
   const [avatarOffsetY, setAvatarOffsetY] = useState<number>(0);
   const [isDraggingFrame, setIsDraggingFrame] = useState<boolean>(false);
   const [isProcessingAvatar, setIsProcessingAvatar] = useState<boolean>(false);
 
-  const [currentPassword, setCurrentPassword] = useState<string>('');
-  const [newPassword, setNewPassword] = useState<string>('');
+  const previewFrameLayout = computeAvatarFrameLayout(
+    AVATAR_PREVIEW_SIZE,
+    pendingNaturalSize?.width ?? AVATAR_PREVIEW_SIZE,
+    pendingNaturalSize?.height ?? AVATAR_PREVIEW_SIZE,
+    avatarZoom,
+    avatarOffsetX,
+    avatarOffsetY,
+  );
+
+  const [currentPassword, setCurrentPassword] = useState<string>("");
+  const [newPassword, setNewPassword] = useState<string>("");
   const [isLoadingProfile, setIsLoadingProfile] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -104,11 +121,11 @@ export function ProfileEditorView({
     void fetchCurrentUser()
       .then((fresh) => {
         if (cancelled) return;
-        setRole(fresh.role || 'user');
-        setFullName(fresh.full_name || '');
-        setUsername(fresh.username || '');
-        setEmail(fresh.email || '');
-        setAvatar(fresh.avatar || '');
+        setRole(fresh.role || "user");
+        setFullName(fresh.full_name || "");
+        setUsername(fresh.username || "");
+        setEmail(fresh.email || "");
+        setAvatar(fresh.avatar || "");
       })
       .catch(() => {})
       .finally(() => {
@@ -120,34 +137,41 @@ export function ProfileEditorView({
     };
   }, [initialUser]);
 
-  const handleAvatarFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarFileChange = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
-    event.target.value = '';
+    event.target.value = "";
     if (!file) return;
 
     setUiError(null);
     setSuccessMessage(null);
 
-    const mime = (file.type || '').toLowerCase();
+    const mime = (file.type || "").toLowerCase();
     const validType =
-      ['image/jpeg', 'image/png', 'image/webp'].includes(mime) ||
-      /\.(jpe?g|png|webp)$/i.test(file.name || '');
+      ["image/jpeg", "image/png", "image/webp"].includes(mime) ||
+      /\.(jpe?g|png|webp)$/i.test(file.name || "");
 
     if (!validType) {
-      setUiError(mapApiError('INVALID_IMAGE'));
+      setUiError(mapApiError("INVALID_IMAGE"));
       return;
     }
 
     setIsProcessingAvatar(true);
     try {
       // Automatically resize & compress photos > 500 KB to <= 450 KB via HTML5 Canvas
-      const compressedDataUrl = await compressImageFileToDataUrl(file, 450 * 1024, 960);
+      const compressedDataUrl = await compressImageFileToDataUrl(
+        file,
+        450 * 1024,
+        960,
+      );
+      setPendingNaturalSize(null);
       setPendingAvatarSrc(compressedDataUrl);
       setAvatarZoom(1.1);
       setAvatarOffsetX(0);
       setAvatarOffsetY(0);
     } catch {
-      setUiError(mapApiError('INVALID_IMAGE'));
+      setUiError(mapApiError("INVALID_IMAGE"));
     } finally {
       setIsProcessingAvatar(false);
     }
@@ -168,8 +192,22 @@ export function ProfileEditorView({
     if (!isDraggingFrame || !dragOriginRef.current) return;
     const dx = event.clientX - dragOriginRef.current.x;
     const dy = event.clientY - dragOriginRef.current.y;
-    const nextX = Math.max(-50, Math.min(50, Math.round(dragOriginRef.current.startOffsetX + dx * 0.55)));
-    const nextY = Math.max(-50, Math.min(50, Math.round(dragOriginRef.current.startOffsetY + dy * 0.55)));
+    const deltaX =
+      previewFrameLayout.maxShiftX > 0
+        ? (dx / previewFrameLayout.maxShiftX) * 50
+        : 0;
+    const deltaY =
+      previewFrameLayout.maxShiftY > 0
+        ? (dy / previewFrameLayout.maxShiftY) * 50
+        : 0;
+    const nextX = Math.max(
+      -50,
+      Math.min(50, Math.round(dragOriginRef.current.startOffsetX + deltaX)),
+    );
+    const nextY = Math.max(
+      -50,
+      Math.min(50, Math.round(dragOriginRef.current.startOffsetY + deltaY)),
+    );
     setAvatarOffsetX(nextX);
     setAvatarOffsetY(nextY);
   };
@@ -226,12 +264,12 @@ export function ProfileEditorView({
       });
 
       setFullName(updated.full_name || fullName);
-      setUsername(updated.username || '');
-      setAvatar(updated.avatar || avatarToSave || '');
-      setSuccessMessage('Profil umum Anda berhasil diperbarui.');
+      setUsername(updated.username || "");
+      setAvatar(updated.avatar || avatarToSave || "");
+      setSuccessMessage("Profil umum Anda berhasil diperbarui.");
     } catch (error) {
       const mapped =
-        error && typeof error === 'object' && 'uiError' in error
+        error && typeof error === "object" && "uiError" in error
           ? (error as { uiError: MappedUiError }).uiError
           : mapApiError(error);
       setUiError(mapped);
@@ -255,12 +293,12 @@ export function ProfileEditorView({
         new_password: newPassword || undefined,
       });
 
-      setCurrentPassword('');
-      setNewPassword('');
-      setSuccessMessage('Kata sandi akun Anda berhasil diperbarui.');
+      setCurrentPassword("");
+      setNewPassword("");
+      setSuccessMessage("Kata sandi akun Anda berhasil diperbarui.");
     } catch (error) {
       const mapped =
-        error && typeof error === 'object' && 'uiError' in error
+        error && typeof error === "object" && "uiError" in error
           ? (error as { uiError: MappedUiError }).uiError
           : mapApiError(error);
       setUiError(mapped);
@@ -271,7 +309,7 @@ export function ProfileEditorView({
 
   const handleLogout = () => {
     clearStoredSession();
-    router.push('/login');
+    router.push("/login");
   };
 
   return (
@@ -281,13 +319,18 @@ export function ProfileEditorView({
     >
       {/* Clean Page Header */}
       <div className="border-b border-border pb-5">
-        <h1 className="text-2xl font-bold text-text sm:text-3xl">Edit Profil Pengguna</h1>
+        <h1 className="text-2xl font-bold text-text sm:text-3xl">
+          Edit Profil Pengguna
+        </h1>
         <p className="mt-1 text-sm text-text-muted sm:text-base">
-          Kelola identitas akun, keamanan kata sandi, dan sesi aktif DentHub Anda dalam satu tempat.
+          Kelola identitas akun, keamanan kata sandi, dan sesi aktif DentHub
+          Anda dalam satu tempat.
         </p>
       </div>
 
-      {uiError && <ErrorBanner error={uiError} onDismiss={() => setUiError(null)} />}
+      {uiError && (
+        <ErrorBanner error={uiError} onDismiss={() => setUiError(null)} />
+      )}
 
       {successMessage && (
         <div
@@ -322,14 +365,16 @@ export function ProfileEditorView({
               </div>
 
               <h2 className="mt-3.5 text-lg font-bold text-text">
-                {fullName || 'Pengguna DentHub'}
+                {fullName || "Pengguna DentHub"}
               </h2>
               {username && (
-                <p className="text-xs font-semibold text-brand-dark">@{username}</p>
+                <p className="text-xs font-semibold text-brand-dark">
+                  @{username}
+                </p>
               )}
               <p className="mt-1.5 inline-flex items-center gap-1.5 text-xs text-text-muted">
                 <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                <span className="truncate">{email || 'username@mail.com'}</span>
+                <span className="truncate">{email || "username@mail.com"}</span>
               </p>
             </div>
           </div>
@@ -355,11 +400,11 @@ export function ProfileEditorView({
                         setSuccessMessage(null);
                       }}
                       className={[
-                        'flex min-h-touch w-full items-center gap-2.5 rounded-xl px-3.5 py-2 text-left text-sm font-semibold transition-colors',
+                        "flex min-h-touch w-full items-center gap-2.5 rounded-xl px-3.5 py-2 text-left text-sm font-semibold transition-colors",
                         isActive
-                          ? 'bg-brand text-surface shadow-sm'
-                          : 'text-text-muted hover:bg-brand-soft hover:text-brand-dark',
-                      ].join(' ')}
+                          ? "bg-brand text-surface shadow-sm"
+                          : "text-text-muted hover:bg-brand-soft hover:text-brand-dark",
+                      ].join(" ")}
                     >
                       <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
                       <span>{item.label}</span>
@@ -369,14 +414,17 @@ export function ProfileEditorView({
               })}
             </ul>
 
-            {role === 'admin' && (
+            {role === "admin" && (
               <div className="mt-2 border-t border-border pt-2">
                 <Link
                   href="/admin"
                   data-testid="profile-admin-panel-link"
                   className="flex min-h-touch w-full items-center gap-2.5 rounded-xl bg-brand-soft px-3.5 py-2 text-sm font-bold text-brand-dark transition-colors hover:bg-brand hover:text-surface"
                 >
-                  <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <ShieldCheck
+                    className="h-4 w-4 shrink-0"
+                    aria-hidden="true"
+                  />
                   <span>Admin Panel</span>
                 </Link>
               </div>
@@ -386,7 +434,7 @@ export function ProfileEditorView({
 
         {/* Right Column: Single Active Section Card */}
         <div className="lg:col-span-8">
-          {activeSection === 'general' && (
+          {activeSection === "general" && (
             <form onSubmit={(e) => void handleSaveGeneral(e)} noValidate>
               <section
                 id="profil-umum"
@@ -396,11 +444,15 @@ export function ProfileEditorView({
                 className="rounded-card border border-border bg-surface p-6 shadow-sm sm:p-7"
               >
                 <div className="border-b border-border pb-4">
-                  <h2 id="heading-profil-umum" className="text-lg font-bold text-text">
+                  <h2
+                    id="heading-profil-umum"
+                    className="text-lg font-bold text-text"
+                  >
                     Profil Umum
                   </h2>
                   <p className="mt-0.5 text-xs text-text-muted sm:text-sm">
-                    Informasi ini ditampilkan pada akun dan riwayat pemindaian DentHub Anda.
+                    Informasi ini ditampilkan pada akun dan riwayat pemindaian
+                    DentHub Anda.
                   </p>
                 </div>
 
@@ -419,18 +471,26 @@ export function ProfileEditorView({
                     </div>
 
                     <div className="space-y-2 text-center sm:text-left">
-                      <p className="text-sm font-semibold text-text">Foto Profil</p>
+                      <p className="text-sm font-semibold text-text">
+                        Foto Profil
+                      </p>
                       <p className="text-xs text-text-muted">
-                        Unggah foto JPG, PNG, atau WEBP (foto &gt; 500 KB akan dikompres otomatis).
+                        Unggah foto JPG, PNG, atau WEBP (foto &gt; 500 KB akan
+                        dikompres otomatis).
                       </p>
                       <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
                         <label
                           htmlFor="profile-avatar-upload"
                           className="inline-flex h-9 min-h-touch cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark transition-colors hover:bg-brand-soft"
                         >
-                          <Camera className="h-4 w-4 shrink-0" aria-hidden="true" />
+                          <Camera
+                            className="h-4 w-4 shrink-0"
+                            aria-hidden="true"
+                          />
                           <span>
-                            {isProcessingAvatar ? 'Memproses Foto...' : 'Ganti Foto Profil'}
+                            {isProcessingAvatar
+                              ? "Memproses Foto..."
+                              : "Ganti Foto Profil"}
                           </span>
                           <input
                             ref={avatarInputRef}
@@ -448,6 +508,7 @@ export function ProfileEditorView({
                             type="button"
                             data-testid="avatar-open-frame-editor"
                             onClick={() => {
+                              setPendingNaturalSize(null);
                               setPendingAvatarSrc(avatar);
                               setAvatarZoom(1);
                               setAvatarOffsetX(0);
@@ -455,7 +516,10 @@ export function ProfileEditorView({
                             }}
                             className="inline-flex h-9 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg border border-border bg-surface px-3 text-xs font-semibold text-text transition-colors hover:bg-brand-soft"
                           >
-                            <SlidersHorizontal className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                            <SlidersHorizontal
+                              className="h-3.5 w-3.5 shrink-0"
+                              aria-hidden="true"
+                            />
                             <span>Atur Bingkai</span>
                           </button>
                         )}
@@ -464,7 +528,7 @@ export function ProfileEditorView({
                           <button
                             type="button"
                             onClick={() => {
-                              setAvatar('');
+                              setAvatar("");
                               setPendingAvatarSrc(null);
                             }}
                             className="inline-flex h-9 min-h-touch items-center whitespace-nowrap rounded-lg px-3 text-xs font-semibold text-status-red hover:underline"
@@ -492,24 +556,42 @@ export function ProfileEditorView({
                             onPointerUp={handleFramePointerUp}
                             onPointerCancel={handleFramePointerUp}
                             className={[
-                              'relative h-36 w-36 overflow-hidden rounded-full border-4 border-brand bg-surface shadow-md select-none touch-none',
-                              isDraggingFrame ? 'cursor-grabbing' : 'cursor-grab',
-                            ].join(' ')}
+                              "relative h-36 w-36 overflow-hidden rounded-full ring-4 ring-brand bg-surface shadow-md select-none touch-none",
+                              isDraggingFrame
+                                ? "cursor-grabbing"
+                                : "cursor-grab",
+                            ].join(" ")}
                           >
                             <img
                               src={pendingAvatarSrc}
                               alt="Pratinjau bingkai foto profil"
                               draggable={false}
-                              className="pointer-events-none h-full w-full object-cover"
+                              onLoad={(e) => {
+                                const w = e.currentTarget.naturalWidth;
+                                const h = e.currentTarget.naturalHeight;
+                                if (w > 0 && h > 0) {
+                                  setPendingNaturalSize({
+                                    width: w,
+                                    height: h,
+                                  });
+                                }
+                              }}
+                              className="pointer-events-none absolute select-none"
                               style={{
-                                objectPosition: `${50 + avatarOffsetX}% ${50 + avatarOffsetY}%`,
-                                transform: `scale(${avatarZoom})`,
-                                transformOrigin: 'center center',
+                                width: `${previewFrameLayout.drawW}px`,
+                                height: `${previewFrameLayout.drawH}px`,
+                                left: `${previewFrameLayout.left}px`,
+                                top: `${previewFrameLayout.top}px`,
+                                maxWidth: "none",
+                                maxHeight: "none",
                               }}
                             />
                           </div>
                           <span className="inline-flex items-center gap-1 text-[11px] font-medium text-text-muted">
-                            <Move className="h-3 w-3 shrink-0" aria-hidden="true" />
+                            <Move
+                              className="h-3 w-3 shrink-0"
+                              aria-hidden="true"
+                            />
                             <span>Geser foto atau atur slider</span>
                           </span>
                         </div>
@@ -528,7 +610,10 @@ export function ProfileEditorView({
                               }}
                               className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-dark hover:underline"
                             >
-                              <RotateCcw className="h-3 w-3" aria-hidden="true" />
+                              <RotateCcw
+                                className="h-3 w-3"
+                                aria-hidden="true"
+                              />
                               <span>Reset</span>
                             </button>
                           </div>
@@ -539,7 +624,10 @@ export function ProfileEditorView({
                               className="flex items-center justify-between text-xs font-medium text-text-muted"
                             >
                               <span className="inline-flex items-center gap-1">
-                                <ZoomIn className="h-3.5 w-3.5" aria-hidden="true" />
+                                <ZoomIn
+                                  className="h-3.5 w-3.5"
+                                  aria-hidden="true"
+                                />
                                 <span>Zoom</span>
                               </span>
                               <span className="font-semibold text-text">
@@ -554,7 +642,9 @@ export function ProfileEditorView({
                               max={2.5}
                               step={0.05}
                               value={avatarZoom}
-                              onChange={(e) => setAvatarZoom(Number(e.target.value))}
+                              onChange={(e) =>
+                                setAvatarZoom(Number(e.target.value))
+                              }
                               className="mt-1 w-full accent-brand"
                             />
                           </div>
@@ -566,7 +656,9 @@ export function ProfileEditorView({
                                 className="flex items-center justify-between text-xs font-medium text-text-muted"
                               >
                                 <span>Posisi Horizontal (X)</span>
-                                <span className="font-semibold text-text">{avatarOffsetX}%</span>
+                                <span className="font-semibold text-text">
+                                  {avatarOffsetX}%
+                                </span>
                               </label>
                               <input
                                 id="avatar-pos-x-slider"
@@ -576,7 +668,9 @@ export function ProfileEditorView({
                                 max={50}
                                 step={1}
                                 value={avatarOffsetX}
-                                onChange={(e) => setAvatarOffsetX(Number(e.target.value))}
+                                onChange={(e) =>
+                                  setAvatarOffsetX(Number(e.target.value))
+                                }
                                 className="mt-1 w-full accent-brand"
                               />
                             </div>
@@ -587,7 +681,9 @@ export function ProfileEditorView({
                                 className="flex items-center justify-between text-xs font-medium text-text-muted"
                               >
                                 <span>Posisi Vertikal (Y)</span>
-                                <span className="font-semibold text-text">{avatarOffsetY}%</span>
+                                <span className="font-semibold text-text">
+                                  {avatarOffsetY}%
+                                </span>
                               </label>
                               <input
                                 id="avatar-pos-y-slider"
@@ -597,7 +693,9 @@ export function ProfileEditorView({
                                 max={50}
                                 step={1}
                                 value={avatarOffsetY}
-                                onChange={(e) => setAvatarOffsetY(Number(e.target.value))}
+                                onChange={(e) =>
+                                  setAvatarOffsetY(Number(e.target.value))
+                                }
                                 className="mt-1 w-full accent-brand"
                               />
                             </div>
@@ -664,7 +762,7 @@ export function ProfileEditorView({
                       maxLength={30}
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="contoh: farislubis"
+                      placeholder="Nama Anda"
                       className="mt-1.5 w-full rounded-card border border-border bg-surface px-4 py-2.5 text-body text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
                     />
                   </div>
@@ -704,7 +802,7 @@ export function ProfileEditorView({
             </form>
           )}
 
-          {activeSection === 'security' && (
+          {activeSection === "security" && (
             <form onSubmit={(e) => void handleSavePassword(e)} noValidate>
               <section
                 id="keamanan"
@@ -715,14 +813,20 @@ export function ProfileEditorView({
               >
                 <div className="border-b border-border pb-4">
                   <div className="flex items-center gap-2">
-                    <KeyRound className="h-4 w-4 text-brand-dark" aria-hidden="true" />
-                    <h2 id="heading-keamanan" className="text-lg font-bold text-text">
+                    <KeyRound
+                      className="h-4 w-4 text-brand-dark"
+                      aria-hidden="true"
+                    />
+                    <h2
+                      id="heading-keamanan"
+                      className="text-lg font-bold text-text"
+                    >
                       Keamanan &amp; Kata Sandi
                     </h2>
                   </div>
                   <p className="mt-0.5 text-xs text-text-muted sm:text-sm">
-                    Masukkan kata sandi saat ini dan kata sandi baru minimal 8 karakter untuk
-                    memperbarui keamanan akun Anda.
+                    Masukkan kata sandi saat ini dan kata sandi baru minimal 8
+                    karakter untuk memperbarui keamanan akun Anda.
                   </p>
                 </div>
 
@@ -784,7 +888,7 @@ export function ProfileEditorView({
             </form>
           )}
 
-          {activeSection === 'session' && (
+          {activeSection === "session" && (
             <section
               id="sesi-akun"
               role="tabpanel"
@@ -793,12 +897,16 @@ export function ProfileEditorView({
               className="flex flex-col justify-between gap-4 rounded-card border border-border bg-surface p-6 shadow-sm sm:flex-row sm:items-center sm:p-7"
             >
               <div className="space-y-1">
-                <h2 id="heading-sesi-akun" className="text-lg font-bold text-text">
+                <h2
+                  id="heading-sesi-akun"
+                  className="text-lg font-bold text-text"
+                >
                   Sesi &amp; Akun
                 </h2>
                 <p className="text-xs leading-relaxed text-text-muted sm:text-sm">
-                  Keluar dari sesi DentHub pada perangkat ini. Riwayat pemindaian dan percakapan
-                  Anda tetap aman tersimpan di akun Anda.
+                  Keluar dari sesi DentHub pada perangkat ini. Riwayat
+                  pemindaian dan percakapan Anda tetap aman tersimpan di akun
+                  Anda.
                 </p>
               </div>
 

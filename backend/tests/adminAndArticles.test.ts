@@ -6,7 +6,7 @@ import { Article, User } from '../src/models';
 import { parsePubMedArticlesXml } from '../src/scripts/crawlDentalNews';
 import { runSeed } from '../src/scripts/seed';
 
-describe('T-208 Public Articles API & Admin CMS + User Management API', () => {
+describe('Public Articles API & Admin CMS + User Management API', () => {
   const app = createApp();
 
   beforeAll(async () => {

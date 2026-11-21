@@ -54,7 +54,7 @@ const SAMPLE_EMERGENCY_REPORT: ScanReportData = {
   created_at: '2026-11-18T09:30:00.000Z',
 };
 
-describe('Landing Page 3 Section & Layar Pemindaian Gigi dengan Sidebar (T-110)', () => {
+describe('Landing Page 3 Section & Layar Pemindaian Gigi dengan Sidebar', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });

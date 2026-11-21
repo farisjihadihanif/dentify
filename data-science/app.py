@@ -1,5 +1,5 @@
 """
-DentHub Analytics & Model Evaluation Dashboard (Streamlit - T-105, PRD.md §5.1, §16).
+DentHub Analytics & Model Evaluation Dashboard (Streamlit).
 
 Displays dataset cleaning & class distribution, engineered image-quality stats,
 model evaluation metrics (accuracy, macro F1, per-class recall, confusion matrix, MAE),

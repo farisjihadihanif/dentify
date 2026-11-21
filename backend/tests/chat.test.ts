@@ -8,7 +8,7 @@ import * as aiClient from '../src/services/aiServiceClient';
 import { ApiError } from '../src/utils/ApiError';
 import { setupTestDb, clearTestDb, teardownTestDb } from './helpers/testDb';
 
-describe('T-202 Chat endpoints: Deni sessions, ownership, rollover at 50, guest & fallback', () => {
+describe('Chat endpoints: Deni sessions, ownership, rollover at 50, guest & fallback', () => {
   beforeAll(async () => {
     await setupTestDb();
     await Promise.all([

@@ -6,7 +6,7 @@ import {
   clearOsmCaches,
 } from '../src/services/osmClinicService';
 
-describe('T-203 Clinics OSM endpoints: validation, distance sort, fallback, geocode', () => {
+describe('Clinics OSM endpoints: validation, distance sort, fallback, geocode', () => {
   beforeEach(() => {
     clearOsmCaches();
     vi.restoreAllMocks();

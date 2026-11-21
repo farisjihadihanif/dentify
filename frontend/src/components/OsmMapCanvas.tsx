@@ -16,7 +16,7 @@ export interface OsmMapCanvasProps {
 
 /**
  * Komponen internal peta Leaflet + OpenStreetMap tiles (hanya dijalankan di browser melalui
- * `dynamic(..., { ssr: false })` pada `OsmMapView.tsx` sesuai `DESIGN.md §7`).
+ * `dynamic(..., { ssr: false })` pada `OsmMapView.tsx`).
  */
 export default function OsmMapCanvas({
   centerLat,

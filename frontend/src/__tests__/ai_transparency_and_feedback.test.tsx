@@ -44,7 +44,7 @@ function makeScanReport(confidenceScore: number): ScanReportData {
   };
 }
 
-describe('T-207: AI transparency labels, honest confidence, fallback banner, and feedback control', () => {
+describe('AI transparency labels, honest confidence, fallback banner, and feedback control', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -146,7 +146,7 @@ describe('T-207: AI transparency labels, honest confidence, fallback banner, and
     const footerHtml = renderToStaticMarkup(<AppFooter />);
     const mascotHtml = renderToStaticMarkup(<DeniMascot />);
 
-    expect(navHtml).toContain('bottom-5');
+    expect(navHtml).toContain('bottom-3');
     expect(navHtml).toContain('sm:bottom-6');
     expect(navHtml).toContain('data-testid="navbar-logo-home-link"');
     expect(navHtml).not.toContain('>Beranda<');

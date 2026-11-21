@@ -22,7 +22,7 @@ import {
   registerUser,
 } from '../services/authService';
 
-describe('Komponen UI Bersama (T-109 – DESIGN.md §4)', () => {
+describe('Komponen UI Bersama', () => {
   it('AppButton merender varian, tinggi min-h-touch, dan state loading/disabled', () => {
     const primaryHtml = renderToStaticMarkup(<AppButton variant="primary">Mulai Screening</AppButton>);
     expect(primaryHtml).toContain('Mulai Screening');
@@ -96,7 +96,7 @@ describe('Komponen UI Bersama (T-109 – DESIGN.md §4)', () => {
   });
 });
 
-describe('Layanan & Alur Autentikasi (T-103 – DESIGN.md §3 & §5)', () => {
+describe('Layanan & Alur Autentikasi', () => {
   beforeEach(() => {
     clearStoredSession();
     vi.restoreAllMocks();

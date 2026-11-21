@@ -23,7 +23,7 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/',
 }));
 
-describe('Audit Responsivitas Mobile (360px–1920px), Pembersihan Kamera, & Penempatan Disclaimer Medis (T-302 – DESIGN.md §7)', () => {
+describe('Audit Responsivitas Mobile (360px–1920px), Pembersihan Kamera, & Penempatan Disclaimer Medis', () => {
   const ALL_SCREENS: ReadonlyArray<{
     name: string;
     element: React.ReactElement;

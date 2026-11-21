@@ -5,7 +5,7 @@ import { ChatSession, Feedback, ScanRecord, User } from '../src/models';
 import { DISCLAIMER_SCAN } from '../src/constants/domain';
 import { setupTestDb, clearTestDb, teardownTestDb } from './helpers/testDb';
 
-describe('T-207 POST /api/v1/feedback: validation, guest mode, and ownership isolation', () => {
+describe('POST /api/v1/feedback: validation, guest mode, and ownership isolation', () => {
   beforeAll(async () => {
     await setupTestDb();
     await Promise.all([

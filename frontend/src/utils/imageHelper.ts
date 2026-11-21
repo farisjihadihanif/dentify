@@ -1,6 +1,6 @@
 /**
- * Helper validasi berkas foto klien (`JPEG`, `PNG`, `WEBP` <= 5 MB)
- * dan kompresi sisi klien (`maxWidth: 1024px`) sesuai `ARCHITECTURE.md §8` & `API_SPECS.md §5.1`.
+ * Client-side image validation (JPEG, PNG, WEBP, GIF, BMP <= 5 MB), compression,
+ * and 1:1 circular avatar frame geometry helpers.
  */
 
 import { mapApiError, type MappedUiError } from '../services/errorMapper';
@@ -222,6 +222,41 @@ export async function compressImageFileToDataUrl(
   });
 }
 
+export interface AvatarFrameLayout {
+  baseScale: number;
+  drawW: number;
+  drawH: number;
+  maxShiftX: number;
+  maxShiftY: number;
+  left: number;
+  top: number;
+}
+
+/**
+ * Shared 1:1 geometry calculator used by both the 144px interactive preview
+ * and the 320px canvas crop renderer so framing matches pixel-for-pixel.
+ */
+export function computeAvatarFrameLayout(
+  containerSize: number,
+  naturalWidth: number,
+  naturalHeight: number,
+  zoom: number,
+  offsetXPercent: number,
+  offsetYPercent: number,
+): AvatarFrameLayout {
+  const safeW = Math.max(1, naturalWidth || containerSize);
+  const safeH = Math.max(1, naturalHeight || containerSize);
+  const clampedZoom = Math.max(1, Math.min(2.5, zoom));
+  const baseScale = Math.max(containerSize / safeW, containerSize / safeH);
+  const drawW = safeW * baseScale * clampedZoom;
+  const drawH = safeH * baseScale * clampedZoom;
+  const maxShiftX = Math.max(0, (drawW - containerSize) / 2);
+  const maxShiftY = Math.max(0, (drawH - containerSize) / 2);
+  const left = (containerSize - drawW) / 2 + (offsetXPercent / 50) * maxShiftX;
+  const top = (containerSize - drawH) / 2 + (offsetYPercent / 50) * maxShiftY;
+  return { baseScale, drawW, drawH, maxShiftX, maxShiftY, left, top };
+}
+
 /**
  * Renders a square avatar image cropped with zoom (1.0-2.5x) and normalized pan offsets
  * (offsetX / offsetY in [-50, 50]%) into a compressed data URL <= 450 KB.
@@ -255,18 +290,18 @@ export async function renderFramedAvatarDataUrl(
         return;
       }
 
-      const clampedZoom = Math.max(1, Math.min(2.5, zoom));
-      const baseScale = Math.max(outputSize / origW, outputSize / origH);
-      const drawW = origW * baseScale * clampedZoom;
-      const drawH = origH * baseScale * clampedZoom;
-      const maxShiftX = Math.max(0, (drawW - outputSize) / 2);
-      const maxShiftY = Math.max(0, (drawH - outputSize) / 2);
-      const dx = (outputSize - drawW) / 2 + (offsetXPercent / 50) * maxShiftX;
-      const dy = (outputSize - drawH) / 2 + (offsetYPercent / 50) * maxShiftY;
+      const layout = computeAvatarFrameLayout(
+        outputSize,
+        origW,
+        origH,
+        zoom,
+        offsetXPercent,
+        offsetYPercent,
+      );
 
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, outputSize, outputSize);
-      ctx.drawImage(img, dx, dy, drawW, drawH);
+      ctx.drawImage(img, layout.left, layout.top, layout.drawW, layout.drawH);
 
       resolve(canvas.toDataURL('image/jpeg', 0.86));
     };

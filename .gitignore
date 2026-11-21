@@ -1,4 +1,4 @@
-# Secrets and credentials (AGENTS.md Security)
+# Secrets and credentials
 .env
 .env.*
 !.env.example

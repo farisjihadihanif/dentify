@@ -1,5 +1,5 @@
 """
-A/B Test: Baseline Preprocessing (A) vs CLAHE Preprocessing (B) on Held-Out Test Set (T-401).
+A/B Test: Baseline Preprocessing (A) vs CLAHE Preprocessing (B) on Held-Out Test Set.
 
 Evaluates the trained DentHub custom Keras model on the exact same held-out test images
 under two preprocessing pipelines and runs McNemar's test (exact binomial + chi-square),
@@ -137,7 +137,7 @@ def run_mcnemar_ab_test(
     nb = nbf.v4.new_notebook()
     nb.cells = [
         nbf.v4.new_markdown_cell(
-            "# DentHub (T-401) – A/B Test: Baseline (A) vs CLAHE Preprocessing (B)\n\n"
+            "# DentHub – A/B Test: Baseline (A) vs CLAHE Preprocessing (B)\n\n"
             "Paired evaluation on identical held-out dental test images using exact McNemar's test."
         ),
         nbf.v4.new_code_cell(

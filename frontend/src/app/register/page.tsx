@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState, type FormEvent } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { AppButton } from '../../components/AppButton';
-import { DentHubLogo } from '../../components/DentHubLogo';
-import { ErrorBanner } from '../../components/ErrorBanner';
-import { registerUser } from '../../services/authService';
-import { mapApiError, type MappedUiError } from '../../services/errorMapper';
+import React, { useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { AppButton } from "../../components/AppButton";
+import { DentHubLogo } from "../../components/DentHubLogo";
+import { ErrorBanner } from "../../components/ErrorBanner";
+import { registerUser } from "../../services/authService";
+import { mapApiError, type MappedUiError } from "../../services/errorMapper";
 
 export default function RegisterPage() {
   const router = useRouter();
 
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cooldownLeft, setCooldownLeft] = useState(0);
   const [uiError, setUiError] = useState<MappedUiError | null>(null);
@@ -41,20 +41,20 @@ export default function RegisterPage() {
         password,
       });
       const redirectParam =
-        typeof window !== 'undefined'
-          ? new URLSearchParams(window.location.search).get('redirect')
+        typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search).get("redirect")
           : null;
       const target =
-        redirectParam && redirectParam.startsWith('/') ? redirectParam : '/';
+        redirectParam && redirectParam.startsWith("/") ? redirectParam : "/";
       router.push(target);
     } catch (error) {
       const mapped =
-        error && typeof error === 'object' && 'uiError' in error
+        error && typeof error === "object" && "uiError" in error
           ? (error as { uiError: MappedUiError }).uiError
           : mapApiError(error);
       setUiError(mapped);
 
-      if (mapped.action === 'cooldown_submit_10s') {
+      if (mapped.action === "cooldown_submit_10s") {
         setCooldownLeft(mapped.cooldownSeconds ?? 10);
       }
     } finally {
@@ -65,15 +65,19 @@ export default function RegisterPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-12 sm:px-6">
       <div className="mb-6 text-center">
-        <Link
-          href="/"
-          className="inline-flex items-center justify-center"
-        >
-          <DentHubLogo size={38} showText textClassName="text-xl font-extrabold text-brand-dark" />
+        <Link href="/" className="inline-flex items-center justify-center">
+          <DentHubLogo
+            size={38}
+            showText
+            textClassName="text-xl font-extrabold text-brand-dark"
+          />
         </Link>
-        <h1 className="mt-4 text-screen-title text-text">Buat Akun DentHub Baru</h1>
+        <h1 className="mt-4 text-screen-title text-text">
+          Buat Akun DentHub Baru
+        </h1>
         <p className="mt-1 text-badge text-text-muted">
-          Simpan riwayat hasil pemindaian gigi dan rencana perawatan preventif Anda secara aman.
+          Simpan riwayat hasil pemindaian gigi dan rencana perawatan preventif
+          Anda secara aman.
         </p>
       </div>
 
@@ -84,9 +88,16 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4" noValidate>
+        <form
+          onSubmit={(e) => void handleSubmit(e)}
+          className="space-y-4"
+          noValidate
+        >
           <div>
-            <label htmlFor="register-full-name" className="block text-badge font-semibold text-text">
+            <label
+              htmlFor="register-full-name"
+              className="block text-badge font-semibold text-text"
+            >
               Nama Lengkap
             </label>
             <input
@@ -99,13 +110,16 @@ export default function RegisterPage() {
               maxLength={100}
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Contoh: Faris Jihadi"
+              placeholder="Isi Nama Anda"
               className="mt-1.5 w-full rounded-card border border-border bg-surface px-4 py-3 text-body text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
 
           <div>
-            <label htmlFor="register-email" className="block text-badge font-semibold text-text">
+            <label
+              htmlFor="register-email"
+              className="block text-badge font-semibold text-text"
+            >
               Alamat Email
             </label>
             <input
@@ -122,7 +136,10 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label htmlFor="register-password" className="block text-badge font-semibold text-text">
+            <label
+              htmlFor="register-password"
+              className="block text-badge font-semibold text-text"
+            >
               Kata Sandi (minimal 8 karakter)
             </label>
             <input
@@ -152,14 +169,19 @@ export default function RegisterPage() {
               password.length < 8
             }
           >
-            {cooldownLeft > 0 ? `Tunggu ${cooldownLeft} detik...` : 'Daftar Sekarang'}
+            {cooldownLeft > 0
+              ? `Tunggu ${cooldownLeft} detik...`
+              : "Daftar Sekarang"}
           </AppButton>
         </form>
 
         <div className="mt-6 border-t border-border pt-4 text-center text-badge text-text-muted">
           <p>
-            Sudah memiliki akun?{' '}
-            <Link href="/login" className="font-semibold text-brand-dark hover:underline">
+            Sudah memiliki akun?{" "}
+            <Link
+              href="/login"
+              className="font-semibold text-brand-dark hover:underline"
+            >
               Masuk di sini
             </Link>
           </p>

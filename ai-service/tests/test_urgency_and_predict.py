@@ -30,7 +30,7 @@ def _make_sharp_dental_image(width: int = 320, height: int = 320) -> bytes:
     return _encode_png(img)
 
 
-# Table-driven unit tests for EVERY row of PRD §6.1 (API_SPECS §9 rule 6)
+# Table-driven unit tests for every urgency classification rule
 @pytest.mark.parametrize(
     "condition,confidence,symptoms,expected_urgency,expected_trigger",
     [

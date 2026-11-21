@@ -5,7 +5,7 @@ import { User, ScanRecord, ChatSession, DentalKnowledge } from '../src/models';
 import { DISCLAIMER_SCAN } from '../src/constants/domain';
 import { runSeed } from '../src/scripts/seed';
 
-describe('T-003 & T-004 Models and Idempotent Seeder', () => {
+describe('Models and Idempotent Seeder', () => {
   beforeAll(async () => {
     await setupTestDb();
     await Promise.all([
@@ -125,7 +125,7 @@ describe('T-003 & T-004 Models and Idempotent Seeder', () => {
     ).rejects.toThrow();
   });
 
-  it('T-004 runSeed is idempotent and seeds 13 dental_knowledge docs + 1 admin without duplicates', async () => {
+  it('runSeed is idempotent and seeds 13 dental_knowledge docs + 1 admin without duplicates', async () => {
     const first = await runSeed({
       adminEmail: 'admin@denthub.local',
       adminPassword: 'AdminPassword123!',

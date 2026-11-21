@@ -19,7 +19,7 @@ function makePngBuffer(width: number, height: number): Buffer {
   return buf;
 }
 
-describe('T-108 & T-109 Scan endpoints, upload validation, and ownership isolation', () => {
+describe('Scan endpoints, upload validation, and ownership isolation', () => {
   beforeAll(async () => {
     await setupTestDb();
     await Promise.all([
@@ -189,7 +189,7 @@ describe('T-108 & T-109 Scan endpoints, upload validation, and ownership isolati
     expect(await ScanRecord.countDocuments()).toBe(1);
   });
 
-  it('T-109 enforces ownership isolation (404 for other user), pagination, and delete cascade to ChatSession', async () => {
+  it('enforces ownership isolation (404 for other user), pagination, and delete cascade to ChatSession', async () => {
     vi.spyOn(aiClient, 'requestDentalPrediction').mockResolvedValue({
       primary_condition: 'healthy',
       confidence_score: 0.92,

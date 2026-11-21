@@ -8,7 +8,7 @@ import { validateBody } from '../src/middlewares/validate';
 import { createRateLimiter } from '../src/middlewares/rateLimiter';
 import { ApiError } from '../src/utils/ApiError';
 
-describe('T-002 Foundation: health, error shape, validation, rate limiter', () => {
+describe('Foundation: health, error shape, validation, rate limiter', () => {
   it('GET /api/v1/health returns success envelope with service status', async () => {
     const app = createApp();
     const res = await request(app).get('/api/v1/health');
@@ -20,7 +20,7 @@ describe('T-002 Foundation: health, error shape, validation, rate limiter', () =
     expect(res.body.data).toHaveProperty('timestamp');
   });
 
-  it('unknown route returns 404 NOT_FOUND in API_SPECS §3.2 format without errors field', async () => {
+  it('unknown route returns 404 NOT_FOUND in canonical error format without errors field', async () => {
     const app = createApp();
     const res = await request(app).get('/api/v1/does-not-exist');
     expect(res.status).toBe(404);

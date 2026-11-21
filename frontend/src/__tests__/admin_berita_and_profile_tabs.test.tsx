@@ -95,7 +95,7 @@ const SAMPLE_USER: AuthUser = {
   role: 'user',
 };
 
-describe('T-208 Footer Vertical Link Stack & Admin Role Pill', () => {
+describe('Footer Vertical Link Stack & Admin Role Pill', () => {
   it('stacks credits on left and Panduan Aplikasi + Promo, Berita & Artikel on right with mobile dock clearance', () => {
     const html = renderToStaticMarkup(<AppFooter />);
     expect(html).toContain('data-testid="footer-left-credits"');
@@ -131,7 +131,8 @@ describe('T-208 Footer Vertical Link Stack & Admin Role Pill', () => {
 
     const homeNavHtml = renderToStaticMarkup(<FloatingNavbar pathnameOverride="/" />);
     expect(homeNavHtml).toContain('data-orientation="horizontal-bottom"');
-    expect(homeNavHtml).toContain('bottom-5');
+    expect(homeNavHtml).toContain('bottom-3');
+    expect(homeNavHtml).toContain('sm:bottom-6');
   });
 
   it('renders AdminRolePill only for admin users and hides it on /admin', () => {
@@ -153,7 +154,7 @@ describe('T-208 Footer Vertical Link Stack & Admin Role Pill', () => {
   });
 });
 
-describe('T-208 Automatic Ad-Style Pop-Up (NewsPromoAdPopup)', () => {
+describe('Automatic Ad-Style Pop-Up (NewsPromoAdPopup)', () => {
   it('displays ad-style modal on standard routes and excludes /admin and /berita/[slug]', () => {
     expect(isAdPopupExcludedPath('/')).toBe(false);
     expect(isAdPopupExcludedPath('/berita')).toBe(false);
@@ -178,7 +179,7 @@ describe('T-208 Automatic Ad-Style Pop-Up (NewsPromoAdPopup)', () => {
   });
 });
 
-describe('T-208 /berita Digital Library Portal & Two-Step Reader (/berita/[slug])', () => {
+describe('/berita Digital Library Portal & Two-Step Reader (/berita/[slug])', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -245,7 +246,7 @@ describe('T-208 /berita Digital Library Portal & Two-Step Reader (/berita/[slug]
   });
 });
 
-describe('T-208 /admin CMS & User Management Dashboard', () => {
+describe('/admin CMS & User Management Dashboard', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -320,7 +321,7 @@ describe('T-208 /admin CMS & User Management Dashboard', () => {
   });
 });
 
-describe('T-208 Edge-to-Edge Home Section 2 & /panduan + Tabbed /profile', () => {
+describe('Edge-to-Edge Home Section 2 & /panduan + Tabbed /profile', () => {
   it('renders Home Section 2 without eyebrow/subtitle and /panduan with interactive DENTHUB. display wordmark', () => {
     const homeHtml = renderToStaticMarkup(<HomePage />);
     expect(homeHtml).toContain('data-testid="home-section-2-flow"');

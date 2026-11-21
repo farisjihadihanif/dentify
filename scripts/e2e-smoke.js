@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * DentHub End-to-End Smoke Test (T-303 - ARCHITECTURE.md §9 & API_SPECS.md §2–§8).
+ * DentHub End-to-End Smoke Test.
  *
  * Usage:
  *   BACKEND_URL=http://localhost:5000/api/v1 \

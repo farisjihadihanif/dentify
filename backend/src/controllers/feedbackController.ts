@@ -14,7 +14,7 @@ export async function createFeedback(
     const input = req.body as CreateFeedbackInput;
     const userId = req.user ? new mongoose.Types.ObjectId(req.user.id) : null;
 
-    // Ownership checks when referencing persisted MongoDB resources (API_SPECS §6.2)
+    // Ownership checks when referencing persisted MongoDB resources
     if (input.target_type === 'scan' && mongoose.isValidObjectId(input.target_id)) {
       const scan = await ScanRecord.findById(input.target_id).select('user_id');
       if (scan) {

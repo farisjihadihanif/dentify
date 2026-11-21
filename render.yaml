@@ -1,5 +1,5 @@
 # Render.com Blueprint for DentHub (Backend Express TS & AI Service FastAPI)
-# Reference: docs/ARCHITECTURE.md §9 & docs/TASK.md (T-303)
+# DentHub multi-service deployment blueprint
 # All secrets and deployment-specific URLs use `sync: false` so nothing sensitive is hardcoded.
 
 services:

@@ -8,7 +8,7 @@ import { errorHandler } from '../src/middlewares/errorHandler';
 import type { AuthenticatedRequest } from '../src/middlewares/rateLimiter';
 import { setupTestDb, clearTestDb, teardownTestDb } from './helpers/testDb';
 
-describe('T-101, T-102, T-103 Auth endpoints & middlewares', () => {
+describe('Auth endpoints & middlewares', () => {
   beforeAll(async () => {
     await setupTestDb();
     await User.syncIndexes();
@@ -87,7 +87,7 @@ describe('T-101, T-102, T-103 Auth endpoints & middlewares', () => {
     expect(badEmail.body.message).toBe('Email atau password salah.');
   });
 
-  it('T-102 GET /auth/me requires valid JWT and optionalAuthMiddleware rejects invalid token with 401', async () => {
+  it('GET /auth/me requires valid JWT and optionalAuthMiddleware rejects invalid token with 401', async () => {
     const app = createApp();
     const reg = await request(app).post('/api/v1/auth/register').send({
       full_name: 'Faris Me',
@@ -123,7 +123,7 @@ describe('T-101, T-102, T-103 Auth endpoints & middlewares', () => {
     expect(invalidOptRes.body.code).toBe('UNAUTHENTICATED');
   });
 
-  it('T-103 PUT /auth/me updates full_name (and name alias), unique username, avatar, and password', async () => {
+  it('PUT /auth/me updates full_name (and name alias), unique username, avatar, and password', async () => {
     const app = createApp();
     const r1 = await request(app).post('/api/v1/auth/register').send({
       full_name: 'User Satu',
