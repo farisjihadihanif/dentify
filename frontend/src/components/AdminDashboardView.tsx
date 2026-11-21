@@ -319,9 +319,14 @@ export function AdminDashboardView({
 
   if (isCheckingRole) {
     return (
-      <main className="mx-auto max-w-6xl px-4 py-16 text-center text-sm text-text-muted">
-        Memverifikasi hak akses Admin DentHub...
-      </main>
+      <div
+        data-testid="admin-monochrome-scope"
+        className="admin-monochrome-theme min-h-screen w-full bg-bg text-text"
+      >
+        <main className="mx-auto max-w-6xl px-4 py-16 text-center text-sm text-text-muted">
+          Memverifikasi hak akses Admin DentHub...
+        </main>
+      </div>
     );
   }
 
@@ -330,10 +335,14 @@ export function AdminDashboardView({
   }
 
   return (
-    <main
-      data-testid="admin-dashboard-workspace"
-      className="mx-auto w-full max-w-7xl space-y-6 px-4 py-10 pb-24 sm:px-6 sm:py-12 lg:px-8"
+    <div
+      data-testid="admin-monochrome-scope"
+      className="admin-monochrome-theme min-h-screen w-full bg-bg text-text"
     >
+      <main
+        data-testid="admin-dashboard-workspace"
+        className="mx-auto w-full max-w-7xl space-y-6 px-4 py-10 pb-24 sm:px-6 sm:py-12 lg:px-8"
+      >
       {/* Header */}
       <header className="flex flex-col justify-between gap-4 border-b border-border pb-5 sm:flex-row sm:items-end">
         <div>
@@ -823,7 +832,8 @@ export function AdminDashboardView({
           )}
         </section>
       )}
-    </main>
+      </main>
+    </div>
   );
 }
 

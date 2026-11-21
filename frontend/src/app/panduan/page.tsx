@@ -122,6 +122,15 @@ const GUIDE_SECTIONS = [
       "Buka menu Klinik untuk mencari lokasi praktik dokter gigi terdekat berbasis OpenStreetMap melalui GPS otomatis atau pencarian kota manual.",
     icon: MapPin,
   },
+  {
+    step: "07",
+    anchorId: "panduan-hasil-kurang-meyakinkan",
+    badge: "Tahap 7 • Tindak Lanjut",
+    title: "Jika Hasil Scan Kurang Meyakinkan",
+    description:
+      "Jika skor keyakinan AI di bawah 75% atau kondisi tampak tumpang tindih: (1) ambil ulang foto close-up di bawah cahaya terang tanpa bayangan setelah membersihkan sisa makanan; (2) lampirkan foto gigi langsung ke Deni AI di halaman Chat (+ Tambah Foto atau Ctrl+V) agar Deni mengevaluasi foto bersama keluhan Anda; dan (3) segera kunjungi dokter gigi apabila muncul nyeri berdenyut, bengkak, perdarahan terus-menerus, atau keraguan yang menetap.",
+    icon: ShieldAlert,
+  },
 ] as const;
 
 /**
@@ -193,9 +202,16 @@ export default function PanduanPage() {
                 const Icon = item.icon;
                 const theme =
                   STACKED_CARD_THEMES[index % STACKED_CARD_THEMES.length];
+                const anchorId = "anchorId" in item ? item.anchorId : undefined;
                 return (
                   <motion.article
                     key={item.step}
+                    id={anchorId}
+                    data-testid={
+                      anchorId === "panduan-hasil-kurang-meyakinkan"
+                        ? "panduan-low-confidence-guide"
+                        : undefined
+                    }
                     initial={
                       prefersReducedMotion
                         ? false
@@ -264,6 +280,24 @@ export default function PanduanPage() {
                         >
                           {item.description}
                         </p>
+                        {anchorId === "panduan-hasil-kurang-meyakinkan" && (
+                          <div className="flex flex-wrap items-center gap-2.5 pt-2">
+                            <Link
+                              href="/chat"
+                              className="inline-flex h-9 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg bg-brand px-4 text-xs font-bold text-[var(--color-on-brand)] shadow-sm transition-colors hover:bg-[var(--color-brand-hover)]"
+                            >
+                              <MessageCircleHeart className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                              <span>Konsultasi Foto ke Deni AI →</span>
+                            </Link>
+                            <Link
+                              href="/scan"
+                              className="inline-flex h-9 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg border border-white/25 bg-white/15 px-4 text-xs font-bold text-white transition-colors hover:bg-white/25"
+                            >
+                              <Camera className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                              <span>Ambil Ulang Foto di AI Scan</span>
+                            </Link>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </motion.article>

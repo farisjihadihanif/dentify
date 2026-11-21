@@ -493,7 +493,7 @@ export function ConcentricDentalOrbit() {
                         whileHover={prefersReducedMotion ? undefined : { scale: 1.25 }}
                         whileTap={prefersReducedMotion ? undefined : { scale: 0.94 }}
                         transition={{ type: 'spring', stiffness: 320, damping: 20 }}
-                        className="group pointer-events-auto relative inline-flex cursor-pointer items-center justify-center bg-transparent p-1 opacity-75 transition-opacity duration-150 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none dark:text-[#D4D4D8] dark:hover:text-white"
+                        className="group pointer-events-auto relative inline-flex cursor-pointer items-center justify-center bg-transparent p-1 opacity-75 transition-opacity duration-150 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none dark:text-[#BAE6FD] dark:hover:text-white"
                         style={{
                           color:
                             tool.tone === 'accent'
@@ -505,7 +505,7 @@ export function ConcentricDentalOrbit() {
 
                         <span
                           role="tooltip"
-                          className="pointer-events-none absolute bottom-full left-1/2 mb-2.5 -translate-x-1/2 whitespace-nowrap rounded-pill border border-border bg-surface px-3 py-1 text-[11px] font-semibold tracking-tight text-text opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 dark:border-[#2E2E35] dark:bg-[#18181C] dark:text-[#F4F4F5]"
+                          className="pointer-events-none absolute bottom-full left-1/2 mb-2.5 -translate-x-1/2 whitespace-nowrap rounded-pill border border-border bg-surface px-3 py-1 text-[11px] font-semibold tracking-tight text-text opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 dark:border-[#1E3552] dark:bg-[#132842] dark:text-[#F8FAFC]"
                         >
                           {tool.tooltip}
                         </span>

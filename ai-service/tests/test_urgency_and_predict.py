@@ -87,6 +87,7 @@ class _FakeModel:
 @pytest.fixture()
 def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
     monkeypatch.setenv("AI_SERVICE_API_KEY", "test-key-predict")
+    monkeypatch.setenv("GEMINI_API_KEY", "")
     get_settings.cache_clear()
     inference_service.settings = get_settings()
     inference_service.model = _FakeModel([0.91, 0.04, 0.03, 0.02])  # type: ignore[assignment]
@@ -174,6 +175,54 @@ def test_predict_low_confidence_returns_200_with_flag_and_pathology_tiebreaker(
     assert calc_body["primary_condition"] == "calculus"
     assert calc_body["urgency_level"] == "medium"
     assert calc_body["is_low_confidence"] is True
+
+
+def test_predict_vision_cross_check_corrects_ambiguous_healthy_caries_and_falls_back_silently(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GEMINI_API_KEY", "fake-gemini-key")
+    get_settings.cache_clear()
+    inference_service.settings = get_settings()
+
+    # MobileNetV2 predicts healthy at 0.84 (< 0.90 threshold) -> triggers Gemini cross-check -> corrects to caries
+    inference_service.model = _FakeModel([0.10, 0.03, 0.03, 0.84])  # type: ignore[assignment]
+    monkeypatch.setattr(
+        inference_service,
+        "_gemini_vision_cross_check",
+        lambda _raw, user_symptoms=None: ("caries", 0.88),
+    )
+
+    img_bytes = _make_sharp_dental_image()
+    resp = client.post(
+        "/internal/predict",
+        headers={"X-Internal-Key": "test-key-predict"},
+        files={"image": ("gigi.jpg", io.BytesIO(img_bytes), "image/jpeg")},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["primary_condition"] == "caries"
+    assert body["confidence_score"] == pytest.approx(0.88, abs=1e-3)
+    assert body["is_low_confidence"] is False
+    assert body["urgency_level"] == "emergency"
+
+    # When cross-check returns None (offline/timeout), silently falls back to MobileNetV2 with is_low_confidence < 0.75
+    inference_service.model = _FakeModel([0.20, 0.68, 0.08, 0.04])  # type: ignore[assignment]
+    monkeypatch.setattr(
+        inference_service,
+        "_gemini_vision_cross_check",
+        lambda _raw, user_symptoms=None: None,
+    )
+    resp_fb = client.post(
+        "/internal/predict",
+        headers={"X-Internal-Key": "test-key-predict"},
+        files={"image": ("occlusal.jpg", io.BytesIO(img_bytes), "image/jpeg")},
+    )
+    assert resp_fb.status_code == 200
+    fb_body = resp_fb.json()
+    assert fb_body["primary_condition"] == "calculus"
+    assert fb_body["confidence_score"] == pytest.approx(0.68, abs=1e-3)
+    assert fb_body["is_low_confidence"] is True
 
 
 def test_predict_returns_valid_schema_and_fast_latency(client: TestClient) -> None:

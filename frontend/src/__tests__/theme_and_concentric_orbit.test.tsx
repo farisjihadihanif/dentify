@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import HomePage from '../app/page';
 import PanduanPage from '../app/panduan/page';
+import { AdminDashboardView } from '../components/AdminDashboardView';
 import {
   CONCENTRIC_ORBIT_RINGS,
   ConcentricDentalOrbit,
@@ -52,8 +53,9 @@ describe('T-210 & T-211: Interactive Concentric Dental Instrument Orbit, Monochr
     expect(html).toContain('animate-orbit-ccw-105');
     expect(html).toContain('animate-orbit-cw-105');
 
-    // 2.2x larger instrument silhouettes (48px-64px) & interactive buttons with pointer-events-auto
+    // 2.2x larger instrument silhouettes (48px-64px), soft ice-blue dark accent & interactive buttons
     expect(html).toContain('h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16');
+    expect(html).toContain('dark:text-[#BAE6FD]');
     expect(html).toContain('pointer-events-auto');
 
     // All 8 clinical dental instruments & tooltips
@@ -145,6 +147,35 @@ describe('T-210 & T-211: Interactive Concentric Dental Instrument Orbit, Monochr
     expect(html).toContain('Indikasi Karang Gigi &amp; Plak (Kalkulus Dental)');
     expect(html).toContain('data-testid="low-confidence-warning"');
     expect(html).toContain(LOW_CONFIDENCE_WARNING_TEXT);
+    expect(html).toContain('data-testid="low-confidence-cta-deni"');
+    expect(html).toContain('/chat?scan_id=scan-calc-1&amp;condition=calculus');
+    expect(html).toContain('Tanya Lebih Lanjut ke Deni →');
+    expect(html).toContain('data-testid="low-confidence-cta-panduan"');
+    expect(html).toContain('/panduan#panduan-hasil-kurang-meyakinkan');
+    expect(html).toContain('Baca Panduan Aplikasi →');
+  });
+
+  it('AdminDashboardView scopes monochrome obsidian dark theme exclusively to /admin while PanduanPage renders Step 07 low-confidence guide', () => {
+    const adminHtml = renderToStaticMarkup(
+      <AdminDashboardView
+        initialUser={{
+          id: 'admin-1',
+          full_name: 'Admin DentHub',
+          email: 'admin@denthub.id',
+          role: 'admin',
+        }}
+        initialArticles={[]}
+        initialUsers={[]}
+      />,
+    );
+    expect(adminHtml).toContain('data-testid="admin-monochrome-scope"');
+    expect(adminHtml).toContain('admin-monochrome-theme');
+
+    const panduanHtml = renderToStaticMarkup(<PanduanPage />);
+    expect(panduanHtml).toContain('id="panduan-hasil-kurang-meyakinkan"');
+    expect(panduanHtml).toContain('data-testid="panduan-low-confidence-guide"');
+    expect(panduanHtml).toContain('Jika Hasil Scan Kurang Meyakinkan');
+    expect(panduanHtml).toContain('Konsultasi Foto ke Deni AI →');
   });
 
   it('ProfileEditorView exposes the inline Light/Dark theme toggle in the settings sidebar', () => {

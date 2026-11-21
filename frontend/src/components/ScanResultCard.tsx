@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import {
   AlertCircle,
+  BookOpen,
   CheckCircle2,
   Download,
   MapPin,
@@ -90,14 +91,47 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
           </p>
 
           {isUncertain && (
-            <p
+            <div
               role="note"
               data-testid="low-confidence-warning"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-status-yellow/40 bg-bg px-3 py-1.5 text-xs font-semibold text-status-yellow dark:border-amber-800/40 dark:bg-amber-950/50 dark:text-amber-300"
+              className="mt-3 space-y-3 rounded-card border border-amber-500/40 bg-amber-50 p-4 text-xs text-amber-950 dark:border-amber-700/50 dark:bg-amber-950/45 dark:text-amber-100"
             >
-              <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>{LOW_CONFIDENCE_WARNING_TEXT}</span>
-            </p>
+              <div className="flex items-start gap-2.5">
+                <AlertCircle
+                  className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-300"
+                  aria-hidden="true"
+                />
+                <div className="space-y-1">
+                  <p className="font-bold text-amber-900 dark:text-amber-200">
+                    {LOW_CONFIDENCE_WARNING_TEXT}
+                  </p>
+                  <p className="leading-relaxed text-amber-900/90 dark:text-amber-200/90">
+                    Pencahayaan yang kurang merata, sudut kamera, atau kondisi gigi yang saling
+                    tumpang tindih dapat membatasi kepastian analisis visual otomatis. Anda dapat
+                    melanjutkan konsultasi interaktif dengan Deni AI atau membaca panduan
+                    pengambilan foto.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 pl-6">
+                <Link
+                  href={deniHref}
+                  data-testid="low-confidence-cta-deni"
+                  className="inline-flex h-9 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg bg-brand px-3.5 text-xs font-bold text-[var(--color-on-brand)] shadow-sm transition-colors hover:bg-[var(--color-brand-hover)]"
+                >
+                  <MessageCircleHeart className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span>Tanya Lebih Lanjut ke Deni →</span>
+                </Link>
+                <Link
+                  href="/panduan#panduan-hasil-kurang-meyakinkan"
+                  data-testid="low-confidence-cta-panduan"
+                  className="inline-flex h-9 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg border border-amber-700/30 bg-white px-3.5 text-xs font-bold text-amber-950 transition-colors hover:bg-amber-100 dark:border-[#234063] dark:bg-[#132842] dark:text-[#F1F5F9] dark:hover:bg-[#193354]"
+                >
+                  <BookOpen className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span>Baca Panduan Aplikasi →</span>
+                </Link>
+              </div>
+            </div>
           )}
         </div>
 

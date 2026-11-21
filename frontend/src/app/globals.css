@@ -4,13 +4,17 @@
 
 /**
  * Centralized Light & Dark Mode CSS design tokens (docs/DESIGN.md §2).
- * Light Mode: clean clinical daylight (#F8FAFC canvas, #FFFFFF surface, #0B192C ink, #0F4C5C deep clinical teal).
- * Dark Mode (.dark): architectural Obsidian & Monochrome Clinical (#09090B canvas, #121215 surface,
- * #26262B 1px borders, #18181C inset panels, #F4F4F5 off-white text & primary buttons — zero neon cyan/green/glow).
+ * - Light Mode (:root): clean clinical daylight (#F8FAFC canvas, #FFFFFF surface, #0B192C ink, #0F4C5C deep clinical teal).
+ * - User-Facing Dark Mode (.dark): Deep Clinical Midnight Navy & Teal (#08121E canvas, #0F2035 cards,
+ *   #1E3552 borders, #132842 inset panels, #F8FAFC text, #94A3B8 slate muted, #0E7490/#15809E clinical teal CTAs).
+ * - Admin-Only Monochrome Dark Mode (.dark .admin-monochrome-theme): Obsidian & Zinc (#09090B canvas, #121215 cards,
+ *   #26262B borders, #18181C inset panels, #F4F4F5 monochrome primary buttons & accents with #09090B ink).
  */
 :root {
   --color-brand: #0F4C5C;
   --color-brand-dark: #0B3945;
+  --color-brand-hover: #0B3945;
+  --color-on-brand: #FFFFFF;
   --color-brand-ring: #0E7490;
   --color-brand-soft: #F0F9FA;
   --color-surface: #FFFFFF;
@@ -36,8 +40,37 @@
 
 .dark {
   color-scheme: dark;
+  --color-brand: #0E7490;
+  --color-brand-dark: #BAE6FD;
+  --color-brand-hover: #15809E;
+  --color-on-brand: #FFFFFF;
+  --color-brand-ring: #0E7490;
+  --color-brand-soft: #132842;
+  --color-surface: #0F2035;
+  --color-bg: #08121E;
+  --color-text: #F8FAFC;
+  --color-text-muted: #94A3B8;
+  --color-border: #1E3552;
+  --color-status-green: #6EE7B7;
+  --color-status-yellow: #FCD34D;
+  --color-status-red: #FDA4AF;
+  --color-accent-deni: #0E7490;
+  --color-accent-deni-soft: #132842;
+  --color-surface-navy: #08121E;
+  --color-surface-teal: #0E4A5F;
+  --color-surface-mint: #10283E;
+  --color-surface-sand: #242117;
+  --color-orbit-ring: rgba(186, 230, 253, 0.10);
+  --color-orbit-tool-primary: #BAE6FD;
+  --color-orbit-tool-accent: #BAE6FD;
+}
+
+/* Monochrome Obsidian & Zinc theme scoped EXCLUSIVELY to /admin in Dark Mode */
+.dark .admin-monochrome-theme {
   --color-brand: #F4F4F5;
-  --color-brand-dark: #FFFFFF;
+  --color-brand-dark: #F4F4F5;
+  --color-brand-hover: #FFFFFF;
+  --color-on-brand: #09090B;
   --color-brand-ring: #A1A1AA;
   --color-brand-soft: #18181C;
   --color-surface: #121215;
@@ -45,18 +78,34 @@
   --color-text: #F4F4F5;
   --color-text-muted: #A1A1AA;
   --color-border: #26262B;
-  --color-status-green: #6EE7B7;
-  --color-status-yellow: #FCD34D;
-  --color-status-red: #FDA4AF;
   --color-accent-deni: #F4F4F5;
   --color-accent-deni-soft: #18181C;
-  --color-surface-navy: #09090B;
-  --color-surface-teal: #18181C;
-  --color-surface-mint: #141418;
   --color-surface-sand: #1C1A16;
-  --color-orbit-ring: rgba(255, 255, 255, 0.08);
-  --color-orbit-tool-primary: #D4D4D8;
-  --color-orbit-tool-accent: #D4D4D8;
+}
+
+/* Ensure crisp foreground contrast on brand/Deni fills across User Dark Mode (#FFFFFF) & Admin Monochrome (#09090B) */
+.dark .bg-brand.text-surface,
+.dark .bg-accent-deni.text-surface,
+.dark .hover\:bg-brand:hover {
+  color: var(--color-on-brand);
+}
+
+.dark .bg-brand:hover {
+  background-color: var(--color-brand-hover);
+}
+
+.dark .text-accent-deni {
+  color: var(--color-brand-dark);
+}
+
+.dark .admin-monochrome-theme .btn-secondary-surface {
+  background-color: #18181C;
+  border-color: #2E2E35;
+  color: #F4F4F5;
+}
+
+.dark .admin-monochrome-theme .btn-secondary-surface:hover {
+  background-color: #222228;
 }
 
 @layer base {
@@ -99,20 +148,20 @@
 }
 
 .dark .bg-dental-grid {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(186, 230, 253, 0.08) 1px, transparent 1px);
 }
 
 .dark .leaflet-tile-pane {
-  filter: brightness(0.82) contrast(1.06) saturate(0.75);
+  filter: brightness(0.84) contrast(1.06) saturate(0.86);
 }
 
 .dark .leaflet-control-attribution {
-  background: rgba(18, 18, 21, 0.9) !important;
-  color: #A1A1AA !important;
+  background: rgba(15, 32, 53, 0.9) !important;
+  color: #94A3B8 !important;
 }
 
 .dark .leaflet-control-attribution a {
-  color: #F4F4F5 !important;
+  color: #BAE6FD !important;
 }
 
 /* Concentric dental instrument orbital animations (60s, 75s, 90s, 105s) */

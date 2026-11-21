@@ -424,7 +424,7 @@ export function ScanWorkspace({
                     'inline-flex h-10 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-xl border px-4 text-sm font-semibold transition-colors',
                     activeTab === 'camera'
                       ? 'border-brand bg-brand text-surface shadow-sm'
-                      : 'border-border bg-surface text-text hover:bg-brand-soft',
+                      : 'border-border bg-surface text-text hover:bg-brand-soft dark:border-[#234063] dark:bg-[#132842] dark:text-[#F1F5F9] dark:hover:bg-[#193354]',
                   ].join(' ')}
                 >
                   <Camera className="h-4 w-4 shrink-0" />
@@ -442,7 +442,7 @@ export function ScanWorkspace({
                     'inline-flex h-10 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-xl border px-4 text-sm font-semibold transition-colors',
                     activeTab === 'upload'
                       ? 'border-brand bg-brand text-surface shadow-sm'
-                      : 'border-border bg-surface text-text hover:bg-brand-soft',
+                      : 'border-border bg-surface text-text hover:bg-brand-soft dark:border-[#234063] dark:bg-[#132842] dark:text-[#F1F5F9] dark:hover:bg-[#193354]',
                   ].join(' ')}
                 >
                   <Upload className="h-4 w-4 shrink-0" />

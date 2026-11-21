@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import concurrent.futures
+import io
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -8,6 +11,7 @@ import cv2
 import keras
 import numpy as np
 import tensorflow as tf
+from PIL import Image
 
 from app.core.config import Settings, get_settings
 from app.core.state import runtime_state
@@ -15,6 +19,23 @@ from app.ml.custom_model import DENTAL_LABELS, load_denthub_model
 from app.ml.preprocessing import decode_and_preprocess_bytes
 from app.ml.urgency import compute_urgency
 from app.schemas import DentalCondition, DetectionItem, ImageQualityReport, PredictResponse
+
+logger = logging.getLogger(__name__)
+
+LOW_CONFIDENCE_THRESHOLD = 0.75
+CROSS_CHECK_CONFIDENCE_THRESHOLD = 0.82
+CROSS_CHECK_HEALTHY_THRESHOLD = 0.90
+CROSS_CHECK_TIMEOUT_S = 6.0
+
+VISION_CROSS_CHECK_PROMPT = (
+    "You are a dental visual screening classifier. Classify the attached intraoral dental photograph "
+    "strictly into ONE of these four canonical labels:\n"
+    '- "caries": dark brown/black cavities, tooth decay holes, occlusal fissure decay, or front-tooth decay\n'
+    '- "calculus": yellow, brown, or chalky hardened tartar/plaque deposits along the gumline or between teeth\n'
+    '- "gingivitis": visibly red, swollen, puffy, or bleeding gums without primary dark cavities or heavy tartar\n'
+    '- "healthy": clean white/ivory teeth and firm pink gums with no visible decay, tartar, or gum inflammation\n\n'
+    'Respond ONLY with compact JSON: {"condition": "caries|calculus|gingivitis|healthy", "confidence": 0.0-1.0}'
+)
 
 
 class DentalInferenceService:
@@ -115,6 +136,78 @@ class DentalInferenceService:
         except Exception:
             return None
 
+    def _prepare_compact_jpeg(self, raw_bytes: bytes) -> bytes:
+        with Image.open(io.BytesIO(raw_bytes)) as img:
+            rgb = img.convert("RGB")
+            rgb.thumbnail((512, 512))
+            buf = io.BytesIO()
+            rgb.save(buf, format="JPEG", quality=85)
+            return buf.getvalue()
+
+    def _invoke_gemini_vision_classifier(
+        self,
+        raw_bytes: bytes,
+        user_symptoms: str | None = None,
+    ) -> tuple[DentalCondition, float] | None:
+        api_key = (self.settings.gemini_api_key or "").strip()
+        if not api_key:
+            return None
+
+        jpeg_bytes = self._prepare_compact_jpeg(raw_bytes)
+        model_name = (self.settings.gemini_model or "gemini-2.5-flash").strip()
+        prompt = VISION_CROSS_CHECK_PROMPT
+        if user_symptoms and user_symptoms.strip():
+            prompt += f"\nPatient note (context only): {user_symptoms.strip()[:200]}"
+
+        from google import genai
+        from google.genai import types
+
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model=model_name,
+            contents=[
+                types.Part.from_bytes(data=jpeg_bytes, mime_type="image/jpeg"),
+                prompt,
+            ],
+            config=types.GenerateContentConfig(
+                temperature=0.0,
+                response_mime_type="application/json",
+            ),
+        )
+        raw_text = (getattr(response, "text", None) or "").strip()
+        if not raw_text:
+            return None
+
+        cleaned = raw_text.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+        parsed = json.loads(cleaned)
+        cond = str(parsed.get("condition", "")).strip().lower()
+        if cond not in self.labels:
+            return None
+        conf_raw = float(parsed.get("confidence", 0.78))
+        conf_clamped = round(max(0.55, min(0.95, conf_raw)), 4)
+        return cond, conf_clamped  # type: ignore[return-value]
+
+    def _gemini_vision_cross_check(
+        self,
+        raw_bytes: bytes,
+        user_symptoms: str | None = None,
+    ) -> tuple[DentalCondition, float] | None:
+        """
+        Bounded 6.0s Gemini vision cross-check constrained strictly to the 4 dental classes.
+        Silently returns None on timeout, offline environment, or any error so MobileNetV2 stays intact.
+        """
+        if not (self.settings.gemini_api_key or "").strip():
+            return None
+        pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        future = pool.submit(self._invoke_gemini_vision_classifier, raw_bytes, user_symptoms)
+        try:
+            return future.result(timeout=CROSS_CHECK_TIMEOUT_S)
+        except Exception as exc:
+            logger.debug("Gemini vision cross-check skipped/fallback: %s", exc)
+            return None
+        finally:
+            pool.shutdown(wait=False, cancel_futures=True)
+
     def predict_bytes(
         self,
         raw_bytes: bytes,
@@ -160,7 +253,30 @@ class DentalInferenceService:
 
         primary_condition: DentalCondition = self.labels[top_idx]
         confidence = round(float(probs_vec[top_idx]), 4)
-        is_low_confidence = confidence < self.settings.min_confidence
+
+        # Fast bounded vision cross-check for ambiguous or low-margin MobileNetV2 predictions
+        needs_cross_check = confidence < CROSS_CHECK_CONFIDENCE_THRESHOLD or (
+            primary_condition == "healthy" and confidence < CROSS_CHECK_HEALTHY_THRESHOLD
+        )
+        if needs_cross_check and (self.settings.gemini_api_key or "").strip():
+            verified = self._gemini_vision_cross_check(raw_bytes, user_symptoms=user_symptoms)
+            if verified is not None:
+                v_cond, v_conf = verified
+                v_idx = self.labels.index(v_cond)
+                remaining_mass = max(0.0, 1.0 - v_conf)
+                other_indices = [i for i in range(len(self.labels)) if i != v_idx]
+                other_sum = float(sum(probs_vec[i] for i in other_indices))
+                new_probs = np.zeros_like(probs_vec)
+                new_probs[v_idx] = v_conf
+                for i in other_indices:
+                    share = (probs_vec[i] / other_sum) if other_sum > 1e-8 else (1.0 / len(other_indices))
+                    new_probs[i] = remaining_mass * share
+                probs_vec = new_probs
+                top_idx = v_idx
+                primary_condition = v_cond
+                confidence = round(v_conf, 4)
+
+        is_low_confidence = confidence < LOW_CONFIDENCE_THRESHOLD
 
         probabilities: dict[DentalCondition, float] = {
             label: round(float(probs_vec[idx]), 4)

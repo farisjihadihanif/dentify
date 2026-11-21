@@ -138,7 +138,7 @@ export default function HomePage() {
             <Link
               href="/scan"
               data-testid="hero-cta-cek-sekarang"
-              className="pointer-events-auto inline-flex h-11 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-pill bg-brand px-7 text-base font-bold text-surface shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark dark:bg-[#F4F4F5] dark:text-[#09090B] dark:hover:bg-white"
+              className="pointer-events-auto inline-flex h-11 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-pill bg-brand px-7 text-base font-bold text-[var(--color-on-brand)] shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-[var(--color-brand-hover)]"
             >
               <span>Cek Sekarang!</span>
               <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -384,7 +384,7 @@ export default function HomePage() {
             <div className="mt-6">
               <Link
                 href="/chat"
-                className="inline-flex h-10 min-h-cta w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-accent-deni px-4 text-sm font-semibold text-surface shadow-sm transition-opacity hover:opacity-95"
+                className="inline-flex h-10 min-h-cta w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-accent-deni px-4 text-sm font-semibold text-[var(--color-on-brand)] shadow-sm transition-colors hover:opacity-95 dark:border dark:border-[#234063] dark:bg-[#132842] dark:text-[#F1F5F9] dark:hover:bg-[#193354]"
               >
                 <MessageCircleHeart className="h-4 w-4 shrink-0" />
                 <span>Tanyakan ke Deni Sekarang</span>

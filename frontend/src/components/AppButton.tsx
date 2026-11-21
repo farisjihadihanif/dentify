@@ -16,13 +16,13 @@ export interface AppButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> 
 
 const VARIANT_CLASSES: Record<AppButtonVariant, string> = {
   primary:
-    'bg-brand text-surface shadow-sm hover:bg-brand-dark focus-visible:ring-brand dark:bg-[#F4F4F5] dark:text-[#09090B] dark:hover:bg-white',
+    'bg-brand text-[var(--color-on-brand)] shadow-sm hover:bg-[var(--color-brand-hover)] focus-visible:ring-brand',
   secondary:
-    'border border-border bg-surface text-text shadow-sm hover:bg-brand-soft focus-visible:ring-brand dark:border-[#2E2E35] dark:bg-[#18181C] dark:text-[#F4F4F5] dark:hover:bg-[#222228]',
+    'btn-secondary-surface border border-border bg-surface text-text shadow-sm hover:bg-brand-soft focus-visible:ring-brand dark:border-[#234063] dark:bg-[#132842] dark:text-[#F1F5F9] dark:hover:bg-[#193354]',
   danger:
     'bg-status-red text-surface shadow-sm hover:opacity-95 focus-visible:ring-status-red dark:border dark:border-rose-800/50 dark:bg-rose-950/60 dark:text-rose-200 dark:hover:bg-rose-950/80',
   ghost:
-    'bg-transparent text-brand-dark hover:bg-brand-soft focus-visible:ring-brand dark:text-[#F4F4F5] dark:hover:bg-[#18181C]',
+    'bg-transparent text-brand-dark hover:bg-brand-soft focus-visible:ring-brand dark:text-[#F8FAFC] dark:hover:bg-[#132842]',
 };
 
 const SIZE_CLASSES: Record<AppButtonSize, string> = {

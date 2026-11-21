@@ -864,7 +864,7 @@ export function DeniChat({
                   data-testid="deni-template-dropdown-btn"
                   disabled={isSending || cooldownLeft > 0}
                   onClick={() => setTemplateMenuOpen((prev) => !prev)}
-                  className="inline-flex h-9 min-h-touch items-center gap-1.5 rounded-pill border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark transition-colors hover:border-brand/40 hover:bg-brand-soft disabled:opacity-60"
+                  className="inline-flex h-9 min-h-touch items-center gap-1.5 rounded-pill border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark transition-colors hover:border-brand/40 hover:bg-brand-soft disabled:opacity-60 dark:border-[#234063] dark:bg-[#132842] dark:text-[#F1F5F9] dark:hover:bg-[#193354]"
                 >
                   <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                   <span>Contoh Pertanyaan</span>
@@ -907,7 +907,7 @@ export function DeniChat({
               <label
                 htmlFor="deni-photo-upload"
                 data-testid="deni-add-photo-btn"
-                className="inline-flex h-9 min-h-touch cursor-pointer items-center gap-1.5 rounded-pill border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark transition-colors hover:border-brand/40 hover:bg-brand-soft"
+                className="inline-flex h-9 min-h-touch cursor-pointer items-center gap-1.5 rounded-pill border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark transition-colors hover:border-brand/40 hover:bg-brand-soft dark:border-[#234063] dark:bg-[#132842] dark:text-[#F1F5F9] dark:hover:bg-[#193354]"
               >
                 <ImagePlus className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 <span>+ Tambah Foto</span>

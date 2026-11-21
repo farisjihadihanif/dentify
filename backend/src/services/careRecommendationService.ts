@@ -28,10 +28,10 @@ function buildUrgencySummary(
       'Gigi dan gusi Anda tampak sehat pada skrining visual awal ini. Pertahankan kebiasaan perawatan mandiri harian dan pemeriksaan rutin setiap 6 bulan.';
   }
 
-  // PRD §6.1: confidence <= 0.75 adds a helpful certainty note (never rejects valid photos)
-  if (confidence <= 0.75) {
+  // PRD §6.1: confidence < 0.75 adds an actionable certainty note pointing to Deni AI & Panduan
+  if (confidence < 0.75) {
     base +=
-      ' Catatan: tingkat keyakinan analisis berada pada rentang rendah hingga sedang; pertimbangkan mengambil ulang foto di tempat yang lebih terang jika diperlukan.';
+      ' Catatan: tingkat keyakinan analisis visual masih terbatas karena pencahayaan, sudut kamera, atau kondisi yang saling tumpang tindih; Anda dapat berkonsultasi lebih lanjut dengan Deni AI atau membaca Panduan Aplikasi untuk tips pengambilan foto yang lebih jelas.';
   }
 
   return base;
