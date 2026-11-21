@@ -36,7 +36,7 @@ const ARTICLE_ICONS: Record<
 
 const STACKED_CARD_THEMES = [
   {
-    card: "bg-bg text-text border-surface/20",
+    card: "bg-bg text-text border-white/15",
     num: "text-brand",
     badge: "bg-brand-soft text-brand-dark",
     meta: "text-text-muted",
@@ -45,7 +45,7 @@ const STACKED_CARD_THEMES = [
     divider: "bg-border",
   },
   {
-    card: "bg-surface-mint text-text border-surface/20",
+    card: "bg-surface-mint text-text border-white/15",
     num: "text-brand-dark",
     badge: "bg-surface text-brand-dark",
     meta: "text-text-muted",
@@ -54,16 +54,16 @@ const STACKED_CARD_THEMES = [
     divider: "bg-brand/20",
   },
   {
-    card: "bg-surface-teal text-surface border-surface/25",
-    num: "text-surface",
-    badge: "bg-surface/15 text-surface",
-    meta: "text-surface/85",
-    desc: "text-surface/90",
-    cta: "text-surface",
-    divider: "bg-surface/25",
+    card: "bg-surface-teal text-white border-white/20",
+    num: "text-white",
+    badge: "bg-white/15 text-white",
+    meta: "text-white/85",
+    desc: "text-white/90",
+    cta: "text-white",
+    divider: "bg-white/25",
   },
   {
-    card: "bg-surface-sand text-text border-surface/20",
+    card: "bg-surface-sand text-text border-white/15",
     num: "text-status-yellow",
     badge: "bg-surface text-text",
     meta: "text-text-muted",
@@ -162,7 +162,7 @@ export default function PanduanPage() {
         <section
           aria-labelledby="heading-panduan-aplikasi"
           data-testid="panduan-section-1-steps"
-          className="w-full bg-surface-navy px-4 py-16 text-surface sm:px-8 sm:py-24 lg:px-12"
+          className="w-full bg-surface-navy px-4 py-16 text-white sm:px-8 sm:py-24 lg:px-12"
         >
           <div className="mx-auto w-full max-w-[1380px]">
             <motion.div
@@ -172,16 +172,16 @@ export default function PanduanPage() {
               transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
               className="mx-auto max-w-3xl text-center"
             >
-              <span className="inline-block rounded-pill border border-surface/20 bg-surface/10 px-4 py-1 text-xs font-bold uppercase tracking-wider text-surface-mint">
+              <span className="inline-block rounded-pill border border-white/20 bg-white/10 px-4 py-1 text-xs font-bold uppercase tracking-wider text-cyan-200">
                 Pusat Bantuan • Panduan Pengguna DentHub
               </span>
               <h1
                 id="heading-panduan-aplikasi"
-                className="mt-3 text-3xl font-extrabold text-surface sm:text-4xl lg:text-5xl"
+                className="mt-3 text-3xl font-extrabold text-white sm:text-4xl lg:text-5xl"
               >
                 Panduan Lengkap Penggunaan Aplikasi DentHub AI
               </h1>
-              <p className="mt-3 text-sm text-surface/80 sm:text-base">
+              <p className="mt-3 text-sm text-slate-200 sm:text-base">
                 Pelajari cara melakukan screening kesehatan gigi mandiri,
                 mengunduh laporan hasil, berkonsultasi dengan Deni, hingga
                 menemukan klinik dokter gigi terdekat.
@@ -271,7 +271,7 @@ export default function PanduanPage() {
               })}
             </div>
 
-            <div className="mx-auto mt-14 flex w-full max-w-[1380px] flex-wrap items-center justify-center gap-3 rounded-[1.5rem] border border-surface/15 bg-surface/10 p-6 text-center">
+            <div className="mx-auto mt-14 flex w-full max-w-[1380px] flex-wrap items-center justify-center gap-3 rounded-[1.5rem] border border-white/15 bg-white/10 p-6 text-center">
               <Link
                 href="/scan"
                 className="inline-flex h-10 min-h-cta items-center justify-center whitespace-nowrap rounded-xl bg-brand px-5 text-sm font-bold text-surface shadow-sm transition-colors hover:bg-brand-dark"
@@ -294,7 +294,7 @@ export default function PanduanPage() {
         <section
           aria-labelledby="heading-dunia-dentist"
           data-testid="panduan-section-2-dentist-world"
-          className="w-full border-t border-surface/15 bg-surface-navy px-4 py-16 text-surface sm:px-8 sm:py-24 lg:px-12"
+          className="w-full border-t border-white/15 bg-surface-navy px-4 py-16 text-white sm:px-8 sm:py-24 lg:px-12"
         >
           <div className="mx-auto w-full max-w-[1380px]">
             <motion.div
@@ -304,16 +304,16 @@ export default function PanduanPage() {
               transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
               className="mx-auto max-w-3xl text-center"
             >
-              <span className="inline-block rounded-pill border border-surface/20 bg-surface/10 px-4 py-1 text-xs font-bold uppercase tracking-wider text-surface-mint">
+              <span className="inline-block rounded-pill border border-white/20 bg-white/10 px-4 py-1 text-xs font-bold uppercase tracking-wider text-cyan-200">
                 Edukasi Kesehatan Gigi • Dunia Dentist
               </span>
               <h2
                 id="heading-dunia-dentist"
-                className="mt-3 text-3xl font-extrabold text-surface sm:text-4xl lg:text-5xl"
+                className="mt-3 text-3xl font-extrabold text-white sm:text-4xl lg:text-5xl"
               >
                 Informasi Seputar Dunia Dentist &amp; Perawatan Gigi
               </h2>
-              <p className="mt-3 text-sm text-surface/80 sm:text-base">
+              <p className="mt-3 text-sm text-slate-200 sm:text-base">
                 Klik salah satu kartu topik di bawah ini untuk membaca artikel
                 edukasi lengkap yang merujuk pada pedoman WHO, ADA, dan Kemenkes
                 RI.
@@ -442,7 +442,7 @@ export default function PanduanPage() {
         <section
           aria-label="Penutup Interaktif DentHub"
           data-testid="panduan-bottom-wordmark"
-          className="w-full overflow-hidden border-t border-surface/15 bg-surface-navy pb-16 pt-6 text-surface md:pb-20"
+          className="w-full overflow-hidden border-t border-white/15 bg-surface-navy pb-16 pt-6 text-white md:pb-20"
         >
           {/* Duplicate Double-Crossed Kinetic Marquee Ribbons with Top & Bottom Phrases Swapped */}
           <KineticMarqueeRibbons
@@ -464,7 +464,7 @@ export default function PanduanPage() {
 
           {/* Oversized Full-Width Interactive DENTHUB. Display Wordmark */}
           <div className="mx-auto flex w-full max-w-[1380px] flex-col items-center justify-center px-4 pt-12 text-center sm:px-8 sm:pt-16">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-surface/65">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
               Kesehatan Gigi Preventif Untuk Semua
             </p>
             <div
@@ -503,7 +503,7 @@ export default function PanduanPage() {
                       },
                     },
                   }}
-                  className="inline-block cursor-default text-surface"
+                  className="inline-block cursor-default text-white"
                 >
                   {char}
                 </motion.span>

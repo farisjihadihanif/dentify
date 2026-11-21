@@ -106,7 +106,7 @@ export function NewsPromoAdPopup({
             }}
             className="h-full w-full object-cover"
           />
-          <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-pill bg-surface-sand px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-surface-navy shadow-sm">
+          <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-pill bg-surface-sand px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-text shadow-sm">
             <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             <span>{featuredArticle.category}</span>
           </span>

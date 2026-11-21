@@ -13,12 +13,12 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { DentHubLogo } from '../components/DentHubLogo';
-import { DentistWorld3DCanvas } from '../components/DentistWorld3DCanvas';
+import { ConcentricDentalOrbit } from '../components/ConcentricDentalOrbit';
 import { KineticMarqueeRibbons } from '../components/KineticMarqueeRibbons';
 
 const STACKED_CARD_THEMES = [
   {
-    card: 'bg-bg text-text border-surface/20',
+    card: 'bg-bg text-text border-white/15',
     num: 'text-brand',
     badge: 'bg-brand-soft text-brand-dark',
     subtitle: 'text-text-muted',
@@ -26,7 +26,7 @@ const STACKED_CARD_THEMES = [
     divider: 'bg-border',
   },
   {
-    card: 'bg-surface-mint text-text border-surface/20',
+    card: 'bg-surface-mint text-text border-white/15',
     num: 'text-brand-dark',
     badge: 'bg-surface text-brand-dark',
     subtitle: 'text-text-muted',
@@ -34,15 +34,15 @@ const STACKED_CARD_THEMES = [
     divider: 'bg-brand/20',
   },
   {
-    card: 'bg-surface-teal text-surface border-surface/25',
-    num: 'text-surface',
-    badge: 'bg-surface/15 text-surface',
-    subtitle: 'text-surface/85',
-    desc: 'text-surface/90',
-    divider: 'bg-surface/25',
+    card: 'bg-surface-teal text-white border-white/20',
+    num: 'text-white',
+    badge: 'bg-white/15 text-white',
+    subtitle: 'text-white/85',
+    desc: 'text-white/90',
+    divider: 'bg-white/25',
   },
   {
-    card: 'bg-surface-sand text-text border-surface/20',
+    card: 'bg-surface-sand text-text border-white/15',
     num: 'text-status-yellow',
     badge: 'bg-surface text-text',
     subtitle: 'text-text-muted',
@@ -102,12 +102,12 @@ export default function HomePage() {
   return (
     <main className="bg-bg text-text">
       {/* =====================================================================
-          SECTION 1: Centered Hero Copy + Orbiting 3D Dental Icons + Top-Left Logo
+          SECTION 1: Centered Hero Copy + Concentric Frameless Dental Instrument Orbit + Top-Left Logo
          ===================================================================== */}
       <section
-        aria-label="Hero Dunia Dentist 3D"
+        aria-label="Hero Dunia Dentist"
         data-testid="home-section-1-hero"
-        className="bg-dental-grid relative flex min-h-[calc(100svh-4rem)] w-full items-center justify-center overflow-hidden bg-gradient-to-b from-brand-soft/75 via-bg to-bg"
+        className="bg-dental-grid relative flex min-h-[calc(100svh-4rem)] w-full items-center justify-center overflow-hidden bg-bg"
       >
         {/* Top-Left Official DentHub Logo + Wordmark */}
         <Link
@@ -119,12 +119,12 @@ export default function HomePage() {
           <DentHubLogo size={30} showText />
         </Link>
 
-        {/* Full-Section Interactive 3D Orbiting Dental Icons Canvas */}
+        {/* Full-Section Concentric Dental Instrument Orbit */}
         <div className="absolute inset-0 h-full w-full">
-          <DentistWorld3DCanvas />
+          <ConcentricDentalOrbit />
         </div>
 
-        {/* Centered Hero Typography Floating Directly Over Canvas */}
+        {/* Centered Hero Typography Floating Directly Over Concentric Orbit */}
         <div className="pointer-events-none relative z-10 mx-auto flex w-full max-w-2xl flex-col items-center justify-center px-4 py-16 text-center sm:px-6">
           <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-text sm:text-5xl lg:text-6xl">
             Cegah Gigi Berlubang Sejak Dini
@@ -159,7 +159,7 @@ export default function HomePage() {
         id="alur-aplikasi"
         aria-labelledby="heading-alur-aplikasi"
         data-testid="home-section-2-flow"
-        className="w-full bg-surface-navy px-4 py-16 text-surface sm:px-8 sm:py-24 lg:px-12"
+        className="w-full bg-surface-navy px-4 py-16 text-white sm:px-8 sm:py-24 lg:px-12"
       >
         <div className="mx-auto w-full max-w-[1380px]">
           <motion.div
@@ -171,7 +171,7 @@ export default function HomePage() {
           >
             <h2
               id="heading-alur-aplikasi"
-              className="text-3xl font-extrabold text-surface sm:text-4xl lg:text-5xl"
+              className="text-3xl font-extrabold text-white sm:text-4xl lg:text-5xl"
             >
               Cara Kerja DentHub dari Awal hingga Solusi
             </h2>

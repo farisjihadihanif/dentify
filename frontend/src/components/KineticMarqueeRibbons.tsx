@@ -27,7 +27,7 @@ function FourPointStarIcon() {
     <svg
       viewBox="0 0 24 24"
       aria-hidden="true"
-      className="h-5 w-5 shrink-0 text-surface-mint sm:h-6 sm:w-6"
+      className="h-5 w-5 shrink-0 text-cyan-200 sm:h-6 sm:w-6"
       fill="currentColor"
     >
       <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
@@ -67,7 +67,7 @@ export function KineticMarqueeRibbons({
       className="relative w-full overflow-x-clip py-6 select-none"
     >
       {/* Top Ribbon — Rich Clinical Teal scrolling left */}
-      <div className="relative z-10 w-full -rotate-2 scale-[1.03] bg-surface-teal py-3.5 text-surface shadow-md sm:py-4">
+      <div className="relative z-10 w-full -rotate-2 scale-[1.03] bg-surface-teal py-3.5 text-white shadow-md sm:py-4">
         <div className="animate-kinetic-marquee flex items-center gap-6 whitespace-nowrap sm:gap-8">
           {repeatedTop.map((phrase, idx) => (
             <span
@@ -77,7 +77,7 @@ export function KineticMarqueeRibbons({
               <span
                 className={[
                   "font-display text-xl font-extrabold uppercase tracking-tight sm:text-3xl lg:text-4xl",
-                  idx % 2 === 1 ? "kinetic-stroke-text" : "text-surface",
+                  idx % 2 === 1 ? "kinetic-stroke-text" : "text-white",
                 ].join(" ")}
               >
                 {phrase}
@@ -89,7 +89,7 @@ export function KineticMarqueeRibbons({
       </div>
 
       {/* Bottom Ribbon — Deep Midnight Navy scrolling right */}
-      <div className="relative z-20 -mt-2 w-full rotate-1 scale-[1.03] bg-surface-navy py-3.5 text-surface shadow-lg sm:py-4">
+      <div className="relative z-20 -mt-2 w-full rotate-1 scale-[1.03] bg-surface-navy py-3.5 text-white shadow-lg sm:py-4">
         <div className="animate-kinetic-marquee-reverse flex items-center gap-6 whitespace-nowrap sm:gap-8">
           {repeatedBottom.map((phrase, idx) => (
             <span
@@ -99,7 +99,7 @@ export function KineticMarqueeRibbons({
               <span
                 className={[
                   "font-display text-xl font-extrabold uppercase tracking-tight sm:text-3xl lg:text-4xl",
-                  idx % 2 === 0 ? "kinetic-stroke-text" : "text-surface",
+                  idx % 2 === 0 ? "kinetic-stroke-text" : "text-white",
                 ].join(" ")}
               >
                 {phrase}

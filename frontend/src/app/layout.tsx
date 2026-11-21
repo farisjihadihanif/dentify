@@ -5,6 +5,8 @@ import { AppFooter } from '../components/AppFooter';
 import { DeniMascot } from '../components/DeniMascot';
 import { FloatingNavbar } from '../components/FloatingNavbar';
 import { NewsPromoAdPopup } from '../components/NewsPromoAdPopup';
+import { ThemeProvider } from '../components/ThemeProvider';
+import { ThemeToggleButton } from '../components/ThemeToggleButton';
 import './globals.css';
 
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -27,6 +29,8 @@ export const metadata: Metadata = {
     'Aplikasi web skrining dini kesehatan gigi berbasis Computer Vision, asisten interaktif Deni, dan pencari klinik gigi terdekat OpenStreetMap.',
 };
 
+const THEME_INIT_SCRIPT = `(function(){try{var s=window.localStorage.getItem('denthub_theme');var d=s==='dark'||(s!=='light'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d){document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}}catch(e){}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -35,15 +39,22 @@ export default function RootLayout({
   return (
     <html
       lang="id"
+      suppressHydrationWarning
       className={`${bricolageGrotesque.variable} ${plusJakartaSans.variable}`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="flex min-h-screen flex-col bg-bg font-sans text-body text-text antialiased">
-        <AdminRolePill />
-        <NewsPromoAdPopup />
-        <FloatingNavbar />
-        <div className="flex-1">{children}</div>
-        <DeniMascot />
-        <AppFooter />
+        <ThemeProvider>
+          <ThemeToggleButton variant="floating" />
+          <AdminRolePill />
+          <NewsPromoAdPopup />
+          <FloatingNavbar />
+          <div className="flex-1">{children}</div>
+          <DeniMascot />
+          <AppFooter />
+        </ThemeProvider>
       </body>
     </html>
   );

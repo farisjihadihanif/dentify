@@ -3,17 +3,18 @@
 @tailwind utilities;
 
 /**
- * Centralized CSS design token variables for DentHub (docs/DESIGN.md §2).
- * Aligned with /images/denthub-logo.png and /images/deni-mascot.png.
+ * Centralized Light & Dark Mode CSS design tokens (docs/DESIGN.md §2).
+ * Light Mode: clean clinical daylight (#F8FAFC canvas, #FFFFFF surface, #0B192C ink, #0E7490 teal).
+ * Dark Mode (.dark): architectural obsidian-slate (#070D17 canvas, #0E1726 surface, #1E293B borders, #F1F5F9 ink, #38BDF8/#22D3EE cyan).
  */
 :root {
-  --color-brand: #0369A1;
+  --color-brand: #0E7490;
   --color-brand-dark: #075985;
   --color-brand-ring: #0284C7;
   --color-brand-soft: #F0F9FF;
   --color-surface: #FFFFFF;
   --color-bg: #F8FAFC;
-  --color-text: #0F172A;
+  --color-text: #0B192C;
   --color-text-muted: #475569;
   --color-border: #E2E8F0;
   --color-status-green: #15803D;
@@ -25,8 +26,36 @@
   --color-surface-teal: #0E7490;
   --color-surface-mint: #DDF3F5;
   --color-surface-sand: #FEF3C7;
+  --color-orbit-ring: rgba(11, 25, 44, 0.08);
+  --color-orbit-tool-primary: #1E293B;
+  --color-orbit-tool-accent: #0E7490;
   --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
   --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+.dark {
+  color-scheme: dark;
+  --color-brand: #38BDF8;
+  --color-brand-dark: #22D3EE;
+  --color-brand-ring: #38BDF8;
+  --color-brand-soft: #0F2537;
+  --color-surface: #0E1726;
+  --color-bg: #070D17;
+  --color-text: #F1F5F9;
+  --color-text-muted: #94A3B8;
+  --color-border: #1E293B;
+  --color-status-green: #4ADE80;
+  --color-status-yellow: #FBBF24;
+  --color-status-red: #F87171;
+  --color-accent-deni: #2DD4BF;
+  --color-accent-deni-soft: #0C2A2D;
+  --color-surface-navy: #070F1C;
+  --color-surface-teal: #0F3547;
+  --color-surface-mint: #102A33;
+  --color-surface-sand: #2A2314;
+  --color-orbit-ring: rgba(226, 232, 240, 0.10);
+  --color-orbit-tool-primary: #CBD5E1;
+  --color-orbit-tool-accent: #67E8F9;
 }
 
 @layer base {
@@ -46,6 +75,7 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+    transition: background-color 200ms ease, color 200ms ease;
   }
 
   h1,
@@ -63,8 +93,72 @@
 }
 
 .bg-dental-grid {
-  background-image: radial-gradient(rgba(3, 105, 161, 0.12) 1px, transparent 1px);
-  background-size: 22px 22px;
+  background-image: radial-gradient(rgba(14, 116, 144, 0.10) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.dark .bg-dental-grid {
+  background-image: radial-gradient(rgba(148, 163, 184, 0.10) 1px, transparent 1px);
+}
+
+.dark .leaflet-tile-pane {
+  filter: brightness(0.84) contrast(1.06) saturate(0.88);
+}
+
+.dark .leaflet-control-attribution {
+  background: rgba(14, 23, 38, 0.85) !important;
+  color: #94A3B8 !important;
+}
+
+.dark .leaflet-control-attribution a {
+  color: #38BDF8 !important;
+}
+
+/* Concentric dental instrument orbital animations (55s, 70s, 85s, 100s) */
+@keyframes orbit-cw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbit-ccw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.animate-orbit-cw-55 {
+  animation: orbit-cw 55s linear infinite;
+}
+.animate-orbit-ccw-55 {
+  animation: orbit-ccw 55s linear infinite;
+}
+
+.animate-orbit-ccw-70 {
+  animation: orbit-ccw 70s linear infinite;
+}
+.animate-orbit-cw-70 {
+  animation: orbit-cw 70s linear infinite;
+}
+
+.animate-orbit-cw-85 {
+  animation: orbit-cw 85s linear infinite;
+}
+.animate-orbit-ccw-85 {
+  animation: orbit-ccw 85s linear infinite;
+}
+
+.animate-orbit-ccw-100 {
+  animation: orbit-ccw 100s linear infinite;
+}
+.animate-orbit-cw-100 {
+  animation: orbit-cw 100s linear infinite;
 }
 
 @keyframes deni-float {
@@ -143,7 +237,15 @@
   .animate-deni-float,
   .animate-deni-tooltip-bounce,
   .animate-kinetic-marquee,
-  .animate-kinetic-marquee-reverse {
+  .animate-kinetic-marquee-reverse,
+  .animate-orbit-cw-55,
+  .animate-orbit-ccw-55,
+  .animate-orbit-ccw-70,
+  .animate-orbit-cw-70,
+  .animate-orbit-cw-85,
+  .animate-orbit-ccw-85,
+  .animate-orbit-ccw-100,
+  .animate-orbit-cw-100 {
     animation: none;
   }
 }
