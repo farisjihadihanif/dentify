@@ -12,7 +12,7 @@ export interface AppFooterProps {
 /**
  * Flush bottom responsive global footer (`AppFooter.tsx`):
  * - Hidden on `/chat` so the consultation workspace fills 100dvh cleanly
- * - Uses matching dark-navy (`bg-surface-navy`) styling on `/panduan` only
+ * - Uses high-contrast dark-navy (`bg-surface-navy`) styling on `/panduan` only
  * - Desktop (`md:` and up): left credits stacked above `Denthub © 2026`, right `Panduan Aplikasi`
  *   stacked above `Promo, Berita & Artikel`
  * - Mobile (`< md`): generous bottom clearance (`pb-24 sm:pb-28 md:pb-4`) above the floating dock.
@@ -34,7 +34,7 @@ export function AppFooter({ pathnameOverride }: AppFooterProps = {}) {
       className={[
         'mt-auto w-full border-t pb-24 pt-4 text-xs sm:pb-28 md:pb-4',
         isPanduan
-          ? 'border-surface/15 bg-surface-navy text-surface/80'
+          ? 'border-white/15 bg-surface-navy text-slate-200'
           : 'border-border/70 bg-bg/95 text-text-muted',
       ].join(' ')}
     >
@@ -43,13 +43,11 @@ export function AppFooter({ pathnameOverride }: AppFooterProps = {}) {
           data-testid="footer-left-credits"
           className="flex flex-col items-center gap-1 text-center md:items-start md:text-left"
         >
-          <p className={isPanduan ? 'font-medium text-surface/90' : 'font-medium text-text'}>
+          <p className={isPanduan ? 'font-medium text-slate-200' : 'font-medium text-text'}>
             created by{' '}
             <strong
               className={
-                isPanduan
-                  ? 'font-semibold text-surface-mint'
-                  : 'font-semibold text-brand-dark'
+                isPanduan ? 'font-semibold text-white' : 'font-semibold text-brand-dark'
               }
             >
               Faris Jihadi Hanif Lubis
@@ -57,7 +55,7 @@ export function AppFooter({ pathnameOverride }: AppFooterProps = {}) {
           </p>
           <p
             className={
-              isPanduan ? 'font-semibold text-surface/70' : 'font-semibold text-text-muted'
+              isPanduan ? 'font-semibold text-slate-200' : 'font-semibold text-text-muted'
             }
           >
             Denthub &copy; 2026
@@ -73,7 +71,7 @@ export function AppFooter({ pathnameOverride }: AppFooterProps = {}) {
             className={[
               'inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-pill px-3.5 text-xs font-semibold transition-colors',
               isPanduan
-                ? 'border border-surface/20 bg-surface/10 text-surface hover:bg-surface/20'
+                ? 'border border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-cyan-200'
                 : 'bg-brand-soft text-brand-dark hover:bg-brand hover:text-surface',
             ].join(' ')}
           >
@@ -85,7 +83,7 @@ export function AppFooter({ pathnameOverride }: AppFooterProps = {}) {
             className={[
               'inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-pill border px-3.5 text-xs font-semibold transition-colors',
               isPanduan
-                ? 'border-surface/20 bg-surface/5 text-surface/85 hover:bg-surface/15 hover:text-surface'
+                ? 'border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-cyan-200'
                 : 'border-border bg-surface text-brand-dark hover:border-brand hover:bg-brand-soft',
             ].join(' ')}
           >

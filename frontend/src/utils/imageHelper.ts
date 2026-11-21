@@ -5,7 +5,14 @@
 
 import { mapApiError, type MappedUiError } from '../services/errorMapper';
 
-export const ALLOWED_CLIENT_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
+export const ALLOWED_CLIENT_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/bmp',
+] as const;
+const IMAGE_EXTENSION_REGEX = /\.(jpe?g|png|webp|gif|bmp)$/i;
 export const MAX_CLIENT_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 export const DEFAULT_MAX_IMAGE_WIDTH = 1024;
 
@@ -25,7 +32,14 @@ export function validateClientImageFile(
   }
 
   const mime = (file.type || '').toLowerCase();
-  if (!ALLOWED_CLIENT_MIME_TYPES.includes(mime as (typeof ALLOWED_CLIENT_MIME_TYPES)[number])) {
+  const hasAllowedMime = ALLOWED_CLIENT_MIME_TYPES.includes(
+    mime as (typeof ALLOWED_CLIENT_MIME_TYPES)[number],
+  );
+  const hasFallbackImageExt =
+    (mime === '' || mime === 'application/octet-stream') &&
+    IMAGE_EXTENSION_REGEX.test(file.name || '');
+
+  if (!hasAllowedMime && !hasFallbackImageExt) {
     return {
       valid: false,
       error: mapApiError('INVALID_IMAGE'),

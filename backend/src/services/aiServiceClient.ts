@@ -124,8 +124,9 @@ export async function requestDentalPrediction(params: {
 
 export async function requestAgentChat(payload: AiAgentChatRequest): Promise<AiAgentChatResponse> {
   const env = getEnv();
+  const chatTimeoutMs = Math.max(env.aiServiceTimeoutMs, 45000);
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), env.aiServiceTimeoutMs);
+  const timer = setTimeout(() => controller.abort(), chatTimeoutMs);
 
   try {
     const response = await fetch(`${env.aiServiceUrl}/internal/agent/chat`, {

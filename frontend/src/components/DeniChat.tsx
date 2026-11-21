@@ -6,6 +6,7 @@ import React, {
   useRef,
   useState,
   type ChangeEvent,
+  type ClipboardEvent,
   type FormEvent,
 } from 'react';
 import Link from 'next/link';
@@ -17,6 +18,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
+  RotateCcw,
   Send,
   Sparkles,
   Trash2,
@@ -139,10 +141,15 @@ export function DeniChat({
   const [uiError, setUiError] = useState<MappedUiError | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const composerRef = useRef<HTMLDivElement | null>(null);
   const messageInputRef = useRef<HTMLInputElement | null>(null);
   const photoInputRef = useRef<HTMLInputElement | null>(null);
   const templateMenuRef = useRef<HTMLDivElement | null>(null);
   const initializedScanFromUrlRef = useRef<boolean>(false);
+  const lastAttemptRef = useRef<{
+    text: string;
+    photo: AttachedPhotoState | null;
+  } | null>(null);
 
   const loadSessionsHistory = useCallback(async () => {
     const auth = isAuthenticated();
@@ -235,10 +242,7 @@ export function DeniChat({
     }
   };
 
-  const handlePhotoSelect = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const attachImageFile = async (file: File) => {
     setUiError(null);
     const validation = validateClientImageFile(file);
     if (!validation.valid && validation.error) {
@@ -258,11 +262,39 @@ export function DeniChat({
       setAttachedPhoto({
         dataUrl,
         mimeType: normalizedMime,
-        name: file.name,
+        name: file.name || 'foto-gigi.png',
       });
+      // Auto-focus chat input and scroll composer into view so the user can type or hit Enter immediately
+      window.setTimeout(() => {
+        composerRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' });
+        messageInputRef.current?.focus();
+      }, 0);
     } catch {
       setUiError(mapApiError('INVALID_IMAGE'));
       clearAttachedPhoto();
+    }
+  };
+
+  const handlePhotoSelect = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    await attachImageFile(file);
+  };
+
+  const handleComposerPaste = (event: ClipboardEvent<HTMLElement>) => {
+    const items = event.clipboardData?.items;
+    if (!items || items.length === 0) return;
+
+    for (let i = 0; i < items.length; i += 1) {
+      const item = items[i];
+      if (item.kind === 'file' && item.type.startsWith('image/')) {
+        const pastedFile = item.getAsFile();
+        if (pastedFile) {
+          event.preventDefault();
+          void attachImageFile(pastedFile);
+          return;
+        }
+      }
     }
   };
 
@@ -327,17 +359,24 @@ export function DeniChat({
     }
   };
 
-  const handleSendQuestion = async (textToSend: string) => {
+  const handleSendQuestion = async (
+    textToSend: string,
+    options?: { photoOverride?: AttachedPhotoState | null },
+  ) => {
+    const currentPhoto =
+      options && 'photoOverride' in options ? options.photoOverride ?? null : attachedPhoto;
     const trimmed =
       textToSend.trim() ||
-      (attachedPhoto ? 'Tolong periksa kondisi gigi pada foto yang saya lampirkan.' : '');
+      (currentPhoto ? 'Tolong periksa kondisi gigi pada foto yang saya lampirkan.' : '');
     if (!trimmed || isSending || cooldownLeft > 0) return;
 
-    const currentPhoto = attachedPhoto;
+    lastAttemptRef.current = { text: trimmed, photo: currentPhoto };
     setUiError(null);
     setInputMessage('');
     setTemplateMenuOpen(false);
-    clearAttachedPhoto();
+    if (!options || !('photoOverride' in options)) {
+      clearAttachedPhoto();
+    }
 
     const guestHistory = !isAuthenticated()
       ? messages.slice(-10).map((m) => ({ role: m.role, content: m.content }))
@@ -396,6 +435,35 @@ export function DeniChat({
       }
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleRetryMessage = (msg: ChatMessageItem) => {
+    const photoOverride: AttachedPhotoState | null = msg.attached_image_url
+      ? {
+          dataUrl: msg.attached_image_url,
+          mimeType: msg.attached_image_url.startsWith('data:image/png')
+            ? 'image/png'
+            : msg.attached_image_url.startsWith('data:image/webp')
+              ? 'image/webp'
+              : 'image/jpeg',
+          name: 'foto-gigi.jpg',
+        }
+      : null;
+    void handleSendQuestion(msg.content, { photoOverride });
+  };
+
+  const handleRetryPrecedingUserMessage = (assistantIdx: number) => {
+    for (let i = assistantIdx - 1; i >= 0; i -= 1) {
+      if (messages[i]?.role === 'user') {
+        handleRetryMessage(messages[i]);
+        return;
+      }
+    }
+    if (lastAttemptRef.current) {
+      void handleSendQuestion(lastAttemptRef.current.text, {
+        photoOverride: lastAttemptRef.current.photo,
+      });
     }
   };
 
@@ -604,7 +672,23 @@ export function DeniChat({
               </section>
             )}
 
-            {uiError && <ErrorBanner error={uiError} onDismiss={() => setUiError(null)} />}
+            {uiError && (
+              <ErrorBanner
+                error={uiError}
+                onRetry={
+                  lastAttemptRef.current
+                    ? () => {
+                        if (lastAttemptRef.current) {
+                          void handleSendQuestion(lastAttemptRef.current.text, {
+                            photoOverride: lastAttemptRef.current.photo,
+                          });
+                        }
+                      }
+                    : undefined
+                }
+                onDismiss={() => setUiError(null)}
+              />
+            )}
 
             {messages.map((msg, idx) => {
               const isUser = msg.role === 'user';
@@ -668,17 +752,46 @@ export function DeniChat({
                     )}
 
                     {isUser ? (
-                      <div className="whitespace-pre-line leading-relaxed">{msg.content}</div>
+                      <>
+                        <div className="whitespace-pre-line leading-relaxed">{msg.content}</div>
+                        <div className="mt-2 flex justify-end">
+                          <button
+                            type="button"
+                            disabled={isSending || cooldownLeft > 0}
+                            onClick={() => handleRetryMessage(msg)}
+                            data-testid="chat-retry-user-btn"
+                            aria-label="Ulangi kirim pesan ini"
+                            className="inline-flex items-center gap-1 rounded-pill border border-surface/30 bg-surface/15 px-2.5 py-0.5 text-[11px] font-semibold text-surface transition-colors hover:bg-surface/25 disabled:opacity-50"
+                          >
+                            <RotateCcw className="h-3 w-3 shrink-0" aria-hidden="true" />
+                            <span>Ulangi</span>
+                          </button>
+                        </div>
+                      </>
                     ) : (
                       <RichMessageContent content={msg.content} />
                     )}
 
                     {!isUser && (
-                      <AiFeedbackControl
-                        targetType="chat_message"
-                        targetId={targetId}
-                        compact
-                      />
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <AiFeedbackControl
+                          targetType="chat_message"
+                          targetId={targetId}
+                          compact
+                        />
+                        {msg.is_fallback && (
+                          <button
+                            type="button"
+                            disabled={isSending || cooldownLeft > 0}
+                            onClick={() => handleRetryPrecedingUserMessage(idx)}
+                            data-testid="chat-retry-fallback-btn"
+                            className="inline-flex items-center gap-1 rounded-pill border border-border bg-bg px-2.5 py-1 text-xs font-semibold text-brand-dark transition-colors hover:bg-brand-soft disabled:opacity-50"
+                          >
+                            <RotateCcw className="h-3 w-3 shrink-0" aria-hidden="true" />
+                            <span>Ulangi</span>
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -705,8 +818,10 @@ export function DeniChat({
           </div>
         </section>
 
-        {/* Bottom Compact Composer (Contoh Pertanyaan Upward Popover + Tambah Foto + Input) */}
+        {/* Bottom Compact Composer (Contoh Pertanyaan Upward Popover + Tambah Foto + Ctrl+V Paste + Input) */}
         <div
+          ref={composerRef}
+          onPaste={handleComposerPaste}
           data-testid="deni-bottom-composer"
           className="border-t border-border bg-surface px-4 pb-4 pt-3 sm:px-6 sm:pb-5"
         >

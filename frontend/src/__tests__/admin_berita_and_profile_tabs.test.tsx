@@ -114,11 +114,14 @@ describe('T-208 Footer Vertical Link Stack & Admin Role Pill', () => {
     const chatFooterHtml = renderToStaticMarkup(<AppFooter pathnameOverride="/chat" />);
     expect(chatFooterHtml).toBe('');
 
-    // Dark-navy on /panduan
+    // Dark-navy high-contrast footer on /panduan
     const panduanFooterHtml = renderToStaticMarkup(<AppFooter pathnameOverride="/panduan" />);
     expect(panduanFooterHtml).toContain('data-theme="navy"');
     expect(panduanFooterHtml).toContain('bg-surface-navy');
-    expect(panduanFooterHtml).toContain('border-surface/15');
+    expect(panduanFooterHtml).toContain('text-slate-200');
+    expect(panduanFooterHtml).toContain('text-white');
+    expect(panduanFooterHtml).toContain('border-white/20 bg-white/10 text-white');
+    expect(panduanFooterHtml).toContain('hover:text-cyan-200');
 
     // Vertical right-edge nav on /chat only, horizontal bottom dock elsewhere
     const chatNavHtml = renderToStaticMarkup(<FloatingNavbar pathnameOverride="/chat" />);
@@ -334,7 +337,7 @@ describe('T-208 Edge-to-Edge Home Section 2 & /panduan + Tabbed /profile', () =>
     expect(panduanHtml).toContain('data-testid="panduan-bottom-wordmark"');
     expect(panduanHtml).toContain('data-testid="panduan-bottom-kinetic-ribbon"');
     expect(panduanHtml).toContain('aria-label="DENTHUB."');
-    expect(panduanHtml).toContain('duration-700');
+    expect(panduanHtml).not.toContain('hover:text-surface-mint');
     expect(panduanHtml).toContain('max-w-[1380px]');
     expect(panduanHtml).toContain('min-h-[250px]');
   });

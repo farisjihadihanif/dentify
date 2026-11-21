@@ -474,29 +474,71 @@ export default function PanduanPage() {
               {Array.from('DENTHUB').map((char, idx) => (
                 <motion.span
                   key={`${char}-${idx}`}
-                  whileHover={
-                    prefersReducedMotion
-                      ? undefined
-                      : {
-                          y: -14,
-                          scale: 1.09,
-                          rotate: idx % 2 === 0 ? -4 : 4,
-                        }
-                  }
-                  transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1.15 }}
-                  className="inline-block cursor-default text-surface transition-colors duration-700 ease-in-out hover:text-surface-mint"
+                  initial="rest"
+                  animate="rest"
+                  whileHover={prefersReducedMotion ? undefined : 'hover'}
+                  variants={{
+                    rest: {
+                      y: 0,
+                      scale: 1,
+                      rotate: 0,
+                      color: '#FFFFFF',
+                      transition: {
+                        y: { type: 'spring', stiffness: 110, damping: 18 },
+                        scale: { type: 'spring', stiffness: 110, damping: 18 },
+                        rotate: { type: 'spring', stiffness: 110, damping: 18 },
+                        color: { duration: 0.35, ease: 'easeOut' },
+                      },
+                    },
+                    hover: {
+                      y: -14,
+                      scale: 1.09,
+                      rotate: idx % 2 === 0 ? -4 : 4,
+                      color: '#9FE7F5',
+                      transition: {
+                        y: { type: 'spring', stiffness: 110, damping: 18 },
+                        scale: { type: 'spring', stiffness: 110, damping: 18 },
+                        rotate: { type: 'spring', stiffness: 110, damping: 18 },
+                        color: { delay: 0.45, duration: 0.4, ease: 'easeOut' },
+                      },
+                    },
+                  }}
+                  className="inline-block cursor-default text-surface"
                 >
                   {char}
                 </motion.span>
               ))}
               <motion.span
-                whileHover={
-                  prefersReducedMotion
-                    ? undefined
-                    : { y: -16, scale: 1.25, rotate: 12 }
-                }
-                transition={{ type: 'spring', stiffness: 140, damping: 18, mass: 1.1 }}
-                className="inline-block cursor-default text-brand-ring transition-colors duration-700 ease-in-out hover:text-surface-mint"
+                initial="rest"
+                animate="rest"
+                whileHover={prefersReducedMotion ? undefined : 'hover'}
+                variants={{
+                  rest: {
+                    y: 0,
+                    scale: 1,
+                    rotate: 0,
+                    color: '#0284C7',
+                    transition: {
+                      y: { type: 'spring', stiffness: 110, damping: 18 },
+                      scale: { type: 'spring', stiffness: 110, damping: 18 },
+                      rotate: { type: 'spring', stiffness: 110, damping: 18 },
+                      color: { duration: 0.35, ease: 'easeOut' },
+                    },
+                  },
+                  hover: {
+                    y: -16,
+                    scale: 1.25,
+                    rotate: 12,
+                    color: '#9FE7F5',
+                    transition: {
+                      y: { type: 'spring', stiffness: 110, damping: 18 },
+                      scale: { type: 'spring', stiffness: 110, damping: 18 },
+                      rotate: { type: 'spring', stiffness: 110, damping: 18 },
+                      color: { delay: 0.45, duration: 0.4, ease: 'easeOut' },
+                    },
+                  },
+                }}
+                className="inline-block cursor-default text-brand-ring"
               >
                 .
               </motion.span>

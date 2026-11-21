@@ -130,4 +130,38 @@ def test_agent_chat_endpoint_auth_and_schema(monkeypatch: pytest.MonkeyPatch) ->
     )
     assert r_photo.status_code == 200
     assert "Faris" in r_photo.json()["reply"]
+
+    # When a valid tooth photo is attached and Gemini is unavailable, Deni builds a CV-grounded reply
+    from app.ml.inference import inference_service
+    from app.schemas import DetectionItem, ImageQualityReport, PredictResponse
+
+    def fake_predict(_raw: bytes, user_symptoms: str | None = None) -> PredictResponse:
+        return PredictResponse(
+            primary_condition="caries",
+            confidence_score=0.88,
+            probabilities={"caries": 0.88, "calculus": 0.05, "gingivitis": 0.04, "healthy": 0.03},
+            detections=[DetectionItem(label="caries", confidence=0.88, bbox=None)],
+            urgency_level="emergency",
+            trigger_clinic_finder=True,
+            quality=ImageQualityReport(blur_score=100.0, mean_luminance=110.0, passed=True),
+            model_version="denthub-mobilenetv2-2.0.0",
+        )
+
+    monkeypatch.setattr(inference_service, "model", object())
+    monkeypatch.setattr(inference_service, "predict_bytes", fake_predict)
+    r_cv_photo = client.post(
+        "/internal/agent/chat",
+        headers={"X-Internal-Key": "test-agent-key"},
+        json={
+            "message": "",
+            "user_name": "Faris",
+            "image_data_url": f"data:image/jpeg;base64,{tiny_b64}",
+        },
+    )
+    assert r_cv_photo.status_code == 200
+    cv_body = r_cv_photo.json()
+    assert "karies" in cv_body["reply"].lower()
+    assert "88%" in cv_body["reply"]
+    assert cv_body["urgency_level"] == "emergency"
+    assert cv_body["trigger_clinic_finder"] is True
     get_settings.cache_clear()

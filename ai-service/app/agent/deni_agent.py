@@ -5,18 +5,24 @@ Rules:
 - Provides two LangChain tools: `lookup_knowledge` and `trigger_clinic_finder`.
 - Uses Pydantic structured output matching `AgentChatResponse`.
 - Supports personalized greeting (`user_name`) and optional tooth photo attachment
-  (runs the DentHub CV screening model AND passes the photo + screening summary to Gemini multimodal).
+  (runs the preloaded DentHub CV screening model AND passes the normalized photo data URI
+  plus screening summary directly to `gemini-2.5-flash` multimodal).
+- If Gemini fails or is unavailable while a photo was screened by CV, composes a specific,
+  personalized Indonesian response directly from the CV findings and knowledge base.
 - Sanitizes all user input before prompt insertion (prompt-injection mitigation).
 - Deterministic severe-symptom keyword backstop that the LLM can NEVER downgrade.
-- 20-second timeout with graceful Indonesian static fallback.
 """
 
 from __future__ import annotations
 
 import asyncio
 import base64
+import io
+import logging
 import re
 from typing import Any, Callable
+
+from PIL import Image
 
 from app.core.config import Settings, get_settings
 from app.ml.inference import inference_service
@@ -29,11 +35,22 @@ from app.schemas import (
     UrgencyLevel,
 )
 
+logger = logging.getLogger(__name__)
+
 URGENCY_RANK: dict[UrgencyLevel, int] = {
     "low": 0,
     "medium": 1,
     "emergency": 2,
 }
+
+CONDITION_LABELS_ID: dict[str, str] = {
+    "caries": "indikasi karies gigi (gigi berlubang)",
+    "calculus": "indikasi karang gigi (calculus)",
+    "gingivitis": "indikasi radang gusi (gingivitis)",
+    "healthy": "kondisi gigi dan gusi yang tampak sehat",
+}
+
+DEFAULT_PHOTO_PROMPT = "Tolong periksa kondisi gigi pada foto yang saya lampirkan."
 
 SYSTEM_PROMPT = """Anda adalah Deni, asisten AI kesehatan gigi preventif dari DentHub.
 Aturan wajib yang TIDAK BOLEH dilanggar:
@@ -63,12 +80,18 @@ def sanitize_user_text(text: str) -> str:
     return cleaned.strip()[:1000]
 
 
-def _extract_clean_base64_and_mime(
+def _extract_and_normalize_image(
     raw_base64: str | None,
     fallback_mime: str | None = None,
-) -> tuple[str | None, str]:
+) -> tuple[bytes | None, str | None, str]:
+    """
+    Extract raw bytes and normalize into a clean valid base64 + MIME (`image/jpeg|png|webp`)
+    so Gemini multimodal always receives a valid image data URI even if the original file had
+    a mismatched filename extension.
+    """
     if not raw_base64:
-        return None, fallback_mime or "image/jpeg"
+        return None, None, fallback_mime or "image/jpeg"
+
     stripped = raw_base64.strip()
     mime = (fallback_mime or "image/jpeg").strip().lower()
     if stripped.startswith("data:"):
@@ -78,42 +101,64 @@ def _extract_clean_base64_and_mime(
             if mime_part:
                 mime = mime_part
         stripped = payload.strip()
-    if mime not in {"image/jpeg", "image/png", "image/webp"}:
-        mime = "image/jpeg"
-    return (stripped or None), mime
+
+    if not stripped:
+        return None, None, "image/jpeg"
+
+    try:
+        raw_bytes = base64.b64decode(stripped, validate=False)
+    except Exception:
+        return None, None, "image/jpeg"
+
+    if len(raw_bytes) < 12:
+        return None, None, "image/jpeg"
+
+    # Normalize via Pillow into clean JPEG/PNG/WEBP matching actual decoded bytes
+    try:
+        with Image.open(io.BytesIO(raw_bytes)) as img:
+            rgb = img.convert("RGB")
+            out_buf = io.BytesIO()
+            rgb.save(out_buf, format="JPEG", quality=88)
+            norm_bytes = out_buf.getvalue()
+            norm_b64 = base64.b64encode(norm_bytes).decode("ascii")
+            return raw_bytes, norm_b64, "image/jpeg"
+    except Exception:
+        if mime not in {"image/jpeg", "image/png", "image/webp"}:
+            mime = "image/jpeg"
+        return raw_bytes, stripped, mime
 
 
-DEFAULT_PHOTO_PROMPT = "Tolong periksa kondisi gigi pada foto yang saya lampirkan."
-
-
-def _screen_attached_photo(request: AgentChatRequest) -> tuple[ScanContext | None, str | None, str]:
+def _screen_attached_photo(
+    request: AgentChatRequest,
+) -> tuple[ScanContext | None, str | None, str, bool]:
     raw_photo = request.image_data_url or request.image_base64
-    clean_b64, mime = _extract_clean_base64_and_mime(raw_photo, request.image_mime_type)
-    if not clean_b64:
-        return request.scan_context, None, mime
+    raw_bytes, norm_b64, mime = _extract_and_normalize_image(
+        raw_photo, request.image_mime_type
+    )
+    if not raw_bytes or not norm_b64:
+        return request.scan_context, None, mime, False
 
     effective_scan_context = request.scan_context
+    cv_screened_photo = False
     try:
-        raw_bytes = base64.b64decode(clean_b64, validate=False)
-        if len(raw_bytes) >= 12:
-            if inference_service.model is None:
-                inference_service.load()
-            if inference_service.model is not None:
-                pred = inference_service.predict_bytes(
-                    raw_bytes,
-                    user_symptoms=request.message or DEFAULT_PHOTO_PROMPT,
-                )
-                effective_scan_context = ScanContext(
-                    primary_condition=pred.primary_condition,
-                    confidence_score=pred.confidence_score,
-                    urgency_level=pred.urgency_level,
-                    user_symptoms=(request.message or DEFAULT_PHOTO_PROMPT)[:500],
-                )
-    except Exception:
-        # Keep multimodal image for Gemini even if CV quality gate flags low resolution or fails
-        pass
+        if inference_service.model is None:
+            inference_service.load()
+        if inference_service.model is not None:
+            pred = inference_service.predict_bytes(
+                raw_bytes,
+                user_symptoms=request.message or DEFAULT_PHOTO_PROMPT,
+            )
+            effective_scan_context = ScanContext(
+                primary_condition=pred.primary_condition,
+                confidence_score=pred.confidence_score,
+                urgency_level=pred.urgency_level,
+                user_symptoms=(request.message or DEFAULT_PHOTO_PROMPT)[:500],
+            )
+            cv_screened_photo = True
+    except Exception as exc:
+        logger.warning("Photo CV screening skipped during chat: %s", exc)
 
-    return effective_scan_context, clean_b64, mime
+    return effective_scan_context, norm_b64, mime, cv_screened_photo
 
 
 def build_agent_tools(knowledge_docs: list[KnowledgeDoc]) -> tuple[list[Any], dict[str, bool]]:
@@ -147,7 +192,10 @@ def build_agent_tools(knowledge_docs: list[KnowledgeDoc]) -> tuple[list[Any], di
     return [lookup_knowledge, trigger_clinic_finder], tool_state
 
 
-def build_static_fallback(request: AgentChatRequest) -> AgentChatResponse:
+def build_static_fallback(
+    request: AgentChatRequest,
+    photo_screened: bool = False,
+) -> AgentChatResponse:
     severe = has_severe_symptoms(request.message)
     mild = has_mild_symptoms(request.message)
     greeting = f"Halo {sanitize_user_text(request.user_name)}! " if request.user_name else "Halo! "
@@ -162,6 +210,56 @@ def build_static_fallback(request: AgentChatRequest) -> AgentChatResponse:
     else:
         urgency = base_urgency
 
+    # If a tooth photo was attached and screened by CV, always craft a specific finding-based reply
+    if request.scan_context and (photo_screened or request.image_data_url or request.image_base64):
+        sc = request.scan_context
+        label = CONDITION_LABELS_ID.get(sc.primary_condition, sc.primary_condition)
+        conf_pct = int(round(sc.confidence_score * 100))
+        kb_match = next(
+            (doc for doc in request.knowledge_context if doc.condition_key == sc.primary_condition),
+            None,
+        )
+        dos_lines = (
+            "\n".join(f"- {d}" for d in kb_match.dos[:3])
+            if kb_match and kb_match.dos
+            else (
+                "- Sikat gigi secara lembut dua kali sehari dengan pasta gigi berfluoride.\n"
+                "- Berkumur air bersih setelah makan untuk mengurangi sisa makanan.\n"
+                "- Jadwalkan pemeriksaan langsung ke dokter gigi untuk evaluasi menyeluruh."
+            )
+        )
+        donts_lines = (
+            "\n".join(f"- {d}" for d in kb_match.donts[:2])
+            if kb_match and kb_match.donts
+            else (
+                "- Hindari mengorek area gigi atau gusi yang tampak bermasalah.\n"
+                "- Kurangi makanan atau minuman manis dan bersuhu ekstrem sementara waktu."
+            )
+        )
+        urgency_note = (
+            "Karena tingkat urgensi tergolong darurat, sangat disarankan untuk segera mengunjungi klinik dokter gigi terdekat."
+            if urgency == "emergency"
+            else "Disarankan menjadwalkan pemeriksaan rutin ke dokter gigi dalam 1-2 minggu ke depan agar kondisi dapat ditangani sejak dini."
+            if urgency == "medium"
+            else "Pertahankan kebiasaan menyikat gigi rutin dan kontrol berkala setiap 6 bulan sekali."
+        )
+        reply = (
+            f"{greeting}Berdasarkan skrining visual pada foto gigi yang Anda lampirkan, sistem mendeteksi {label} "
+            f"(tingkat keyakinan sekitar {conf_pct}%). {urgency_note}\n\n"
+            f"Langkah perawatan awal yang dianjurkan:\n{dos_lines}\n\n"
+            f"Hal yang sebaiknya dihindari:\n{donts_lines}"
+        )
+        suggestions = [
+            "Apakah kondisi pada foto ini memerlukan penambalan atau scaling di dokter gigi?",
+            "Makanan atau minuman apa yang sebaiknya saya hindari sementara waktu?",
+        ]
+        return AgentChatResponse(
+            reply=reply,
+            urgency_level=urgency,
+            trigger_clinic_finder=(urgency == "emergency"),
+            suggested_questions=suggestions,
+        )
+
     if urgency == "emergency":
         reply = (
             f"{greeting}Berdasarkan keluhan yang Anda sampaikan, terdapat tanda yang memerlukan pemeriksaan "
@@ -173,11 +271,13 @@ def build_static_fallback(request: AgentChatRequest) -> AgentChatResponse:
             "Tanda infeksi gigi apa saja yang harus saya waspadai?",
         ]
     elif request.scan_context:
-        cond = request.scan_context.primary_condition
+        cond_label = CONDITION_LABELS_ID.get(
+            request.scan_context.primary_condition, request.scan_context.primary_condition
+        )
         reply = (
             f"{greeting}Terima kasih telah berkonsultasi dengan Deni. Berdasarkan konteks hasil skrining "
-            f"awal ({cond}), tetap jaga kebersihan gigi dengan menyikat gigi secara lembut dua kali "
-            "sehari memakai pasta gigi berfluoride dan jadwalkan pemeriksaan ke dokter gigi untuk evaluasi langsung."
+            f"awal yang menunjukkan {cond_label}, tetap jaga kebersihan gigi dengan menyikat gigi secara lembut "
+            "dua kali sehari memakai pasta gigi berfluoride dan jadwalkan pemeriksaan ke dokter gigi untuk evaluasi langsung."
         )
         suggestions = [
             "Makanan atau minuman apa yang sebaiknya saya hindari sementara?",
@@ -264,7 +364,7 @@ def _format_user_prompt(
             "[Foto Gigi Dilampirkan]\n"
             "Pengguna melampirkan foto gigi secara langsung pada pesan ini. "
             "Amati ciri visual foto gigi tersebut bersama hasil skrining CV di atas untuk memberikan "
-            "penjelasan edukatif preventif (non-diagnostik)."
+            "penjelasan edukatif preventif (non-diagnostik) yang spesifik dan ramah."
         )
     if request.knowledge_context:
         kb_lines = []
@@ -345,8 +445,10 @@ async def run_deni_chat(
         request.model_copy(update={"message": raw_msg}) if raw_msg != request.message else request
     )
 
-    # If user attached a tooth photo, run local CV screening and enrich scan_context
-    effective_scan_context, clean_b64, image_mime = _screen_attached_photo(normalized_request)
+    # If user attached a tooth photo, run local CV screening and normalize multimodal image
+    effective_scan_context, norm_b64, image_mime, cv_screened_photo = _screen_attached_photo(
+        normalized_request
+    )
     enriched_request = (
         normalized_request.model_copy(update={"scan_context": effective_scan_context})
         if effective_scan_context != normalized_request.scan_context
@@ -354,7 +456,10 @@ async def run_deni_chat(
     )
 
     if llm_invoker is None and not cfg.gemini_api_key:
-        return enforce_safety_backstop(enriched_request, build_static_fallback(enriched_request))
+        return enforce_safety_backstop(
+            enriched_request,
+            build_static_fallback(enriched_request, photo_screened=cv_screened_photo),
+        )
 
     try:
         if llm_invoker is not None:
@@ -368,7 +473,7 @@ async def run_deni_chat(
                     enriched_request,
                     sanitized,
                     cfg,
-                    attached_image_b64=clean_b64,
+                    attached_image_b64=norm_b64,
                     attached_image_mime=image_mime,
                 ),
                 timeout=cfg.llm_timeout_s,
@@ -383,5 +488,9 @@ async def run_deni_chat(
         return enforce_safety_backstop(
             enriched_request, ai_response, tool_triggered=tool_triggered
         )
-    except Exception:
-        return enforce_safety_backstop(enriched_request, build_static_fallback(enriched_request))
+    except Exception as exc:
+        logger.warning("Gemini invocation failed (%s: %s); using CV/static fallback.", type(exc).__name__, exc)
+        return enforce_safety_backstop(
+            enriched_request,
+            build_static_fallback(enriched_request, photo_screened=cv_screened_photo),
+        )

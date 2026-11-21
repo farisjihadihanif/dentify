@@ -74,9 +74,9 @@ describe('T-108 & T-109 Scan endpoints, upload validation, and ownership isolati
     expect(res.body.code).toBe('INVALID_IMAGE');
   });
 
-  it('rejects tiny image (< 64x64) with 422 LOW_QUALITY_IMAGE', async () => {
+  it('rejects tiny image (< 32x32) with 422 LOW_QUALITY_IMAGE', async () => {
     const app = createApp();
-    const tinyPng = makePngBuffer(48, 48);
+    const tinyPng = makePngBuffer(24, 24);
     const res = await request(app)
       .post('/api/v1/scans')
       .field('capture_source', 'camera')
@@ -84,6 +84,32 @@ describe('T-108 & T-109 Scan endpoints, upload validation, and ownership isolati
 
     expect(res.status).toBe(422);
     expect(res.body.code).toBe('LOW_QUALITY_IMAGE');
+  });
+
+  it('sniffs actual binary magic headers even when filename extension is mismatched (.webp with PNG bytes)', async () => {
+    vi.spyOn(aiClient, 'requestDentalPrediction').mockResolvedValueOnce({
+      primary_condition: 'caries',
+      confidence_score: 0.87,
+      probabilities: { caries: 0.87, calculus: 0.05, gingivitis: 0.05, healthy: 0.03 },
+      detections: [{ label: 'caries', confidence: 0.87, bbox: [10, 10, 50, 50] }],
+      urgency_level: 'emergency',
+      trigger_clinic_finder: true,
+      quality: { blur_score: 95.0, mean_luminance: 100.0, passed: true },
+      model_version: 'denthub-mobilenetv2-2.0.0',
+    });
+
+    const app = createApp();
+    const pngBytes = makePngBuffer(180, 180);
+    const res = await request(app)
+      .post('/api/v1/scans')
+      .field('capture_source', 'upload')
+      .attach('image', pngBytes, {
+        filename: 'gigi karies.webp',
+        contentType: 'application/octet-stream',
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.data.primary_condition).toBe('caries');
   });
 
   it('passes through 422 LOW_QUALITY_IMAGE from AI service quality gate', async () => {

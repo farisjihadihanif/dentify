@@ -1,6 +1,11 @@
+import os
+
+os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
+
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+import numpy as np
 from fastapi import FastAPI
 
 from app.ml.inference import inference_service
@@ -12,7 +17,10 @@ from app.routers.predict import router as predict_router
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     try:
-        inference_service.load()
+        if inference_service.load() and inference_service.model is not None:
+            # Warm up TensorFlow graph once at startup so /scan and /chat have zero cold-start lag
+            dummy = np.zeros((1, 224, 224, 3), dtype=np.float32)
+            _ = inference_service.model(dummy, training=False)
     except Exception:
         # Keep health endpoint responsive in degraded mode if model is not yet trained
         pass

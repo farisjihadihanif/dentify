@@ -284,15 +284,25 @@ describe('Deni Chat (/chat – T-204)', () => {
         initialTemplatePopoverOpen
         initialMessages={[
           {
+            role: 'user',
+            content: 'Tolong cek foto gigi saya.',
+            trigger_clinic_finder: false,
+            timestamp: '2026-11-21T05:59:00.000Z',
+          },
+          {
             role: 'assistant',
             content: 'Halo Budi! **Langkah perawatan:**\n- Sikat gigi **dua kali** sehari\n- Hindari makanan manis**',
             trigger_clinic_finder: false,
+            is_fallback: true,
             timestamp: '2026-11-21T06:00:00.000Z',
           },
         ]}
       />,
     );
     expect(popoverHtml).toContain('data-testid="deni-template-popover"');
+    expect(popoverHtml).toContain('data-testid="chat-retry-user-btn"');
+    expect(popoverHtml).toContain('data-testid="chat-retry-fallback-btn"');
+    expect(popoverHtml).toContain('Ulangi');
     for (const q of INITIAL_SUGGESTED_QUESTIONS) {
       expect(popoverHtml).toContain(q);
     }

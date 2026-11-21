@@ -110,8 +110,8 @@ def test_predict_missing_key_returns_401(client: TestClient) -> None:
 def test_predict_rejects_tiny_dark_and_blurry_images(client: TestClient) -> None:
     headers = {"X-Internal-Key": "test-key-predict"}
 
-    # Tiny (< 64x64)
-    tiny = _encode_png(np.full((48, 48, 3), 130, dtype=np.uint8))
+    # Tiny (< 32x32)
+    tiny = _encode_png(np.full((24, 24, 3), 130, dtype=np.uint8))
     r_tiny = client.post(
         "/internal/predict",
         headers=headers,
@@ -120,8 +120,8 @@ def test_predict_rejects_tiny_dark_and_blurry_images(client: TestClient) -> None
     assert r_tiny.status_code == 422
     assert r_tiny.json()["detail"]["code"] == "LOW_QUALITY_IMAGE"
 
-    # Dark (mean luminance < 35)
-    dark = _encode_png(np.full((300, 300, 3), 10, dtype=np.uint8))
+    # Pitch-black (mean luminance < 3.0)
+    dark = _encode_png(np.full((300, 300, 3), 1, dtype=np.uint8))
     r_dark = client.post(
         "/internal/predict",
         headers=headers,
@@ -130,7 +130,7 @@ def test_predict_rejects_tiny_dark_and_blurry_images(client: TestClient) -> None
     assert r_dark.status_code == 422
     assert r_dark.json()["detail"]["code"] == "LOW_QUALITY_IMAGE"
 
-    # Blurry (flat image -> Laplacian variance ~ 0)
+    # Flat/blank frame (pixel std < 2.5)
     blurry = _encode_png(np.full((300, 300, 3), 130, dtype=np.uint8))
     r_blur = client.post(
         "/internal/predict",
@@ -214,6 +214,37 @@ def test_predict_accepts_closeup_tooth_with_dark_edges_and_small_80x80_resolutio
     )
     assert resp.status_code == 200
     assert resp.json()["quality"]["passed"] is True
+
+
+def test_predict_accepts_mismatched_webp_extension_with_jpeg_bytes_and_octet_stream(
+    client: TestClient,
+) -> None:
+    from PIL import Image
+
+    # JPEG bytes saved under a .webp filename with application/octet-stream MIME (common Google Images save)
+    img = np.full((120, 120, 3), 14, dtype=np.uint8)
+    cv2.ellipse(img, (60, 60), (24, 30), 0, 0, 360, (215, 210, 195), -1)
+    cv2.circle(img, (60, 62), 7, (45, 30, 20), -1)
+
+    buf = io.BytesIO()
+    Image.fromarray(img).save(buf, format="JPEG", quality=85)
+    jpeg_bytes = buf.getvalue()
+
+    resp = client.post(
+        "/internal/predict",
+        headers={"X-Internal-Key": "test-key-predict"},
+        files={
+            "image": (
+                "gigi karies.webp",
+                io.BytesIO(jpeg_bytes),
+                "application/octet-stream",
+            )
+        },
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["primary_condition"] == "caries"
+    assert body["quality"]["passed"] is True
 
 
 def test_custom_keras_model_roundtrip_reload(tmp_path: Path) -> None:

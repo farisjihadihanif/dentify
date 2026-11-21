@@ -27,9 +27,15 @@ export const CONDITION_LABELS: Record<DentalCondition, string> = {
 };
 
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB
-export const MIN_IMAGE_DIMENSION = 64;
+export const MIN_IMAGE_DIMENSION = 32;
 export const MAX_CHAT_MESSAGES = 50;
-export const ALLOWED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
+export const ALLOWED_IMAGE_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/bmp',
+] as const;
 
 export const SEVERE_SYMPTOM_KEYWORDS = [
   'nyeri hebat',

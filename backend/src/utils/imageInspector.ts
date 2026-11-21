@@ -1,15 +1,21 @@
 import { MIN_IMAGE_DIMENSION } from '../constants/domain';
 import { ApiError } from './ApiError';
 
+export type SupportedImageMime =
+  | 'image/jpeg'
+  | 'image/png'
+  | 'image/webp'
+  | 'image/gif'
+  | 'image/bmp';
+
 export interface InspectedImage {
-  mime_type: 'image/jpeg' | 'image/png' | 'image/webp';
+  mime_type: SupportedImageMime;
   width: number;
   height: number;
 }
 
 function parsePngDimensions(buf: Buffer): { width: number; height: number } | null {
   if (buf.length < 24) return null;
-  // IHDR chunk starts at byte 12 ("IHDR")
   if (buf.toString('ascii', 12, 16) !== 'IHDR') return null;
   const width = buf.readUInt32BE(16);
   const height = buf.readUInt32BE(20);
@@ -32,7 +38,6 @@ function parseJpegDimensions(buf: Buffer): { width: number; height: number } | n
     const marker = buf[offset];
     offset += 1;
 
-    // Standalone markers without length
     if (marker === 0xd8 || marker === 0xd9 || (marker >= 0xd0 && marker <= 0xd7) || marker === 0x01) {
       continue;
     }
@@ -40,7 +45,6 @@ function parseJpegDimensions(buf: Buffer): { width: number; height: number } | n
     const segmentLength = buf.readUInt16BE(offset);
     if (segmentLength < 2 || offset + segmentLength > buf.length) break;
 
-    // SOF0..SOF3, SOF5..SOF7, SOF9..SOF11, SOF13..SOF15
     const isSof =
       (marker >= 0xc0 && marker <= 0xc3) ||
       (marker >= 0xc5 && marker <= 0xc7) ||
@@ -98,6 +102,26 @@ function parseWebpDimensions(buf: Buffer): { width: number; height: number } | n
   return null;
 }
 
+function parseGifDimensions(buf: Buffer): { width: number; height: number } | null {
+  if (buf.length < 10) return null;
+  const width = buf.readUInt16LE(6);
+  const height = buf.readUInt16LE(8);
+  if (width <= 0 || height <= 0) return null;
+  return { width, height };
+}
+
+function parseBmpDimensions(buf: Buffer): { width: number; height: number } | null {
+  if (buf.length < 26) return null;
+  const width = Math.abs(buf.readInt32LE(18));
+  const height = Math.abs(buf.readInt32LE(22));
+  if (width <= 0 || height <= 0) return null;
+  return { width, height };
+}
+
+/**
+ * Sniffs actual binary magic headers regardless of uploaded filename extension or MIME type.
+ * Supports JPEG, PNG, RIFF/WEBP, GIF, and BMP (plus delegates exotic/extended headers to Pillow in ai-service).
+ */
 export function inspectImageBuffer(buf: Buffer): InspectedImage {
   if (!buf || buf.length < 12) {
     throw new ApiError(
@@ -107,7 +131,7 @@ export function inspectImageBuffer(buf: Buffer): InspectedImage {
     );
   }
 
-  let mime: 'image/jpeg' | 'image/png' | 'image/webp' | null = null;
+  let mime: SupportedImageMime | null = null;
   let dims: { width: number; height: number } | null = null;
 
   // JPEG magic bytes: FF D8 FF
@@ -134,8 +158,18 @@ export function inspectImageBuffer(buf: Buffer): InspectedImage {
     mime = 'image/webp';
     dims = parseWebpDimensions(buf);
   }
+  // GIF magic bytes: GIF87a or GIF89a
+  else if (buf.toString('ascii', 0, 6) === 'GIF87a' || buf.toString('ascii', 0, 6) === 'GIF89a') {
+    mime = 'image/gif';
+    dims = parseGifDimensions(buf);
+  }
+  // BMP magic bytes: BM
+  else if (buf[0] === 0x42 && buf[1] === 0x4d) {
+    mime = 'image/bmp';
+    dims = parseBmpDimensions(buf);
+  }
 
-  if (!mime || !dims) {
+  if (!mime) {
     throw new ApiError(
       422,
       'INVALID_IMAGE',
@@ -143,7 +177,7 @@ export function inspectImageBuffer(buf: Buffer): InspectedImage {
     );
   }
 
-  if (dims.width < MIN_IMAGE_DIMENSION || dims.height < MIN_IMAGE_DIMENSION) {
+  if (dims && (dims.width < MIN_IMAGE_DIMENSION || dims.height < MIN_IMAGE_DIMENSION)) {
     throw new ApiError(
       422,
       'LOW_QUALITY_IMAGE',
@@ -153,7 +187,7 @@ export function inspectImageBuffer(buf: Buffer): InspectedImage {
 
   return {
     mime_type: mime,
-    width: dims.width,
-    height: dims.height,
+    width: dims?.width ?? 224,
+    height: dims?.height ?? 224,
   };
 }

@@ -24,9 +24,9 @@ class Settings(BaseSettings):
 
     model_path: str = "models/denthub_model.keras"
     model_meta_path: str = "models/model_meta.json"
-    min_confidence: float = 0.60
+    min_confidence: float = 0.42
     emergency_confidence: float = 0.85
-    llm_timeout_s: float = 20.0
+    llm_timeout_s: float = 35.0
 
     def resolved_model_path(self) -> Path:
         p = Path(self.model_path)
