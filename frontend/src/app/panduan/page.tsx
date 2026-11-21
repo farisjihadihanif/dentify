@@ -437,39 +437,30 @@ export default function PanduanPage() {
         </section>
 
         {/* =====================================================================
-            SECTION 3: Bottom Kinetic Marquee & Oversized Interactive DENTHUB. Wordmark
+            SECTION 3: Duplicate Crossed Kinetic Marquee (Swapped) & Smooth DENTHUB. Wordmark
            ===================================================================== */}
         <section
           aria-label="Penutup Interaktif DentHub"
           data-testid="panduan-bottom-wordmark"
-          className="w-full overflow-hidden border-t border-surface/15 bg-surface-navy pb-20 pt-10 text-surface md:pb-24"
+          className="w-full overflow-hidden border-t border-surface/15 bg-surface-navy pb-16 pt-6 text-surface md:pb-20"
         >
-          {/* Compact Navy-Integrated Kinetic Marquee Strip */}
-          <div className="w-full overflow-hidden border-y border-surface/15 bg-surface/5 py-3">
-            <motion.div
-              aria-hidden="true"
-              className="flex w-max items-center gap-8 whitespace-nowrap font-display text-xs font-extrabold uppercase tracking-[0.22em] text-surface-mint sm:text-sm"
-              animate={prefersReducedMotion ? undefined : { x: ['0%', '-50%'] }}
-              transition={
-                prefersReducedMotion
-                  ? undefined
-                  : { duration: 22, ease: 'linear', repeat: Infinity }
-              }
-            >
-              {[0, 1].map((dup) => (
-                <div key={dup} className="flex shrink-0 items-center gap-8">
-                  <span>CEGAH GIGI BERLUBANG SEJAK DINI</span>
-                  <span className="text-brand-ring">•</span>
-                  <span>SKRINING AI PREVENTIF</span>
-                  <span className="text-brand-ring">•</span>
-                  <span>KONSULTASI DENI 24/7</span>
-                  <span className="text-brand-ring">•</span>
-                  <span>KLINIK GIGI TERDEKAT</span>
-                  <span className="text-brand-ring">•</span>
-                </div>
-              ))}
-            </motion.div>
-          </div>
+          {/* Duplicate Double-Crossed Kinetic Marquee Ribbons with Top & Bottom Phrases Swapped */}
+          <KineticMarqueeRibbons
+            testId="panduan-bottom-kinetic-ribbon"
+            topPhrases={[
+              'DUNIA DENTIST & PERAWATAN GIGI',
+              'REFERENSI WHO • ADA • KEMENKES RI',
+              'CEGAH KARIES SEJAK DINI',
+              'KLINIK TERDEKAT',
+              'CLINIC FINDER',
+            ]}
+            bottomPhrases={[
+              'PANDUAN SKRINING MANDIRI',
+              'FOTO TERANG & FOKUS',
+              'UNDUH LAPORAN HASIL AI',
+              'KONSULTASI WITH DENI AI',
+            ]}
+          />
 
           {/* Oversized Full-Width Interactive DENTHUB. Display Wordmark */}
           <div className="mx-auto flex w-full max-w-[1380px] flex-col items-center justify-center px-4 pt-12 text-center sm:px-8 sm:pt-16">
@@ -492,8 +483,8 @@ export default function PanduanPage() {
                           rotate: idx % 2 === 0 ? -4 : 4,
                         }
                   }
-                  transition={{ type: 'spring', stiffness: 360, damping: 18 }}
-                  className="inline-block cursor-default text-surface transition-colors duration-200 hover:text-surface-mint"
+                  transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1.15 }}
+                  className="inline-block cursor-default text-surface transition-colors duration-700 ease-in-out hover:text-surface-mint"
                 >
                   {char}
                 </motion.span>
@@ -504,8 +495,8 @@ export default function PanduanPage() {
                     ? undefined
                     : { y: -16, scale: 1.25, rotate: 12 }
                 }
-                transition={{ type: 'spring', stiffness: 420, damping: 16 }}
-                className="inline-block cursor-default text-brand-ring"
+                transition={{ type: 'spring', stiffness: 140, damping: 18, mass: 1.1 }}
+                className="inline-block cursor-default text-brand-ring transition-colors duration-700 ease-in-out hover:text-surface-mint"
               >
                 .
               </motion.span>

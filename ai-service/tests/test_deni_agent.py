@@ -114,4 +114,20 @@ def test_agent_chat_endpoint_auth_and_schema(monkeypatch: pytest.MonkeyPatch) ->
     assert isinstance(body["trigger_clinic_finder"], bool)
     assert "Faris" in body["reply"]
     assert isinstance(body["suggested_questions"], list)
+
+    # Empty message with attached photo data URL succeeds gracefully using default Indonesian prompt
+    import base64
+
+    tiny_b64 = base64.b64encode(b"not-a-valid-image-still-graceful").decode("ascii")
+    r_photo = client.post(
+        "/internal/agent/chat",
+        headers={"X-Internal-Key": "test-agent-key"},
+        json={
+            "message": "",
+            "user_name": "Faris",
+            "image_data_url": f"data:image/jpeg;base64,{tiny_b64}",
+        },
+    )
+    assert r_photo.status_code == 200
+    assert "Faris" in r_photo.json()["reply"]
     get_settings.cache_clear()

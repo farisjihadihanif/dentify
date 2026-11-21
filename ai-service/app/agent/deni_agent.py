@@ -83,26 +83,34 @@ def _extract_clean_base64_and_mime(
     return (stripped or None), mime
 
 
+DEFAULT_PHOTO_PROMPT = "Tolong periksa kondisi gigi pada foto yang saya lampirkan."
+
+
 def _screen_attached_photo(request: AgentChatRequest) -> tuple[ScanContext | None, str | None, str]:
-    clean_b64, mime = _extract_clean_base64_and_mime(
-        request.image_base64, request.image_mime_type
-    )
+    raw_photo = request.image_data_url or request.image_base64
+    clean_b64, mime = _extract_clean_base64_and_mime(raw_photo, request.image_mime_type)
     if not clean_b64:
         return request.scan_context, None, mime
 
     effective_scan_context = request.scan_context
     try:
         raw_bytes = base64.b64decode(clean_b64, validate=False)
-        if len(raw_bytes) >= 12 and inference_service.model is not None:
-            pred = inference_service.predict_bytes(raw_bytes, user_symptoms=request.message)
-            effective_scan_context = ScanContext(
-                primary_condition=pred.primary_condition,
-                confidence_score=pred.confidence_score,
-                urgency_level=pred.urgency_level,
-                user_symptoms=request.message[:500],
-            )
+        if len(raw_bytes) >= 12:
+            if inference_service.model is None:
+                inference_service.load()
+            if inference_service.model is not None:
+                pred = inference_service.predict_bytes(
+                    raw_bytes,
+                    user_symptoms=request.message or DEFAULT_PHOTO_PROMPT,
+                )
+                effective_scan_context = ScanContext(
+                    primary_condition=pred.primary_condition,
+                    confidence_score=pred.confidence_score,
+                    urgency_level=pred.urgency_level,
+                    user_symptoms=(request.message or DEFAULT_PHOTO_PROMPT)[:500],
+                )
     except Exception:
-        # Keep multimodal image for Gemini even if CV quality gate flags low resolution or model not loaded
+        # Keep multimodal image for Gemini even if CV quality gate flags low resolution or fails
         pass
 
     return effective_scan_context, clean_b64, mime
@@ -329,14 +337,20 @@ async def run_deni_chat(
     llm_invoker: Callable[..., Any] | None = None,
 ) -> AgentChatResponse:
     cfg = settings or get_settings()
-    sanitized = sanitize_user_text(request.message)
+    raw_msg = request.message.strip()
+    if not raw_msg and (request.image_data_url or request.image_base64):
+        raw_msg = DEFAULT_PHOTO_PROMPT
+    sanitized = sanitize_user_text(raw_msg)
+    normalized_request = (
+        request.model_copy(update={"message": raw_msg}) if raw_msg != request.message else request
+    )
 
     # If user attached a tooth photo, run local CV screening and enrich scan_context
-    effective_scan_context, clean_b64, image_mime = _screen_attached_photo(request)
+    effective_scan_context, clean_b64, image_mime = _screen_attached_photo(normalized_request)
     enriched_request = (
-        request.model_copy(update={"scan_context": effective_scan_context})
-        if effective_scan_context != request.scan_context
-        else request
+        normalized_request.model_copy(update={"scan_context": effective_scan_context})
+        if effective_scan_context != normalized_request.scan_context
+        else normalized_request
     )
 
     if llm_invoker is None and not cfg.gemini_api_key:

@@ -3,11 +3,11 @@ import { DeniChat } from '../../components/DeniChat';
 
 /**
  * Full-Viewport Consultation Page (`src/app/chat/page.tsx`):
- * Clean full-screen consultation workspace without bulky top hero headers.
+ * Fills 100dvh cleanly with internal scrolling only (footer hidden on /chat).
  */
 export default function ChatPage() {
   return (
-    <main className="h-[calc(100vh-5.5rem)] w-full overflow-hidden bg-bg">
+    <main className="h-[100dvh] w-full overflow-hidden bg-bg">
       <DeniChat />
     </main>
   );

@@ -6,10 +6,10 @@ import numpy as np
 from PIL import Image, ImageSequence
 
 INPUT_SIZE = 224
-MIN_DIMENSION = 128
-MIN_BLUR_VARIANCE = 12.0
-MIN_MEAN_LUMINANCE = 35.0
-MAX_MEAN_LUMINANCE = 235.0
+MIN_DIMENSION = 64
+MIN_BLUR_VARIANCE = 5.0
+MIN_MEAN_LUMINANCE = 18.0
+MAX_MEAN_LUMINANCE = 248.0
 
 
 class ImageValidationError(Exception):
@@ -86,8 +86,17 @@ def decode_bytes_to_rgb(raw_bytes: bytes) -> np.ndarray:
 def assess_image_quality(rgb_img: np.ndarray) -> tuple[float, float, bool, str | None]:
     height, width = rgb_img.shape[:2]
     gray = cv2.cvtColor(rgb_img, cv2.COLOR_RGB2GRAY)
-    blur_score = float(cv2.Laplacian(gray, cv2.CV_64F).var())
-    mean_luminance = float(np.mean(gray))
+
+    # Compute sharpness on the center 60% crop (where teeth appear) so soft lips/dark edges
+    # around dental close-up photos do not cause false blur rejections.
+    h_margin = int(height * 0.2)
+    w_margin = int(width * 0.2)
+    center_crop = gray[h_margin : max(h_margin + 1, height - h_margin), w_margin : max(w_margin + 1, width - w_margin)]
+    if center_crop.size == 0:
+        center_crop = gray
+
+    blur_score = float(cv2.Laplacian(center_crop, cv2.CV_64F).var())
+    mean_luminance = float(np.mean(center_crop))
 
     if width < MIN_DIMENSION or height < MIN_DIMENSION:
         return (

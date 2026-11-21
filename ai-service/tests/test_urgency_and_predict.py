@@ -110,8 +110,8 @@ def test_predict_missing_key_returns_401(client: TestClient) -> None:
 def test_predict_rejects_tiny_dark_and_blurry_images(client: TestClient) -> None:
     headers = {"X-Internal-Key": "test-key-predict"}
 
-    # Tiny (< 224x224)
-    tiny = _encode_png(np.full((120, 120, 3), 130, dtype=np.uint8))
+    # Tiny (< 64x64)
+    tiny = _encode_png(np.full((48, 48, 3), 130, dtype=np.uint8))
     r_tiny = client.post(
         "/internal/predict",
         headers=headers,
@@ -196,6 +196,24 @@ def test_predict_accepts_small_valid_webp_image(client: TestClient) -> None:
     body = resp.json()
     assert body["primary_condition"] == "caries"
     assert body["quality"]["passed"] is True
+
+
+def test_predict_accepts_closeup_tooth_with_dark_edges_and_small_80x80_resolution(
+    client: TestClient,
+) -> None:
+    # Dark outer oral cavity/lip border (black/soft), sharp tooth structure in center 60% crop
+    img = np.full((80, 80, 3), 10, dtype=np.uint8)
+    cv2.rectangle(img, (20, 20), (60, 60), (225, 220, 210), thickness=-1)
+    cv2.circle(img, (40, 40), 8, (60, 40, 30), thickness=-1)
+    cv2.line(img, (24, 40), (56, 40), (90, 80, 75), thickness=2)
+
+    resp = client.post(
+        "/internal/predict",
+        headers={"X-Internal-Key": "test-key-predict"},
+        files={"image": ("closeup.png", io.BytesIO(_encode_png(img)), "image/png")},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["quality"]["passed"] is True
 
 
 def test_custom_keras_model_roundtrip_reload(tmp_path: Path) -> None:

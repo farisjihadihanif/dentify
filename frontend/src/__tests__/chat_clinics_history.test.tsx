@@ -257,20 +257,27 @@ describe('Deni Chat (/chat – T-204)', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders /chat as a full-viewport workspace with collapsible sidebar, Template Pertanyaan popover, + Tambah Foto, and RichMessageContent', () => {
+  it('renders /chat as a 100dvh workspace with icon-only sidebar toggle, Contoh Pertanyaan popover, + Tambah Foto, and RichMessageContent', () => {
     const html = renderToStaticMarkup(<ChatPage />);
 
+    expect(html).toContain('h-[100dvh]');
+    expect(html).toContain('pr-20');
     expect(html).toContain('data-testid="deni-fullscreen-workspace"');
     expect(html).toContain('data-testid="deni-sessions-sidebar"');
-    expect(html).toContain('data-testid="deni-sidebar-toggle-desktop"');
+    expect(html).toContain('data-testid="deni-sidebar-collapse-btn"');
+    expect(html).not.toContain('Sembunyikan Riwayat');
+    expect(html).not.toContain('Tampilkan Riwayat');
     expect(html).toContain('data-testid="deni-bottom-composer"');
     expect(html).toContain('data-testid="deni-template-dropdown-btn"');
-    expect(html).toContain('Template Pertanyaan');
+    expect(html).toContain('Contoh Pertanyaan');
     expect(html).toContain('data-testid="deni-add-photo-btn"');
     expect(html).toContain('+ Tambah Foto');
     expect(html).toContain('Chat Baru');
     expect(html).not.toContain('Konsultasi Kesehatan Gigi Bersama Deni');
     expect(html).not.toContain('Disclaimer Medis');
+
+    const collapsedHtml = renderToStaticMarkup(<DeniChat initialSidebarCollapsed />);
+    expect(collapsedHtml).toContain('data-testid="deni-sidebar-open-btn"');
 
     const popoverHtml = renderToStaticMarkup(
       <DeniChat

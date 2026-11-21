@@ -74,9 +74,9 @@ describe('T-108 & T-109 Scan endpoints, upload validation, and ownership isolati
     expect(res.body.code).toBe('INVALID_IMAGE');
   });
 
-  it('rejects tiny image (< 224x224) with 422 LOW_QUALITY_IMAGE', async () => {
+  it('rejects tiny image (< 64x64) with 422 LOW_QUALITY_IMAGE', async () => {
     const app = createApp();
-    const tinyPng = makePngBuffer(100, 100);
+    const tinyPng = makePngBuffer(48, 48);
     const res = await request(app)
       .post('/api/v1/scans')
       .field('capture_source', 'camera')

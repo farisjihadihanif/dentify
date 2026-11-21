@@ -54,6 +54,10 @@ export async function postChatMessage(
   try {
     const input = req.body as ChatMessageInput;
     const isAuthenticated = Boolean(req.user);
+    const attachedImage = (input.image_data_url || input.image_base64)?.trim() || undefined;
+    const effectiveMessage =
+      input.message.trim() ||
+      (attachedImage ? 'Tolong periksa kondisi gigi pada foto yang saya lampirkan.' : '');
 
     if ((input.scan_id || input.session_id) && !isAuthenticated) {
       throw new ApiError(
@@ -72,30 +76,17 @@ export async function postChatMessage(
       }
     }
 
-    // Resolve optional scan_id (owner-checked)
+    // Resolve optional scan_id gracefully (ignore stale/deleted scan IDs instead of failing with 404)
     let linkedScan = null;
-    if (input.scan_id && userId) {
-      if (!mongoose.isValidObjectId(input.scan_id)) {
-        throw new ApiError(404, 'NOT_FOUND', 'Riwayat scan tidak ditemukan.');
-      }
+    if (input.scan_id && userId && mongoose.isValidObjectId(input.scan_id)) {
       linkedScan = await ScanRecord.findOne({ _id: input.scan_id, user_id: userId });
-      if (!linkedScan) {
-        throw new ApiError(404, 'NOT_FOUND', 'Riwayat scan tidak ditemukan.');
-      }
     }
 
-    // Resolve optional existing session_id (owner-checked)
+    // Resolve optional existing session_id gracefully (fall back to a new session if deleted/stale)
     let session: IChatSessionDocument | null = null;
-    if (input.session_id && userId) {
-      if (!mongoose.isValidObjectId(input.session_id)) {
-        throw new ApiError(404, 'NOT_FOUND', 'Sesi chat tidak ditemukan.');
-      }
+    if (input.session_id && userId && mongoose.isValidObjectId(input.session_id)) {
       session = await ChatSession.findOne({ _id: input.session_id, user_id: userId });
-      if (!session) {
-        throw new ApiError(404, 'NOT_FOUND', 'Sesi chat tidak ditemukan.');
-      }
-      // If session has a scan_id and none was supplied explicitly, load it for context
-      if (!linkedScan && session.scan_id) {
+      if (session && !linkedScan && session.scan_id) {
         linkedScan = await ScanRecord.findOne({ _id: session.scan_id, user_id: userId });
       }
     }
@@ -127,9 +118,10 @@ export async function postChatMessage(
 
     try {
       const aiReply = await requestAgentChat({
-        message: input.message,
+        message: effectiveMessage,
         user_name: userName,
-        image_base64: input.image_base64,
+        image_data_url: attachedImage,
+        image_base64: attachedImage,
         image_mime_type: input.image_mime_type,
         scan_context: scanContext,
         chat_history: chatHistory,
@@ -143,9 +135,9 @@ export async function postChatMessage(
           ? aiReply.suggested_questions.slice(0, 3)
           : STATIC_FALLBACK_SUGGESTIONS;
     } catch {
-      // Static Indonesian fallback on AI/LLM failure (API_SPECS §6.1, ARCHITECTURE §5.4)
+      // Static Indonesian fallback on AI/LLM failure
       isFallback = true;
-      const severe = containsSevereSymptoms(input.message);
+      const severe = containsSevereSymptoms(effectiveMessage);
       reply = STATIC_FALLBACK_CHAT_REPLY;
       urgencyLevel = severe ? 'emergency' : linkedScan?.urgency_level ?? 'low';
       triggerClinicFinder = urgencyLevel === 'emergency';
@@ -153,7 +145,7 @@ export async function postChatMessage(
     }
 
     // Deterministic backstop: severe symptoms always escalate to emergency + trigger
-    if (containsSevereSymptoms(input.message)) {
+    if (containsSevereSymptoms(effectiveMessage)) {
       urgencyLevel = 'emergency';
       triggerClinicFinder = true;
     }
@@ -163,13 +155,13 @@ export async function postChatMessage(
 
     let persistedSessionId: string | null = null;
     if (userId) {
-      // 50-message cap rollover (DATABASE.md §4 rule 3)
+      // 50-message cap rollover
       const needsNewSession = !session || session.messages.length + 2 > MAX_CHAT_MESSAGES;
       if (needsNewSession) {
         session = new ChatSession({
           user_id: userId,
           scan_id: linkedScan ? linkedScan._id : session?.scan_id ?? null,
-          title: buildTitleFromMessage(input.message),
+          title: buildTitleFromMessage(effectiveMessage),
           messages: [],
           has_triggered_clinic: false,
         });
@@ -177,7 +169,7 @@ export async function postChatMessage(
 
       const targetSession = session as IChatSessionDocument;
       if (targetSession.messages.length === 0) {
-        targetSession.title = buildTitleFromMessage(input.message);
+        targetSession.title = buildTitleFromMessage(effectiveMessage);
       }
       if (linkedScan && !targetSession.scan_id) {
         targetSession.scan_id = linkedScan._id;
@@ -187,7 +179,7 @@ export async function postChatMessage(
       targetSession.messages.push(
         {
           role: 'user',
-          content: input.message,
+          content: effectiveMessage,
           trigger_clinic_finder: false,
           timestamp: now,
         },

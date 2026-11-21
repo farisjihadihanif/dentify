@@ -6,6 +6,7 @@ import { AdminRolePill } from '../components/AdminRolePill';
 import { AdminDashboardView } from '../components/AdminDashboardView';
 import { BeritaPortalView } from '../components/BeritaPortalView';
 import { BeritaArticleDetailView } from '../components/BeritaArticleDetailView';
+import { FloatingNavbar } from '../components/FloatingNavbar';
 import { NewsPromoAdPopup, isAdPopupExcludedPath } from '../components/NewsPromoAdPopup';
 import { ProfileEditorView } from '../components/ProfileEditorView';
 import HomePage from '../app/page';
@@ -108,6 +109,26 @@ describe('T-208 Footer Vertical Link Stack & Admin Role Pill', () => {
     expect(html).toContain('Panduan Aplikasi');
     expect(html).toContain('Promo, Berita &amp; Artikel');
     expect(html.indexOf('/panduan')).toBeLessThan(html.indexOf('/berita'));
+
+    // Hidden on /chat
+    const chatFooterHtml = renderToStaticMarkup(<AppFooter pathnameOverride="/chat" />);
+    expect(chatFooterHtml).toBe('');
+
+    // Dark-navy on /panduan
+    const panduanFooterHtml = renderToStaticMarkup(<AppFooter pathnameOverride="/panduan" />);
+    expect(panduanFooterHtml).toContain('data-theme="navy"');
+    expect(panduanFooterHtml).toContain('bg-surface-navy');
+    expect(panduanFooterHtml).toContain('border-surface/15');
+
+    // Vertical right-edge nav on /chat only, horizontal bottom dock elsewhere
+    const chatNavHtml = renderToStaticMarkup(<FloatingNavbar pathnameOverride="/chat" />);
+    expect(chatNavHtml).toContain('data-orientation="vertical-right"');
+    expect(chatNavHtml).toContain('right-4');
+    expect(chatNavHtml).toContain('flex-col');
+
+    const homeNavHtml = renderToStaticMarkup(<FloatingNavbar pathnameOverride="/" />);
+    expect(homeNavHtml).toContain('data-orientation="horizontal-bottom"');
+    expect(homeNavHtml).toContain('bottom-5');
   });
 
   it('renders AdminRolePill only for admin users and hides it on /admin', () => {
@@ -311,7 +332,9 @@ describe('T-208 Edge-to-Edge Home Section 2 & /panduan + Tabbed /profile', () =>
     expect(panduanHtml).toContain('data-testid="panduan-section-1-steps"');
     expect(panduanHtml).toContain('data-testid="panduan-section-2-dentist-world"');
     expect(panduanHtml).toContain('data-testid="panduan-bottom-wordmark"');
+    expect(panduanHtml).toContain('data-testid="panduan-bottom-kinetic-ribbon"');
     expect(panduanHtml).toContain('aria-label="DENTHUB."');
+    expect(panduanHtml).toContain('duration-700');
     expect(panduanHtml).toContain('max-w-[1380px]');
     expect(panduanHtml).toContain('min-h-[250px]');
   });

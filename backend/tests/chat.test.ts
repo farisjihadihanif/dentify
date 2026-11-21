@@ -155,4 +155,38 @@ describe('T-202 Chat endpoints: Deni sessions, ownership, rollover at 50, guest 
       .set('Authorization', `Bearer ${userA.token}`);
     expect(delA.status).toBe(200);
   });
+
+  it('gracefully ignores stale scan_id/session_id and accepts photo-only messages with empty text', async () => {
+    const aiSpy = vi.spyOn(aiClient, 'requestAgentChat').mockResolvedValueOnce({
+      reply: 'Halo Chat Tester, saya melihat area gigi pada foto yang Anda lampirkan.',
+      urgency_level: 'medium',
+      trigger_clinic_finder: false,
+      suggested_questions: ['Apakah gigi terasa ngilu?'],
+    });
+
+    const app = createApp();
+    const user = await registerUser('stalechat@example.com');
+
+    const res = await request(app)
+      .post('/api/v1/chat')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({
+        scan_id: '507f1f77bcf86cd799439011',
+        session_id: '507f1f77bcf86cd799439012',
+        message: '',
+        image_data_url: 'data:image/jpeg;base64,/9j/4AAQSkZJRg==',
+        image_mime_type: 'image/jpeg',
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.session_id).toBeTruthy();
+    expect(aiSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Tolong periksa kondisi gigi pada foto yang saya lampirkan.',
+        user_name: 'Chat Tester',
+        image_data_url: 'data:image/jpeg;base64,/9j/4AAQSkZJRg==',
+      }),
+    );
+  });
 });

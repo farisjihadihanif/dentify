@@ -40,8 +40,10 @@ interface CacheEntry<T> {
 const CLINICS_TTL_MS = 15 * 60 * 1000; // 15 minutes
 const GEOCODE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 const OVERPASS_MIRROR_TIMEOUT_MS = 4500; // short per-mirror timeout for fast failover
-const NOMINATIM_TIMEOUT_MS = 8000;
+const NOMINATIM_TIMEOUT_MS = 6000;
+const PHOTON_TIMEOUT_MS = 5000;
 const MAX_CACHE_ENTRIES = 500;
+const PHOTON_API_URL = 'https://photon.komoot.io/api/';
 
 export const OVERPASS_MIRRORS: readonly string[] = [
   'https://overpass-api.de/api/interpreter',
@@ -101,6 +103,10 @@ export function haversineDistanceKm(
   return Math.round(R * c * 100) / 100;
 }
 
+function isWithinIndonesia(lat: number, lng: number): boolean {
+  return lat >= -11.5 && lat <= 6.5 && lng >= 94.5 && lng <= 141.5;
+}
+
 function buildOverpassQuery(lat: number, lng: number, radiusMeters: number): string {
   return `[out:json][timeout:6];
 (
@@ -113,6 +119,8 @@ function buildOverpassQuery(lat: number, lng: number, radiusMeters: number): str
   node["amenity"="clinic"]["healthcare:speciality"~"dentistry|dental",i](around:${radiusMeters},${lat},${lng});
   way["amenity"="clinic"]["healthcare:speciality"~"dentistry|dental",i](around:${radiusMeters},${lat},${lng});
   relation["amenity"="clinic"]["healthcare:speciality"~"dentistry|dental",i](around:${radiusMeters},${lat},${lng});
+  node["amenity"="clinic"]["name"~"gigi|dental|dentist|rsgm",i](around:${radiusMeters},${lat},${lng});
+  way["amenity"="clinic"]["name"~"gigi|dental|dentist|rsgm",i](around:${radiusMeters},${lat},${lng});
 );
 out center;`;
 }
@@ -136,6 +144,31 @@ interface OverpassElement {
   lon?: number;
   center?: { lat: number; lon: number };
   tags?: Record<string, string>;
+}
+
+interface PhotonFeature {
+  geometry?: { coordinates?: [number, number] };
+  properties?: {
+    osm_type?: string;
+    osm_id?: number;
+    name?: string;
+    street?: string;
+    housenumber?: string;
+    district?: string;
+    city?: string;
+    county?: string;
+    state?: string;
+    countrycode?: string;
+  };
+}
+
+interface NominatimRow {
+  osm_type?: string;
+  osm_id?: number;
+  display_name?: string;
+  name?: string;
+  lat?: string;
+  lon?: string;
 }
 
 async function fetchOverpassMirror(
@@ -168,11 +201,161 @@ async function fetchOverpassMirror(
   }
 }
 
+/**
+ * Live OpenStreetMap Nominatim + Photon search bounded around any Indonesian [lat, lng].
+ * Enables nationwide clinic lookup across any kecamatan/kelurahan/kota/kabupaten even
+ * when Overpass mirrors are busy or sparse.
+ */
+async function searchClinicsViaNominatimAndPhoton(
+  lat: number,
+  lng: number,
+  radiusKm: number,
+  userAgent: string,
+  nominatimUrl: string,
+): Promise<ClinicItem[]> {
+  const degLat = Math.max(0.03, radiusKm / 111.0);
+  const degLng = Math.max(0.03, radiusKm / (111.0 * Math.max(0.2, Math.cos((lat * Math.PI) / 180))));
+  const minLng = lng - degLng;
+  const maxLng = lng + degLng;
+  const minLat = lat - degLat;
+  const maxLat = lat + degLat;
+
+  const queries = ['dokter gigi', 'klinik gigi', 'rumah sakit gigi', 'puskesmas'];
+  const seen = new Set<string>();
+  const collected: ClinicItem[] = [];
+
+  const pushCandidate = (item: {
+    id: string;
+    name: string;
+    address: string | null;
+    lat: number;
+    lng: number;
+  }) => {
+    if (seen.has(item.id)) return;
+    const dist = haversineDistanceKm(lat, lng, item.lat, item.lng);
+    if (dist > Math.max(radiusKm * 1.5, 15)) return;
+    seen.add(item.id);
+    const directions = buildGoogleMapsDirectionsUrl(item.lat, item.lng);
+    collected.push({
+      osm_id: item.id,
+      name: item.name,
+      address: item.address,
+      latitude: item.lat,
+      longitude: item.lng,
+      distance_km: dist,
+      phone: null,
+      opening_hours: null,
+      osm_url: directions,
+      google_maps_url: directions,
+    });
+  };
+
+  // Query Photon Komoot (fast, OSM-backed, supports lat/lon bias + bbox)
+  const photonTasks = queries.map(async (term) => {
+    const url = new URL(PHOTON_API_URL);
+    url.searchParams.set('q', term);
+    url.searchParams.set('lat', String(lat));
+    url.searchParams.set('lon', String(lng));
+    url.searchParams.set('bbox', `${minLng},${minLat},${maxLng},${maxLat}`);
+    url.searchParams.set('limit', '8');
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), PHOTON_TIMEOUT_MS);
+    try {
+      const res = await fetch(url.toString(), {
+        method: 'GET',
+        headers: { 'User-Agent': userAgent, Accept: 'application/json' },
+        signal: controller.signal,
+      });
+      if (!res.ok) return;
+      const json = (await res.json()) as { features?: PhotonFeature[] };
+      for (const f of json.features ?? []) {
+        const coords = f.geometry?.coordinates;
+        if (!coords || coords.length < 2) continue;
+        const [fLng, fLat] = coords;
+        const props = f.properties ?? {};
+        const name = props.name?.trim();
+        if (!name) continue;
+        const addrParts = [
+          props.street,
+          props.housenumber,
+          props.district,
+          props.city ?? props.county,
+          props.state,
+        ].filter(Boolean);
+        pushCandidate({
+          id: `photon/${props.osm_type ?? 'n'}/${props.osm_id ?? `${fLat.toFixed(4)}_${fLng.toFixed(4)}`}`,
+          name,
+          address: addrParts.length > 0 ? addrParts.join(', ') : null,
+          lat: fLat,
+          lng: fLng,
+        });
+      }
+    } catch {
+      // ignore mirror error
+    } finally {
+      clearTimeout(timer);
+    }
+  });
+
+  await Promise.all(photonTasks);
+
+  // If Photon returned nothing, try bounded Nominatim search for dental terms
+  if (collected.length === 0) {
+    for (const term of ['dokter gigi', 'klinik gigi']) {
+      const url = new URL(nominatimUrl);
+      url.searchParams.set('q', term);
+      url.searchParams.set('format', 'json');
+      url.searchParams.set('limit', '8');
+      url.searchParams.set('countrycodes', 'id');
+      url.searchParams.set('viewbox', `${minLng},${maxLat},${maxLng},${minLat}`);
+      url.searchParams.set('bounded', '1');
+
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), NOMINATIM_TIMEOUT_MS);
+      try {
+        const res = await fetch(url.toString(), {
+          method: 'GET',
+          headers: { 'User-Agent': userAgent, Accept: 'application/json' },
+          signal: controller.signal,
+        });
+        if (!res.ok) continue;
+        const rows = (await res.json()) as NominatimRow[];
+        for (const row of rows) {
+          const rLat = Number(row.lat);
+          const rLng = Number(row.lon);
+          if (!Number.isFinite(rLat) || !Number.isFinite(rLng)) continue;
+          const display = row.display_name?.trim() || '';
+          const title = row.name?.trim() || display.split(',')[0]?.trim() || 'Klinik Gigi';
+          pushCandidate({
+            id: `nominatim/${row.osm_type ?? 'node'}/${row.osm_id ?? `${rLat.toFixed(4)}_${rLng.toFixed(4)}`}`,
+            name: title,
+            address: display || null,
+            lat: rLat,
+            lng: rLng,
+          });
+        }
+      } catch {
+        // ignore
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+  }
+
+  collected.sort((a, b) => a.distance_km - b.distance_km);
+  return collected;
+}
+
 async function searchSeededDirectoryFallback(
   lat: number,
   lng: number,
   radiusKm: number,
 ): Promise<ClinicItem[]> {
+  if (!isWithinIndonesia(lat, lng)) {
+    return [];
+  }
+
   let records: Array<{
     osm_id: string;
     name: string;
@@ -219,9 +402,9 @@ async function searchSeededDirectoryFallback(
     return withinRadius;
   }
 
-  // If user is near a seeded Indonesian metro area (within 25 km), still return nearest regional RSGM/clinics
-  const withinMetro = scored.filter((item) => item.distance_km <= 25);
-  return withinMetro.slice(0, 6);
+  // Broad regional matching (up to 150 km) so any Indonesian kecamatan/kota still gets nearest regional RSGM/clinics
+  const withinRegion = scored.filter((item) => item.distance_km <= 150);
+  return withinRegion.slice(0, 6);
 }
 
 export async function searchNearbyClinics(
@@ -239,7 +422,7 @@ export async function searchNearbyClinics(
   const radiusMeters = Math.round(radiusKm * 1000);
   const query = buildOverpassQuery(lat, lng, radiusMeters);
 
-  // Rotate across configured primary mirror + backup Overpass mirrors
+  // 1. Rotate across configured primary + backup Overpass mirrors
   const mirrors = Array.from(new Set([env.overpassUrl, ...OVERPASS_MIRRORS]));
   let elements: OverpassElement[] | null = null;
 
@@ -269,6 +452,7 @@ export async function searchNearbyClinics(
       if (typeof elLat !== 'number' || typeof elLng !== 'number') continue;
 
       const tags = el.tags ?? {};
+      const directions = buildGoogleMapsDirectionsUrl(elLat, elLng);
       items.push({
         osm_id: osmId,
         name: tags.name?.trim() || 'Klinik Gigi (tanpa nama)',
@@ -278,8 +462,8 @@ export async function searchNearbyClinics(
         distance_km: haversineDistanceKm(lat, lng, elLat, elLng),
         phone: tags.phone ?? tags['contact:phone'] ?? null,
         opening_hours: tags.opening_hours ?? null,
-        osm_url: buildGoogleMapsDirectionsUrl(elLat, elLng),
-        google_maps_url: buildGoogleMapsDirectionsUrl(elLat, elLng),
+        osm_url: directions,
+        google_maps_url: directions,
       });
     }
 
@@ -293,7 +477,23 @@ export async function searchNearbyClinics(
     }
   }
 
-  // Fallback to seeded Indonesian dental clinic & RSGM directory so /clinics stays populated
+  // 2. Live Photon + Nominatim bounded search (supports any Indonesian kecamatan/kelurahan/kota)
+  const liveSearchItems = await searchClinicsViaNominatimAndPhoton(
+    lat,
+    lng,
+    radiusKm,
+    env.osmUserAgent,
+    env.nominatimUrl,
+  );
+  if (liveSearchItems.length > 0) {
+    setBoundedCache(clinicsCache, cacheKey, liveSearchItems, CLINICS_TTL_MS);
+    return {
+      source: 'openstreetmap',
+      data: liveSearchItems,
+    };
+  }
+
+  // 3. Fallback to nationwide curated Indonesian dental clinic & RSGM directory
   const directoryItems = await searchSeededDirectoryFallback(lat, lng, radiusKm);
   const osmFallbackUrl = `https://www.openstreetmap.org/#map=15/${lat}/${lng}`;
 
@@ -312,6 +512,134 @@ export async function searchNearbyClinics(
   };
 }
 
+/**
+ * Generates clean normalized variants for Indonesian subdistrict/city queries
+ * (e.g. "Kecamatan Coblong, Kota Bandung" -> ["Kecamatan Coblong, Kota Bandung", "Coblong, Bandung", "Bandung"]).
+ */
+export function buildIndonesianGeocodeVariants(rawQuery: string): string[] {
+  const trimmed = rawQuery.trim().replace(/\s+/g, ' ');
+  if (!trimmed) return [];
+
+  const strippedPrefixes = trimmed
+    .replace(/\b(kecamatan|kec\.?|kelurahan|kel\.?|desa|kabupaten|kab\.?|kota)\b/gi, ' ')
+    .replace(/\s*,\s*/g, ', ')
+    .replace(/\s+/g, ' ')
+    .replace(/^,\s*|\s*,$/g, '')
+    .trim();
+
+  const variants: string[] = [trimmed];
+  if (strippedPrefixes && strippedPrefixes.toLowerCase() !== trimmed.toLowerCase()) {
+    variants.push(strippedPrefixes);
+  }
+  if (!/indonesia/i.test(strippedPrefixes || trimmed)) {
+    variants.push(`${strippedPrefixes || trimmed}, Indonesia`);
+  }
+
+  // If user typed "Kecamatan X, Kota Y", also keep "Kota Y" as last resort if exact fails
+  const commaParts = strippedPrefixes
+    .split(',')
+    .map((p) => p.trim())
+    .filter(Boolean);
+  if (commaParts.length >= 2) {
+    variants.push(commaParts[commaParts.length - 1]);
+  }
+
+  return Array.from(new Set(variants));
+}
+
+async function fetchNominatimCandidates(
+  query: string,
+  nominatimUrl: string,
+  userAgent: string,
+): Promise<GeocodeCandidate[]> {
+  const url = new URL(nominatimUrl);
+  url.searchParams.set('q', query);
+  url.searchParams.set('format', 'json');
+  url.searchParams.set('limit', '5');
+  url.searchParams.set('countrycodes', 'id');
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), NOMINATIM_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'User-Agent': userAgent,
+        Accept: 'application/json',
+      },
+      signal: controller.signal,
+    });
+    if (!response.ok) return [];
+
+    const rows = (await response.json()) as NominatimRow[];
+    const candidates: GeocodeCandidate[] = [];
+    for (const row of rows.slice(0, 5)) {
+      const latitude = Number(row.lat);
+      const longitude = Number(row.lon);
+      if (row.display_name && Number.isFinite(latitude) && Number.isFinite(longitude)) {
+        candidates.push({
+          display_name: row.display_name,
+          latitude,
+          longitude,
+        });
+      }
+    }
+    return candidates;
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchPhotonGeocodeCandidates(
+  query: string,
+  userAgent: string,
+): Promise<GeocodeCandidate[]> {
+  const url = new URL(PHOTON_API_URL);
+  url.searchParams.set('q', `${query}, Indonesia`);
+  url.searchParams.set('limit', '5');
+  url.searchParams.set('bbox', '94.5,-11.5,141.5,6.5');
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PHOTON_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: { 'User-Agent': userAgent, Accept: 'application/json' },
+      signal: controller.signal,
+    });
+    if (!response.ok) return [];
+
+    const json = (await response.json()) as { features?: PhotonFeature[] };
+    const candidates: GeocodeCandidate[] = [];
+    for (const f of json.features ?? []) {
+      const coords = f.geometry?.coordinates;
+      if (!coords || coords.length < 2) continue;
+      const [longitude, latitude] = coords;
+      if (!isWithinIndonesia(latitude, longitude)) continue;
+      const props = f.properties ?? {};
+      const parts = [props.name, props.district, props.city ?? props.county, props.state, 'Indonesia'].filter(
+        Boolean,
+      );
+      if (parts.length > 0) {
+        candidates.push({
+          display_name: Array.from(new Set(parts)).join(', '),
+          latitude,
+          longitude,
+        });
+      }
+    }
+    return candidates.slice(0, 5);
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function geocodePlace(q: string): Promise<GeocodeCandidate[]> {
   const normalized = q.trim().toLowerCase();
   const cached = getCached(geocodeCache, normalized);
@@ -327,53 +655,24 @@ export async function geocodePlace(q: string): Promise<GeocodeCandidate[]> {
   lastNominatimCallMs = Date.now();
 
   const env = getEnv();
-  const url = new URL(env.nominatimUrl);
-  url.searchParams.set('q', q.trim());
-  url.searchParams.set('format', 'json');
-  url.searchParams.set('limit', '5');
-  url.searchParams.set('countrycodes', 'id');
+  const variants = buildIndonesianGeocodeVariants(q);
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), NOMINATIM_TIMEOUT_MS);
-
-  try {
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: {
-        'User-Agent': env.osmUserAgent,
-        Accept: 'application/json',
-      },
-      signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      return [];
+  for (const variant of variants) {
+    const nomCandidates = await fetchNominatimCandidates(variant, env.nominatimUrl, env.osmUserAgent);
+    if (nomCandidates.length > 0) {
+      setBoundedCache(geocodeCache, normalized, nomCandidates, GEOCODE_TTL_MS);
+      return nomCandidates;
     }
-
-    const rows = (await response.json()) as Array<{
-      display_name?: string;
-      lat?: string;
-      lon?: string;
-    }>;
-
-    const candidates: GeocodeCandidate[] = [];
-    for (const row of rows.slice(0, 5)) {
-      const latitude = Number(row.lat);
-      const longitude = Number(row.lon);
-      if (row.display_name && Number.isFinite(latitude) && Number.isFinite(longitude)) {
-        candidates.push({
-          display_name: row.display_name,
-          latitude,
-          longitude,
-        });
-      }
-    }
-
-    setBoundedCache(geocodeCache, normalized, candidates, GEOCODE_TTL_MS);
-    return candidates;
-  } catch {
-    return [];
-  } finally {
-    clearTimeout(timer);
   }
+
+  // Fallback to Photon geocoder for Indonesian subdistricts/kecamatan/kelurahan
+  for (const variant of variants.slice(0, 2)) {
+    const photonCandidates = await fetchPhotonGeocodeCandidates(variant, env.osmUserAgent);
+    if (photonCandidates.length > 0) {
+      setBoundedCache(geocodeCache, normalized, photonCandidates, GEOCODE_TTL_MS);
+      return photonCandidates;
+    }
+  }
+
+  return [];
 }

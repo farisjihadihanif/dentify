@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app';
-import { clearOsmCaches } from '../src/services/osmClinicService';
+import {
+  buildIndonesianGeocodeVariants,
+  clearOsmCaches,
+} from '../src/services/osmClinicService';
 
 describe('T-203 Clinics OSM endpoints: validation, distance sort, fallback, geocode', () => {
   beforeEach(() => {
@@ -156,5 +159,46 @@ describe('T-203 Clinics OSM endpoints: validation, distance sort, fallback, geoc
         longitude: 110.355,
       },
     ]);
+  });
+
+  it('normalizes Indonesian subdistrict queries and supports nationwide Photon fallback when Overpass fails', async () => {
+    const variants = buildIndonesianGeocodeVariants('Kecamatan Coblong, Kota Bandung');
+    expect(variants).toContain('Kecamatan Coblong, Kota Bandung');
+    expect(variants).toContain('Coblong, Bandung');
+    expect(variants).toContain('Bandung');
+
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes('photon.komoot.io')) {
+        return new Response(
+          JSON.stringify({
+            features: [
+              {
+                geometry: { coordinates: [116.842, -1.272] },
+                properties: {
+                  osm_type: 'N',
+                  osm_id: 777,
+                  name: 'Klinik Gigi Balikpapan Selatan',
+                  city: 'Balikpapan',
+                  state: 'Kalimantan Timur',
+                },
+              },
+            ],
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        );
+      }
+      throw new Error('Overpass busy');
+    });
+
+    const app = createApp();
+    const res = await request(app).get('/api/v1/clinics?lat=-1.27&lng=116.84&radius_km=5');
+    expect(res.status).toBe(200);
+    expect(res.body.source).toBe('openstreetmap');
+    expect(res.body.data.length).toBeGreaterThan(0);
+    expect(res.body.data[0].name).toBe('Klinik Gigi Balikpapan Selatan');
+    expect(res.body.data[0].osm_url).toContain(
+      'https://www.google.com/maps/dir/?api=1&destination=',
+    );
   });
 });
