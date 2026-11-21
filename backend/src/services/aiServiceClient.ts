@@ -6,6 +6,7 @@ import { ApiError } from '../utils/ApiError';
 export interface AiPredictResponse {
   primary_condition: DentalCondition;
   confidence_score: number;
+  is_low_confidence?: boolean;
   probabilities: Record<DentalCondition, number>;
   detections: IDetection[];
   urgency_level: UrgencyLevel;
@@ -95,6 +96,13 @@ export async function requestDentalPrediction(params: {
 
       if (code === 'INVALID_IMAGE') {
         throw new ApiError(422, 'INVALID_IMAGE', message);
+      }
+      if (code === 'LOW_CONFIDENCE') {
+        throw new ApiError(
+          502,
+          'AI_SERVICE_UNAVAILABLE',
+          'Layanan analisis AI perlu menyegarkan prediksi. Silakan coba kirim ulang foto Anda.',
+        );
       }
       throw new ApiError(422, 'LOW_QUALITY_IMAGE', message);
     }

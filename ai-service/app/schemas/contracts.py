@@ -32,6 +32,7 @@ class ImageQualityReport(BaseModel):
 class PredictResponse(BaseModel):
     primary_condition: DentalCondition
     confidence_score: float = Field(..., ge=0.0, le=1.0)
+    is_low_confidence: bool = False
     probabilities: dict[DentalCondition, float]
     detections: list[DetectionItem]
     urgency_level: UrgencyLevel

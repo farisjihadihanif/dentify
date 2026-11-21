@@ -32,9 +32,9 @@ export function validateClientImageFile(
   }
 
   const mime = (file.type || '').toLowerCase();
-  const hasAllowedMime = ALLOWED_CLIENT_MIME_TYPES.includes(
-    mime as (typeof ALLOWED_CLIENT_MIME_TYPES)[number],
-  );
+  const hasAllowedMime =
+    ALLOWED_CLIENT_MIME_TYPES.includes(mime as (typeof ALLOWED_CLIENT_MIME_TYPES)[number]) ||
+    mime.startsWith('image/');
   const hasFallbackImageExt =
     (mime === '' || mime === 'application/octet-stream') &&
     IMAGE_EXTENSION_REGEX.test(file.name || '');

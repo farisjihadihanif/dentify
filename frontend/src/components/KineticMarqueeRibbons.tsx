@@ -27,7 +27,7 @@ function FourPointStarIcon() {
     <svg
       viewBox="0 0 24 24"
       aria-hidden="true"
-      className="h-5 w-5 shrink-0 text-cyan-200 sm:h-6 sm:w-6"
+      className="h-5 w-5 shrink-0 text-white/75 sm:h-6 sm:w-6"
       fill="currentColor"
     >
       <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />

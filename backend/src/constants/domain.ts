@@ -21,7 +21,7 @@ export type UserRole = (typeof USER_ROLES)[number];
 
 export const CONDITION_LABELS: Record<DentalCondition, string> = {
   caries: 'Indikasi Karies Gigi (Gigi Berlubang)',
-  calculus: 'Indikasi Karang Gigi',
+  calculus: 'Indikasi Karang Gigi & Plak (Kalkulus Dental)',
   gingivitis: 'Indikasi Radang Gusi (Gingivitis)',
   healthy: 'Gigi dan Gusi Tampak Sehat',
 };

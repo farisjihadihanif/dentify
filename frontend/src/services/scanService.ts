@@ -30,6 +30,7 @@ export interface ScanReportData {
   detections: ScanDetectionItem[];
   urgency_level: UrgencyLevel;
   trigger_clinic_finder: boolean;
+  is_low_confidence?: boolean;
   care_recommendations: CareRecommendations;
   medical_disclaimer: string;
   model_version?: string;

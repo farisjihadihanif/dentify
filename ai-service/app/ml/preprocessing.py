@@ -6,10 +6,7 @@ import numpy as np
 from PIL import Image, ImageSequence
 
 INPUT_SIZE = 224
-MIN_DIMENSION = 32
-MIN_MEAN_LUMINANCE = 3.0
-MAX_MEAN_LUMINANCE = 253.0
-MIN_PIXEL_STD = 2.5
+MIN_PIXEL_STD = 2.0
 
 
 class ImageValidationError(Exception):
@@ -80,9 +77,10 @@ def decode_bytes_to_rgb(raw_bytes: bytes) -> np.ndarray:
 
 def assess_image_quality(rgb_img: np.ndarray) -> tuple[float, float, bool, str | None]:
     """
-    Permissive dental-photo quality gate:
-    - Never blocks clear dental photos, dark oral cavities, or soft-focus macro shots.
-    - Rejects only genuinely broken/blank images (< 32x32, near-black, blown-out white, or uniform flat frame).
+    Blank-only dental-photo quality gate:
+    - Never blocks valid clinical dental photos, low-resolution thumbnails, dark oral cavities,
+      or soft-focus close-ups.
+    - Rejects ONLY literally solid blank frames (std_dev < 2.0).
     """
     height, width = rgb_img.shape[:2]
     gray = cv2.cvtColor(rgb_img, cv2.COLOR_RGB2GRAY)
@@ -100,37 +98,12 @@ def assess_image_quality(rgb_img: np.ndarray) -> tuple[float, float, bool, str |
     mean_luminance = float(np.mean(gray))
     pixel_std = float(np.std(gray))
 
-    if width < MIN_DIMENSION or height < MIN_DIMENSION:
-        return (
-            blur_score,
-            mean_luminance,
-            False,
-            f"Resolusi foto terlalu kecil ({width}x{height} px, minimal {MIN_DIMENSION}x{MIN_DIMENSION} px). "
-            "Ambil ulang foto lebih dekat dan jelas.",
-        )
-
-    if mean_luminance < MIN_MEAN_LUMINANCE:
-        return (
-            blur_score,
-            mean_luminance,
-            False,
-            "Foto terlalu gelap (hampir hitam seluruhnya). Ambil ulang foto di tempat yang terang.",
-        )
-
-    if mean_luminance > MAX_MEAN_LUMINANCE:
-        return (
-            blur_score,
-            mean_luminance,
-            False,
-            "Foto terlalu silau atau putih polos. Kurangi pantulan lampu dan ambil ulang foto gigi Anda.",
-        )
-
     if pixel_std < MIN_PIXEL_STD:
         return (
             blur_score,
             mean_luminance,
             False,
-            "Foto terlihat polos atau buram tanpa detail gigi. Tahan kamera dengan stabil lalu ambil ulang foto.",
+            "Foto terlihat polos atau kosong tanpa detail gigi. Ambil ulang foto dengan area gigi terlihat jelas.",
         )
 
     return blur_score, mean_luminance, True, None

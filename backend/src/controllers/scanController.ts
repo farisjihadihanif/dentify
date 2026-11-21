@@ -24,6 +24,7 @@ function serializeScanRecord(doc: IScanRecordDocument, saved = true) {
     detections: doc.detections,
     urgency_level: doc.urgency_level,
     trigger_clinic_finder: doc.trigger_clinic_finder,
+    is_low_confidence: Boolean(doc.is_low_confidence),
     care_recommendations: doc.care_recommendations,
     medical_disclaimer: doc.medical_disclaimer,
     model_version: doc.model_version,
@@ -77,6 +78,7 @@ export async function createScan(
     const conditionLabel = CONDITION_LABELS[prediction.primary_condition];
     const triggerClinicFinder =
       prediction.urgency_level === 'emergency' || Boolean(prediction.trigger_clinic_finder);
+    const isLowConfidence = Boolean(prediction.is_low_confidence);
 
     // 5. Save only if authenticated (quick mode returns saved: false)
     if (req.user) {
@@ -90,6 +92,7 @@ export async function createScan(
         detections: prediction.detections,
         urgency_level: prediction.urgency_level,
         trigger_clinic_finder: triggerClinicFinder,
+        is_low_confidence: isLowConfidence,
         care_recommendations: careRecommendations,
         medical_disclaimer: DISCLAIMER_SCAN,
         image_metadata: {
@@ -119,6 +122,7 @@ export async function createScan(
         detections: prediction.detections,
         urgency_level: prediction.urgency_level,
         trigger_clinic_finder: triggerClinicFinder,
+        is_low_confidence: isLowConfidence,
         care_recommendations: careRecommendations,
         medical_disclaimer: DISCLAIMER_SCAN,
         model_version: prediction.model_version,

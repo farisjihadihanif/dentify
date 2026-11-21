@@ -1,4 +1,3 @@
-import { MIN_IMAGE_DIMENSION } from '../constants/domain';
 import { ApiError } from './ApiError';
 
 export type SupportedImageMime =
@@ -174,14 +173,6 @@ export function inspectImageBuffer(buf: Buffer): InspectedImage {
       422,
       'INVALID_IMAGE',
       'File gambar tidak valid atau rusak. Gunakan foto berformat JPEG, PNG, atau WEBP.',
-    );
-  }
-
-  if (dims && (dims.width < MIN_IMAGE_DIMENSION || dims.height < MIN_IMAGE_DIMENSION)) {
-    throw new ApiError(
-      422,
-      'LOW_QUALITY_IMAGE',
-      `Resolusi foto terlalu kecil (${dims.width}×${dims.height} px, minimal ${MIN_IMAGE_DIMENSION}×${MIN_IMAGE_DIMENSION} px). Ambil ulang foto dengan pencahayaan terang dan fokus pada gigi.`,
     );
   }
 

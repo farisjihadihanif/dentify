@@ -45,7 +45,7 @@ URGENCY_RANK: dict[UrgencyLevel, int] = {
 
 CONDITION_LABELS_ID: dict[str, str] = {
     "caries": "indikasi karies gigi (gigi berlubang)",
-    "calculus": "indikasi karang gigi (calculus)",
+    "calculus": "indikasi karang gigi & plak (kalkulus dental)",
     "gingivitis": "indikasi radang gusi (gingivitis)",
     "healthy": "kondisi gigi dan gusi yang tampak sehat",
 }

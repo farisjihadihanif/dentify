@@ -45,7 +45,7 @@ function describeConfidenceMeaning(score: number): string {
  */
 export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCardProps) {
   const confidencePercent = Math.round(report.confidence_score * 100);
-  const isUncertain = report.confidence_score < 0.75;
+  const isUncertain = Boolean(report.is_low_confidence) || report.confidence_score < 0.75;
   const deniHref = report.id
     ? `/chat?scan_id=${encodeURIComponent(report.id)}&condition=${encodeURIComponent(
         report.primary_condition,
@@ -93,7 +93,7 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
             <p
               role="note"
               data-testid="low-confidence-warning"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-status-yellow/40 bg-bg px-3 py-1.5 text-xs font-semibold text-status-yellow"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-status-yellow/40 bg-bg px-3 py-1.5 text-xs font-semibold text-status-yellow dark:border-amber-800/40 dark:bg-amber-950/50 dark:text-amber-300"
             >
               <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>{LOW_CONFIDENCE_WARNING_TEXT}</span>

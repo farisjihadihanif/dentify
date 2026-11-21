@@ -459,18 +459,18 @@ export function ScanWorkspace({
                       htmlFor="dental-image-upload"
                       className="flex cursor-pointer flex-col items-center justify-center rounded-card border-2 border-dashed border-border bg-bg p-6 text-center transition-colors hover:border-brand hover:bg-brand-soft"
                     >
-                      <span className="text-card-title font-semibold text-brand-dark">
+                      <span className="text-card-title font-semibold text-text">
                         Pilih atau Sertakan File Foto Gigi dari Perangkat Anda
                       </span>
                       <span className="mt-1 text-badge text-text-muted">
-                        Format yang didukung: JPG, PNG, atau WEBP (maksimal 5 MB)
+                        Format yang didukung: JPG, PNG, WEBP, GIF, atau BMP (maksimal 5 MB)
                       </span>
                       <input
                         ref={fileInputRef}
                         id="dental-image-upload"
                         name="image"
                         type="file"
-                        accept="image/jpeg,image/png,image/webp"
+                        accept="image/jpeg,image/png,image/webp,image/gif,image/bmp"
                         onChange={handleGalleryFileChange}
                         className="sr-only"
                       />

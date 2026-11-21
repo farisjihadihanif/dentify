@@ -74,16 +74,31 @@ describe('T-108 & T-109 Scan endpoints, upload validation, and ownership isolati
     expect(res.body.code).toBe('INVALID_IMAGE');
   });
 
-  it('rejects tiny image (< 32x32) with 422 LOW_QUALITY_IMAGE', async () => {
+  it('accepts small valid image (24x24) and returns 201 with calculus label & is_low_confidence flag without 422 rejection', async () => {
+    vi.spyOn(aiClient, 'requestDentalPrediction').mockResolvedValueOnce({
+      primary_condition: 'calculus',
+      confidence_score: 0.52,
+      is_low_confidence: true,
+      probabilities: { caries: 0.18, calculus: 0.52, gingivitis: 0.22, healthy: 0.08 },
+      detections: [{ label: 'calculus', confidence: 0.52, bbox: [4, 4, 16, 16] }],
+      urgency_level: 'medium',
+      trigger_clinic_finder: false,
+      quality: { blur_score: 42.0, mean_luminance: 108.0, passed: true },
+      model_version: 'denthub-mobilenetv2-2.0.0',
+    });
+
     const app = createApp();
-    const tinyPng = makePngBuffer(24, 24);
+    const smallPng = makePngBuffer(24, 24);
     const res = await request(app)
       .post('/api/v1/scans')
-      .field('capture_source', 'camera')
-      .attach('image', tinyPng, { filename: 'tiny.png', contentType: 'image/png' });
+      .field('capture_source', 'upload')
+      .attach('image', smallPng, { filename: 'small-calculus.png', contentType: 'image/png' });
 
-    expect(res.status).toBe(422);
-    expect(res.body.code).toBe('LOW_QUALITY_IMAGE');
+    expect(res.status).toBe(201);
+    expect(res.body.data.primary_condition).toBe('calculus');
+    expect(res.body.data.condition_label).toBe('Indikasi Karang Gigi & Plak (Kalkulus Dental)');
+    expect(res.body.data.is_low_confidence).toBe(true);
+    expect(res.body.data.care_recommendations.dos.length).toBeGreaterThan(0);
   });
 
   it('sniffs actual binary magic headers even when filename extension is mismatched (.webp with PNG bytes)', async () => {

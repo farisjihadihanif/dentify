@@ -12,7 +12,7 @@ import tensorflow as tf
 from app.core.config import Settings, get_settings
 from app.core.state import runtime_state
 from app.ml.custom_model import DENTAL_LABELS, load_denthub_model
-from app.ml.preprocessing import ImageValidationError, decode_and_preprocess_bytes
+from app.ml.preprocessing import decode_and_preprocess_bytes
 from app.ml.urgency import compute_urgency
 from app.schemas import DentalCondition, DetectionItem, ImageQualityReport, PredictResponse
 
@@ -147,15 +147,20 @@ class DentalInferenceService:
         if total > 0:
             probs_vec = probs_vec / total
 
-        top_idx = int(np.argmax(probs_vec))
+        healthy_idx = self.labels.index("healthy") if "healthy" in self.labels else -1
+        healthy_prob = float(probs_vec[healthy_idx]) if healthy_idx >= 0 else 0.0
+
+        # When healthy probability < 0.45 (pathology is visibly present), pick the highest
+        # pathology class (caries, calculus, or gingivitis) instead of rejecting or picking healthy.
+        if healthy_idx >= 0 and healthy_prob < 0.45:
+            pathology_indices = [i for i, lbl in enumerate(self.labels) if lbl != "healthy"]
+            top_idx = max(pathology_indices, key=lambda i: float(probs_vec[i]))
+        else:
+            top_idx = int(np.argmax(probs_vec))
+
         primary_condition: DentalCondition = self.labels[top_idx]
         confidence = round(float(probs_vec[top_idx]), 4)
-
-        if confidence < self.settings.min_confidence:
-            raise ImageValidationError(
-                "LOW_QUALITY_IMAGE",
-                "Tingkat keyakinan analisis terlalu rendah. Pastikan gigi bersih tanpa sisa makanan dan ambil ulang foto di tempat terang.",
-            )
+        is_low_confidence = confidence < self.settings.min_confidence
 
         probabilities: dict[DentalCondition, float] = {
             label: round(float(probs_vec[idx]), 4)
@@ -183,6 +188,7 @@ class DentalInferenceService:
         return PredictResponse(
             primary_condition=primary_condition,
             confidence_score=confidence,
+            is_low_confidence=is_low_confidence,
             probabilities=probabilities,
             detections=[
                 DetectionItem(

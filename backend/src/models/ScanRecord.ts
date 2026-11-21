@@ -36,6 +36,7 @@ export interface IScanRecord {
   detections: IDetection[];
   urgency_level: UrgencyLevel;
   trigger_clinic_finder: boolean;
+  is_low_confidence?: boolean;
   care_recommendations: ICareRecommendations;
   medical_disclaimer: string;
   image_metadata?: IImageMetadata;
@@ -125,6 +126,10 @@ const scanRecordSchema = new Schema<IScanRecordDocument>(
       required: true,
     },
     trigger_clinic_finder: {
+      type: Boolean,
+      default: false,
+    },
+    is_low_confidence: {
       type: Boolean,
       default: false,
     },

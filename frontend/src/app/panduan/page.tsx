@@ -172,7 +172,7 @@ export default function PanduanPage() {
               transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
               className="mx-auto max-w-3xl text-center"
             >
-              <span className="inline-block rounded-pill border border-white/20 bg-white/10 px-4 py-1 text-xs font-bold uppercase tracking-wider text-cyan-200">
+              <span className="inline-block rounded-pill border border-white/20 bg-white/10 px-4 py-1 text-xs font-bold uppercase tracking-wider text-zinc-200">
                 Pusat Bantuan • Panduan Pengguna DentHub
               </span>
               <h1
@@ -304,7 +304,7 @@ export default function PanduanPage() {
               transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
               className="mx-auto max-w-3xl text-center"
             >
-              <span className="inline-block rounded-pill border border-white/20 bg-white/10 px-4 py-1 text-xs font-bold uppercase tracking-wider text-cyan-200">
+              <span className="inline-block rounded-pill border border-white/20 bg-white/10 px-4 py-1 text-xs font-bold uppercase tracking-wider text-zinc-200">
                 Edukasi Kesehatan Gigi • Dunia Dentist
               </span>
               <h2

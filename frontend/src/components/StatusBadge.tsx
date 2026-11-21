@@ -20,19 +20,22 @@ export const URGENCY_METADATA: Record<UrgencyLevel, UrgencyMeta> = {
   low: {
     label: 'Perawatan Mandiri',
     description: 'Kondisi dapat dipantau dengan kebersihan mulut rutin di rumah.',
-    badgeClass: 'bg-status-green text-surface',
+    badgeClass:
+      'bg-status-green text-surface dark:border dark:border-emerald-800/40 dark:bg-emerald-950/50 dark:text-emerald-300',
     icon: CheckCircle2,
   },
   medium: {
     label: 'Disarankan Periksa ke Dokter Gigi (1–2 minggu)',
     description: 'Disarankan menjadwalkan pemeriksaan ke dokter gigi dalam 1–2 minggu.',
-    badgeClass: 'bg-status-yellow text-surface',
+    badgeClass:
+      'bg-status-yellow text-surface dark:border dark:border-amber-800/40 dark:bg-amber-950/50 dark:text-amber-300',
     icon: AlertCircle,
   },
   emergency: {
     label: 'Segera ke Dokter Gigi',
     description: 'Terdeteksi indikasi yang memerlukan penanganan dokter gigi segera.',
-    badgeClass: 'bg-status-red text-surface',
+    badgeClass:
+      'bg-status-red text-surface dark:border dark:border-rose-800/40 dark:bg-rose-950/50 dark:text-rose-300',
     icon: AlertTriangle,
   },
 };

@@ -35,18 +35,19 @@ export const DENTAL_KNOWLEDGE_SEED: KnowledgeSeedItem[] = [
   },
   {
     condition_key: 'calculus',
-    title: 'Panduan Perawatan Awal Indikasi Karang Gigi',
+    title: 'Panduan Perawatan Awal Indikasi Karang Gigi & Plak (Kalkulus Dental)',
     description:
-      'Karang gigi (kalkulus) adalah plak yang mengeras di permukaan gigi atau di sepanjang garis gusi. Karang gigi yang sudah mengeras tidak dapat dibersihkan hanya dengan sikat gigi dan memerlukan pembersihan profesional (scaling).',
+      'Karang gigi (kalkulus dental) adalah penumpukan plak yang mengeras di permukaan gigi atau di sepanjang garis gusi. Karang gigi yang sudah mengeras tidak dapat dibersihkan hanya dengan sikat gigi dan memerlukan tindakan pembersihan profesional (scaling) oleh dokter gigi.',
     dos: [
-      'Sikat gigi dua kali sehari selama dua menit dengan sikat berbulu lembut, terutama di dekat garis gusi.',
-      'Gunakan benang gigi setiap hari untuk mencegah penumpukan plak baru di sela gigi.',
-      'Jadwalkan tindakan pembersihan karang gigi (scaling) di klinik dokter gigi dalam 1–2 minggu.',
+      'Jadwalkan tindakan pembersihan karang gigi profesional (scaling) di klinik dokter gigi dalam 1–2 minggu.',
+      'Sikat gigi dua kali sehari selama dua menit dengan pasta gigi berfluoride dan sikat berbulu lembut, diarahkan lembut pada garis gusi.',
+      'Lakukan pembersihan sela gigi (interdental cleaning) setiap hari menggunakan benang gigi (dental floss) atau sikat interdental untuk mencegah plak baru mengeras.',
+      'Berkumur dengan air putih atau obat kumur anti-plak non-alkohol setelah makan untuk membantu mengendalikan bakteri pembentuk plak.',
     ],
     donts: [
-      'Jangan mencoba mengikis atau mencungkil karang gigi sendiri dengan alat tajam atau logam.',
-      'Hindari menyikat gigi terlalu keras karena dapat melukai gusi dan mengikis email.',
-      'Batasi kebiasaan merokok serta konsumsi kopi atau teh manis berlebihan tanpa berkumur air putih.',
+      'Jangan mencoba mengikis, mengerok, atau mencungkil karang gigi sendiri dengan alat tajam, pinset, atau logam.',
+      'Hindari menyikat gigi terlalu keras karena dapat melukai gusi yang meradang dan mengikis lapisan email gigi.',
+      'Batasi kebiasaan merokok serta konsumsi kopi, teh manis, atau camilan tinggi gula tanpa berkumur air putih setelahnya.',
     ],
     emergency_signs: [
       'Gusi bengkak hebat, sangat nyeri, atau keluar nanah di sekitar karang gigi.',

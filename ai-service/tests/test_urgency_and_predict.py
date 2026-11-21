@@ -107,50 +107,73 @@ def test_predict_missing_key_returns_401(client: TestClient) -> None:
     assert resp.status_code == 401
 
 
-def test_predict_rejects_tiny_dark_and_blurry_images(client: TestClient) -> None:
+def test_predict_rejects_only_blank_frames_and_accepts_small_nonblank_images(
+    client: TestClient,
+) -> None:
     headers = {"X-Internal-Key": "test-key-predict"}
 
-    # Tiny (< 32x32)
-    tiny = _encode_png(np.full((24, 24, 3), 130, dtype=np.uint8))
-    r_tiny = client.post(
+    # Small valid non-blank image (24x24 with visible structure) -> accepted (upscaled cleanly)
+    small_valid = np.full((24, 24, 3), 25, dtype=np.uint8)
+    cv2.rectangle(small_valid, (4, 4), (20, 20), (225, 220, 200), thickness=-1)
+    cv2.circle(small_valid, (12, 12), 4, (55, 35, 25), thickness=-1)
+    r_small = client.post(
         "/internal/predict",
         headers=headers,
-        files={"image": ("tiny.png", io.BytesIO(tiny), "image/png")},
+        files={"image": ("small-valid.png", io.BytesIO(_encode_png(small_valid)), "image/png")},
     )
-    assert r_tiny.status_code == 422
-    assert r_tiny.json()["detail"]["code"] == "LOW_QUALITY_IMAGE"
+    assert r_small.status_code == 200
+    assert r_small.json()["quality"]["passed"] is True
 
-    # Pitch-black (mean luminance < 3.0)
-    dark = _encode_png(np.full((300, 300, 3), 1, dtype=np.uint8))
+    # Solid pitch-black blank frame (std_dev = 0.0 < 2.0) -> 422 LOW_QUALITY_IMAGE
+    dark_blank = _encode_png(np.full((300, 300, 3), 1, dtype=np.uint8))
     r_dark = client.post(
         "/internal/predict",
         headers=headers,
-        files={"image": ("dark.png", io.BytesIO(dark), "image/png")},
+        files={"image": ("dark.png", io.BytesIO(dark_blank), "image/png")},
     )
     assert r_dark.status_code == 422
     assert r_dark.json()["detail"]["code"] == "LOW_QUALITY_IMAGE"
 
-    # Flat/blank frame (pixel std < 2.5)
-    blurry = _encode_png(np.full((300, 300, 3), 130, dtype=np.uint8))
-    r_blur = client.post(
+    # Solid gray flat blank frame (std_dev = 0.0 < 2.0) -> 422 LOW_QUALITY_IMAGE
+    flat_blank = _encode_png(np.full((300, 300, 3), 130, dtype=np.uint8))
+    r_flat = client.post(
         "/internal/predict",
         headers=headers,
-        files={"image": ("blurry.png", io.BytesIO(blurry), "image/png")},
+        files={"image": ("blank.png", io.BytesIO(flat_blank), "image/png")},
     )
-    assert r_blur.status_code == 422
-    assert r_blur.json()["detail"]["code"] == "LOW_QUALITY_IMAGE"
+    assert r_flat.status_code == 422
+    assert r_flat.json()["detail"]["code"] == "LOW_QUALITY_IMAGE"
 
 
-def test_predict_low_confidence_returns_low_quality_image(client: TestClient) -> None:
-    inference_service.model = _FakeModel([0.40, 0.30, 0.20, 0.10])  # type: ignore[assignment]
+def test_predict_low_confidence_returns_200_with_flag_and_pathology_tiebreaker(
+    client: TestClient,
+) -> None:
+    # Split low-confidence prediction where healthy < 0.45 -> NEVER 422; picks highest pathology
+    inference_service.model = _FakeModel([0.36, 0.22, 0.04, 0.38])  # type: ignore[assignment]
     img_bytes = _make_sharp_dental_image()
     resp = client.post(
         "/internal/predict",
         headers={"X-Internal-Key": "test-key-predict"},
         files={"image": ("tooth.png", io.BytesIO(img_bytes), "image/png")},
     )
-    assert resp.status_code == 422
-    assert resp.json()["detail"]["code"] == "LOW_QUALITY_IMAGE"
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["primary_condition"] == "caries"
+    assert body["is_low_confidence"] is True
+    assert body["quality"]["passed"] is True
+
+    # Split low-confidence calculus prediction -> returns calculus 200 OK with is_low_confidence: True
+    inference_service.model = _FakeModel([0.18, 0.44, 0.28, 0.10])  # type: ignore[assignment]
+    resp_calc = client.post(
+        "/internal/predict",
+        headers={"X-Internal-Key": "test-key-predict"},
+        files={"image": ("tartar.png", io.BytesIO(img_bytes), "image/png")},
+    )
+    assert resp_calc.status_code == 200
+    calc_body = resp_calc.json()
+    assert calc_body["primary_condition"] == "calculus"
+    assert calc_body["urgency_level"] == "medium"
+    assert calc_body["is_low_confidence"] is True
 
 
 def test_predict_returns_valid_schema_and_fast_latency(client: TestClient) -> None:

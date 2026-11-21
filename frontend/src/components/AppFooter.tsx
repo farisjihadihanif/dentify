@@ -71,7 +71,7 @@ export function AppFooter({ pathnameOverride }: AppFooterProps = {}) {
             className={[
               'inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-pill px-3.5 text-xs font-semibold transition-colors',
               isPanduan
-                ? 'border border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-cyan-200'
+                ? 'border border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white'
                 : 'bg-brand-soft text-brand-dark hover:bg-brand hover:text-surface',
             ].join(' ')}
           >
@@ -83,7 +83,7 @@ export function AppFooter({ pathnameOverride }: AppFooterProps = {}) {
             className={[
               'inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-pill border px-3.5 text-xs font-semibold transition-colors',
               isPanduan
-                ? 'border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-cyan-200'
+                ? 'border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white'
                 : 'border-border bg-surface text-brand-dark hover:border-brand hover:bg-brand-soft',
             ].join(' ')}
           >

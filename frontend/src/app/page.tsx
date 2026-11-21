@@ -119,13 +119,13 @@ export default function HomePage() {
           <DentHubLogo size={30} showText />
         </Link>
 
-        {/* Full-Section Concentric Dental Instrument Orbit */}
-        <div className="absolute inset-0 h-full w-full">
+        {/* Full-Section Interactive Concentric Dental Instrument Orbit */}
+        <div className="absolute inset-0 h-full w-full z-10 pointer-events-none">
           <ConcentricDentalOrbit />
         </div>
 
         {/* Centered Hero Typography Floating Directly Over Concentric Orbit */}
-        <div className="pointer-events-none relative z-10 mx-auto flex w-full max-w-2xl flex-col items-center justify-center px-4 py-16 text-center sm:px-6">
+        <div className="pointer-events-none relative z-20 mx-auto flex w-full max-w-2xl flex-col items-center justify-center px-4 py-16 text-center sm:px-6">
           <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-text sm:text-5xl lg:text-6xl">
             Cegah Gigi Berlubang Sejak Dini
           </h1>
@@ -138,7 +138,7 @@ export default function HomePage() {
             <Link
               href="/scan"
               data-testid="hero-cta-cek-sekarang"
-              className="pointer-events-auto inline-flex h-11 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-pill bg-brand px-7 text-base font-bold text-surface shadow-md transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark"
+              className="pointer-events-auto inline-flex h-11 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-pill bg-brand px-7 text-base font-bold text-surface shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark dark:bg-[#F4F4F5] dark:text-[#09090B] dark:hover:bg-white"
             >
               <span>Cek Sekarang!</span>
               <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />

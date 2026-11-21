@@ -121,7 +121,7 @@ describe('T-208 Footer Vertical Link Stack & Admin Role Pill', () => {
     expect(panduanFooterHtml).toContain('text-slate-200');
     expect(panduanFooterHtml).toContain('text-white');
     expect(panduanFooterHtml).toContain('border-white/20 bg-white/10 text-white');
-    expect(panduanFooterHtml).toContain('hover:text-cyan-200');
+    expect(panduanFooterHtml).toContain('hover:text-white');
 
     // Vertical right-edge nav on /chat only, horizontal bottom dock elsewhere
     const chatNavHtml = renderToStaticMarkup(<FloatingNavbar pathnameOverride="/chat" />);
