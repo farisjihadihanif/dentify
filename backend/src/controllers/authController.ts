@@ -21,7 +21,7 @@ export async function register(req: Request, res: Response, next: NextFunction):
     const env = getEnv();
     const passwordHash = await bcrypt.hash(password, env.bcryptSaltRounds);
 
-    // Registration ALWAYS forces role: "user" (AGENTS.md rule 6, API_SPECS §4.1)
+    // Registration ALWAYS forces role: "user"
     const user = await User.create({
       full_name,
       email,

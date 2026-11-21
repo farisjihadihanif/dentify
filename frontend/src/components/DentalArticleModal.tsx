@@ -145,7 +145,7 @@ export interface DentalArticleModalProps {
 }
 
 /**
- * Accessible Article Reader Pop-Up Modal (`DentalArticleModal.tsx`, docs/DESIGN.md §3.6):
+ * Accessible Article Reader Pop-Up Modal:
  * - Opens on clicking any "Informasi Seputar Dunia Dentist & Perawatan Gigi" item on `/panduan`
  * - Displays full multi-paragraph Indonesian article, authoritative source citations (WHO/ADA/Kemenkes RI),
  *   and practical daily care takeaways; closable via close button, backdrop click, or Escape key.

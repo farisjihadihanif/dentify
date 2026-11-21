@@ -1,11 +1,12 @@
 /**
- * Public News, Promo & Articles service (`/api/v1/articles`, docs/API_SPECS.md §7A).
+ * Public News, Promo & Articles service (`/api/v1/articles`).
  */
 
 import apiClient from './apiClient';
 
 export const ARTICLE_CATEGORIES = ['Berita', 'Promo', 'Artikel'] as const;
 export type ArticleCategory = (typeof ARTICLE_CATEGORIES)[number];
+export type CoverFitMode = 'cover' | 'contain';
 
 export interface ArticleItem {
   id: string;
@@ -15,6 +16,9 @@ export interface ArticleItem {
   summary: string;
   content: string;
   coverImageUrl: string;
+  coverFit?: CoverFitMode;
+  coverPosition?: string;
+  coverZoom?: number;
   isPublished: boolean;
   authorName: string;
   publishedAt: string | null;

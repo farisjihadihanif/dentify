@@ -133,7 +133,7 @@ export async function createScan(
   } catch (err) {
     next(err);
   } finally {
-    // Explicitly release in-memory image buffer (AGENTS.md rule 8)
+    // Explicitly release in-memory image buffer
     if (req.file) {
       req.file.buffer = Buffer.alloc(0);
       req.file = undefined;
@@ -226,7 +226,7 @@ export async function deleteScanById(
       throw new ApiError(404, 'NOT_FOUND', 'Riwayat scan tidak ditemukan.');
     }
 
-    // Cascade rule (DATABASE.md §4 rule 5): preserve chat sessions by clearing scan_id
+    // Cascade rule: preserve chat sessions by clearing scan_id
     await ChatSession.updateMany({ scan_id: deleted._id }, { $set: { scan_id: null } });
 
     res.status(200).json({

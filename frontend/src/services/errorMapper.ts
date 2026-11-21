@@ -1,6 +1,6 @@
 /**
  * Centralized API error code -> Indonesian UI message & action mapper
- * (docs/DESIGN.md §5 and docs/API_SPECS.md §3.3).
+ *.
  */
 
 export type ApiErrorCode =

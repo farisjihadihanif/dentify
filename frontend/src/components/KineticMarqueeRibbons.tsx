@@ -36,7 +36,7 @@ function FourPointStarIcon() {
 }
 
 /**
- * Double Crossed Bold Kinetic Marquee Ribbons (`KineticMarqueeRibbons.tsx`, docs/DESIGN.md §3.1):
+ * Double Crossed Bold Kinetic Marquee Ribbons:
  * - Top ribbon (`surface-teal`, `-rotate-2`) scrolls left
  * - Bottom ribbon (`surface-navy`, `rotate-1`, `-mt-2`) scrolls right
  * - Alternates solid white and hollow outlined stroke uppercase display typography separated by four-point stars

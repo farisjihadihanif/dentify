@@ -43,19 +43,6 @@ export {
   type OrbitRingSpec,
 } from './ConcentricDentalOrbit';
 export {
-  ThemeProvider,
-  useTheme,
-  THEME_STORAGE_KEY,
-  resolveInitialTheme,
-  type ThemeMode,
-  type ThemeContextValue,
-  type ThemeProviderProps,
-} from './ThemeProvider';
-export {
-  ThemeToggleButton,
-  type ThemeToggleButtonProps,
-} from './ThemeToggleButton';
-export {
   KineticMarqueeRibbons,
   type KineticMarqueeRibbonsProps,
 } from './KineticMarqueeRibbons';

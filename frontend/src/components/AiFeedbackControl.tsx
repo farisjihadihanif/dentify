@@ -15,7 +15,7 @@ export interface AiFeedbackControlProps {
 }
 
 /**
- * Lightweight user feedback control on every scan result and Deni message (docs/DESIGN.md §8.3).
+ * Lightweight user feedback control on every scan result and Deni message.
  * Submits "Membantu" (`helpful`) / "Tidak akurat" (`inaccurate`) + optional comment (<= 300 chars)
  * to `POST /api/v1/feedback`.
  */

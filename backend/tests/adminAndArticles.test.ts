@@ -208,4 +208,49 @@ describe('T-208 Public Articles API & Admin CMS + User Management API', () => {
     expect(parsed[0].content).toContain('https://pubmed.ncbi.nlm.nih.gov/39991234/');
     expect(parsed[0].coverImageUrl).toBe('/images/covers/berita-ai.svg');
   });
+
+  it('preserves uploaded data:image cover URL, framing metadata (coverFit/coverPosition/coverZoom), and free-length summary/content without character caps', async () => {
+    const { token } = await seedAdminAndGetToken();
+    const uploadedDataUrl = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA==';
+    const longSummary = 'Ringkasan promo panjang '.repeat(40).trim(); // > 600 chars
+    const longContent = 'Paragraf edukasi kesehatan gigi lengkap. '.repeat(700).trim(); // > 25000 chars
+
+    const createRes = await request(app)
+      .post('/api/v1/admin/articles')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        title: 'Promo Scaling Mahasiswa Tanpa Batas Panjang',
+        category: 'Promo',
+        summary: longSummary,
+        content: longContent,
+        coverImageUrl: uploadedDataUrl,
+        coverFit: 'contain',
+        coverPosition: '50% 25%',
+        coverZoom: 1.3,
+        isPublished: true,
+      });
+
+    expect(createRes.status).toBe(201);
+    expect(createRes.body.data.coverImageUrl).toBe(uploadedDataUrl);
+    expect(createRes.body.data.coverFit).toBe('contain');
+    expect(createRes.body.data.coverPosition).toBe('50% 25%');
+    expect(createRes.body.data.coverZoom).toBe(1.3);
+    expect(createRes.body.data.summary.length).toBeGreaterThan(600);
+    expect(createRes.body.data.content.length).toBeGreaterThan(25000);
+
+    const id = createRes.body.data.id as string;
+    const patchRes = await request(app)
+      .patch(`/api/v1/admin/articles/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        title: 'Promo Scaling Mahasiswa Diperbarui',
+        coverFit: 'cover',
+        coverPosition: '40% 60%',
+      });
+
+    expect(patchRes.status).toBe(200);
+    expect(patchRes.body.data.coverImageUrl).toBe(uploadedDataUrl);
+    expect(patchRes.body.data.coverFit).toBe('cover');
+    expect(patchRes.body.data.coverPosition).toBe('40% 60%');
+  });
 });

@@ -17,7 +17,7 @@ export const PHOTO_LIGHTING_GUIDE_TEXT =
 
 /**
  * Hentikan seluruh track pada `MediaStream` agar kamera tidak tetap menyala
- * saat pengguna berpindah halaman (`DESIGN.md §7`).
+ * saat pengguna berpindah halaman.
  */
 export function stopMediaStreamTracks(stream: MediaStream | null | undefined): void {
   if (!stream) return;
@@ -31,7 +31,7 @@ export function stopMediaStreamTracks(stream: MediaStream | null | undefined): v
 }
 
 /**
- * Komponen kamera browser (`DESIGN.md §3.2`, `§4.4`, `§7` & `AGENTS.md › Standar UI/UX`):
+ * Komponen kamera browser:
  * - Menampilkan panduan pencahayaan dan kebersihan gigi sebelum pengambilan foto
  * - Mendukung pergantian kamera depan/belakang (`switch camera`), ambil foto (`capture`), dan foto ulang (`retake`)
  * - Mematikan `MediaStream` secara otomatis saat komponen di-unmount

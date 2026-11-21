@@ -13,7 +13,7 @@ export interface MedicalDisclaimerBannerProps {
 }
 
 /**
- * Komponen peringatan wajib non-diagnostik (`DESIGN.md §4.3`, `§6`, & `AGENTS.md › Aturan Bisnis #1`).
+ * Komponen peringatan wajib non-diagnostik.
  * Digunakan pada halaman `/scan`, `/chat`, dan laporan riwayat.
  */
 export function MedicalDisclaimerBanner({

@@ -19,7 +19,7 @@ export function isAdPopupExcludedPath(pathname: string): boolean {
 }
 
 /**
- * Automatic Ad-Style News & Promo Pop-Up (`NewsPromoAdPopup.tsx`, docs/DESIGN.md §3.7):
+ * Automatic Ad-Style News & Promo Pop-Up:
  * - Automatically appears on page load whenever at least one published item exists
  *   from `GET /api/v1/articles` (excluding `/admin` and `/berita/[slug]`).
  * - Showcases cover image, category badge, title, close button (`×`), and CTA to open the full article.
@@ -95,7 +95,12 @@ export function NewsPromoAdPopup({
         </button>
 
         {/* Ad Poster Cover Image */}
-        <div className="relative aspect-[16/10] w-full overflow-hidden bg-surface-navy">
+        <div
+          className={[
+            'relative aspect-[16/10] w-full overflow-hidden',
+            featuredArticle.coverFit === 'contain' ? 'bg-slate-100 p-2' : 'bg-surface-navy',
+          ].join(' ')}
+        >
           <img
             src={featuredArticle.coverImageUrl || '/images/covers/artikel-default.svg'}
             alt={featuredArticle.title}
@@ -104,7 +109,15 @@ export function NewsPromoAdPopup({
                 e.currentTarget.src = '/images/covers/artikel-default.svg';
               }
             }}
-            className="h-full w-full object-cover"
+            className={[
+              'h-full w-full',
+              featuredArticle.coverFit === 'contain' ? 'object-contain' : 'object-cover',
+            ].join(' ')}
+            style={
+              featuredArticle.coverFit !== 'contain'
+                ? { objectPosition: featuredArticle.coverPosition || '50% 50%' }
+                : undefined
+            }
           />
           <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-pill bg-surface-sand px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-text shadow-sm">
             <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />

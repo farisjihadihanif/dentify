@@ -1,4 +1,4 @@
-"""Standalone CLI inference script for DentHub CV model (ARCHITECTURE.md §11, T-107)."""
+"""Standalone CLI inference script for DentHub CV model."""
 
 from __future__ import annotations
 

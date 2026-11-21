@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { ARTICLE_CATEGORIES } from '../models/Article';
+import { ARTICLE_CATEGORIES, COVER_FIT_MODES } from '../models/Article';
 
 export const createArticleSchema = z.object({
-  title: z.string().trim().min(3, 'Judul minimal 3 karakter').max(180, 'Judul maksimal 180 karakter'),
+  title: z.string().trim().min(3, 'Judul minimal 3 karakter'),
   slug: z
     .string()
     .trim()
@@ -11,24 +11,19 @@ export const createArticleSchema = z.object({
     .regex(/^[a-z0-9-]+$/, 'Slug hanya boleh huruf kecil, angka, dan tanda hubung')
     .optional(),
   category: z.enum(ARTICLE_CATEGORIES),
-  summary: z
-    .string()
-    .trim()
-    .min(10, 'Ringkasan minimal 10 karakter')
-    .max(600, 'Ringkasan maksimal 600 karakter'),
-  content: z
-    .string()
-    .trim()
-    .min(20, 'Isi artikel minimal 20 karakter')
-    .max(25000, 'Isi artikel terlalu panjang'),
-  coverImageUrl: z.string().trim().max(2_000_000).optional(),
+  summary: z.string().trim().min(1, 'Ringkasan wajib diisi'),
+  content: z.string().trim().min(1, 'Isi konten wajib diisi'),
+  coverImageUrl: z.string().trim().max(5_000_000).optional(),
+  coverFit: z.enum(COVER_FIT_MODES).optional(),
+  coverPosition: z.string().trim().max(40).optional(),
+  coverZoom: z.number().min(1).max(3).optional(),
   isPublished: z.boolean().optional(),
   authorName: z.string().trim().min(2).max(120).optional(),
 });
 
 export const updateArticleSchema = z
   .object({
-    title: z.string().trim().min(3).max(180).optional(),
+    title: z.string().trim().min(3).optional(),
     slug: z
       .string()
       .trim()
@@ -37,9 +32,12 @@ export const updateArticleSchema = z
       .regex(/^[a-z0-9-]+$/)
       .optional(),
     category: z.enum(ARTICLE_CATEGORIES).optional(),
-    summary: z.string().trim().min(10).max(600).optional(),
-    content: z.string().trim().min(20).max(25000).optional(),
-    coverImageUrl: z.string().trim().max(2_000_000).optional(),
+    summary: z.string().trim().min(1).optional(),
+    content: z.string().trim().min(1).optional(),
+    coverImageUrl: z.string().trim().max(5_000_000).optional(),
+    coverFit: z.enum(COVER_FIT_MODES).optional(),
+    coverPosition: z.string().trim().max(40).optional(),
+    coverZoom: z.number().min(1).max(3).optional(),
     isPublished: z.boolean().optional(),
     authorName: z.string().trim().min(2).max(120).optional(),
   })

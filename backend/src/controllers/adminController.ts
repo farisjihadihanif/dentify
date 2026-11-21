@@ -69,6 +69,9 @@ export async function adminCreateArticle(
       summary: body.summary,
       content: body.content,
       coverImageUrl: body.coverImageUrl?.trim() || '/images/covers/artikel-default.svg',
+      coverFit: body.coverFit ?? 'cover',
+      coverPosition: body.coverPosition?.trim() || '50% 50%',
+      coverZoom: body.coverZoom ?? 1,
       isPublished,
       authorName: body.authorName?.trim() || 'Admin DentHub',
       publishedAt: isPublished ? new Date() : null,
@@ -111,8 +114,16 @@ export async function adminUpdateArticle(
     if (body.summary !== undefined) doc.summary = body.summary;
     if (body.content !== undefined) doc.content = body.content;
     if (body.coverImageUrl !== undefined) {
-      doc.coverImageUrl = body.coverImageUrl.trim() || '/images/covers/artikel-default.svg';
+      const cleanedCover = body.coverImageUrl.trim();
+      if (cleanedCover) {
+        doc.coverImageUrl = cleanedCover;
+      }
     }
+    if (body.coverFit !== undefined) doc.coverFit = body.coverFit;
+    if (body.coverPosition !== undefined) {
+      doc.coverPosition = body.coverPosition.trim() || '50% 50%';
+    }
+    if (body.coverZoom !== undefined) doc.coverZoom = body.coverZoom;
     if (body.authorName !== undefined) doc.authorName = body.authorName;
     if (body.isPublished !== undefined) {
       doc.isPublished = body.isPublished;

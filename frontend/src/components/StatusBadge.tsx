@@ -20,28 +20,25 @@ export const URGENCY_METADATA: Record<UrgencyLevel, UrgencyMeta> = {
   low: {
     label: 'Perawatan Mandiri',
     description: 'Kondisi dapat dipantau dengan kebersihan mulut rutin di rumah.',
-    badgeClass:
-      'bg-status-green text-surface dark:border dark:border-emerald-800/40 dark:bg-emerald-950/50 dark:text-emerald-300',
+    badgeClass: 'bg-status-green text-surface',
     icon: CheckCircle2,
   },
   medium: {
     label: 'Disarankan Periksa ke Dokter Gigi (1–2 minggu)',
     description: 'Disarankan menjadwalkan pemeriksaan ke dokter gigi dalam 1–2 minggu.',
-    badgeClass:
-      'bg-status-yellow text-surface dark:border dark:border-amber-800/40 dark:bg-amber-950/50 dark:text-amber-300',
+    badgeClass: 'bg-status-yellow text-surface',
     icon: AlertCircle,
   },
   emergency: {
     label: 'Segera ke Dokter Gigi',
     description: 'Terdeteksi indikasi yang memerlukan penanganan dokter gigi segera.',
-    badgeClass:
-      'bg-status-red text-surface dark:border dark:border-rose-800/40 dark:bg-rose-950/50 dark:text-rose-300',
+    badgeClass: 'bg-status-red text-surface',
     icon: AlertTriangle,
   },
 };
 
 /**
- * Screening urgency badge (docs/DESIGN.md §4 & §8.1: semantic tokens + lucide-react icons).
+ * Screening urgency badge.
  */
 export function StatusBadge({ urgency, customLabel, className = '' }: StatusBadgeProps) {
   const meta = URGENCY_METADATA[urgency] ?? URGENCY_METADATA.low;

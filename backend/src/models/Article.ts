@@ -3,6 +3,9 @@ import mongoose, { Schema, type Document, type Model } from 'mongoose';
 export const ARTICLE_CATEGORIES = ['Berita', 'Promo', 'Artikel'] as const;
 export type ArticleCategory = (typeof ARTICLE_CATEGORIES)[number];
 
+export const COVER_FIT_MODES = ['cover', 'contain'] as const;
+export type CoverFitMode = (typeof COVER_FIT_MODES)[number];
+
 export interface IArticle {
   title: string;
   slug: string;
@@ -10,6 +13,9 @@ export interface IArticle {
   summary: string;
   content: string;
   coverImageUrl: string;
+  coverFit: CoverFitMode;
+  coverPosition: string;
+  coverZoom: number;
   isPublished: boolean;
   authorName: string;
   publishedAt: Date | null;
@@ -28,7 +34,6 @@ const articleSchema = new Schema<IArticleDocument>(
       required: true,
       trim: true,
       minlength: 3,
-      maxlength: 180,
     },
     slug: {
       type: String,
@@ -46,19 +51,33 @@ const articleSchema = new Schema<IArticleDocument>(
       type: String,
       required: true,
       trim: true,
-      maxlength: 600,
     },
     content: {
       type: String,
       required: true,
       trim: true,
-      maxlength: 25000,
     },
     coverImageUrl: {
       type: String,
       trim: true,
       default: '/images/covers/artikel-default.svg',
-      maxlength: 2_000_000, // Allows either URL or uploaded compressed data URL
+      maxlength: 5_000_000,
+    },
+    coverFit: {
+      type: String,
+      enum: COVER_FIT_MODES,
+      default: 'cover',
+    },
+    coverPosition: {
+      type: String,
+      trim: true,
+      default: '50% 50%',
+    },
+    coverZoom: {
+      type: Number,
+      default: 1,
+      min: 1,
+      max: 3,
     },
     isPublished: {
       type: Boolean,
@@ -93,6 +112,9 @@ export interface SerializedArticle {
   summary: string;
   content: string;
   coverImageUrl: string;
+  coverFit: CoverFitMode;
+  coverPosition: string;
+  coverZoom: number;
   isPublished: boolean;
   authorName: string;
   publishedAt: string | null;
@@ -109,6 +131,9 @@ export function serializeArticle(doc: IArticleDocument): SerializedArticle {
     summary: doc.summary,
     content: doc.content,
     coverImageUrl: doc.coverImageUrl || '/images/covers/artikel-default.svg',
+    coverFit: doc.coverFit === 'contain' ? 'contain' : 'cover',
+    coverPosition: doc.coverPosition || '50% 50%',
+    coverZoom: typeof doc.coverZoom === 'number' && Number.isFinite(doc.coverZoom) ? doc.coverZoom : 1,
     isPublished: Boolean(doc.isPublished),
     authorName: doc.authorName || 'Tim Redaksi DentHub',
     publishedAt: doc.publishedAt ? doc.publishedAt.toISOString() : null,

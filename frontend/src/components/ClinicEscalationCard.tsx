@@ -18,7 +18,7 @@ export interface ClinicEscalationCardProps {
 }
 
 /**
- * Automated Emergency Clinic Escalation Card (docs/DESIGN.md §3.2, §3.3, §4).
+ * Automated Emergency Clinic Escalation Card.
  * Shows up to 3 nearest OpenStreetMap dental clinics plus a "Lihat Semua di Peta" CTA.
  */
 export function ClinicEscalationCard({

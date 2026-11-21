@@ -1,9 +1,9 @@
 /**
- * Admin CMS & User Management service (`/api/v1/admin/*`, docs/API_SPECS.md §7B).
+ * Admin CMS & User Management service (`/api/v1/admin/*`).
  */
 
 import apiClient from './apiClient';
-import type { ArticleCategory, ArticleItem } from './articleService';
+import type { ArticleCategory, ArticleItem, CoverFitMode } from './articleService';
 import type { AuthUser } from './authService';
 
 export interface CreateArticlePayload {
@@ -13,6 +13,9 @@ export interface CreateArticlePayload {
   summary: string;
   content: string;
   coverImageUrl?: string;
+  coverFit?: CoverFitMode;
+  coverPosition?: string;
+  coverZoom?: number;
   isPublished?: boolean;
   authorName?: string;
 }

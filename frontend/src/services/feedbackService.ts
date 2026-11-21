@@ -1,5 +1,5 @@
 /**
- * AI-output user feedback service (POST /api/v1/feedback - docs/API_SPECS.md §6.2, DESIGN.md §8.3).
+ * AI-output user feedback service.
  */
 
 import apiClient from './apiClient';

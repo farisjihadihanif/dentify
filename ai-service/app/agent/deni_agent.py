@@ -1,5 +1,5 @@
 """
-Deni LangChain + Gemini conversational dental assistant (T-201).
+Deni LangChain + Gemini conversational dental assistant.
 
 Rules:
 - Provides two LangChain tools: `lookup_knowledge` and `trigger_clinic_finder`.

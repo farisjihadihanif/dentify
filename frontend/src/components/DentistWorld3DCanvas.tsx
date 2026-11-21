@@ -219,7 +219,7 @@ function createDentalIconTexture(
 }
 
 /**
- * Full-Hero Orbiting 3D Dental Icon Sphere/Rings Canvas (`DentistWorld3DCanvas.tsx`, docs/DESIGN.md §3.1):
+ * Full-Hero Orbiting 3D Dental Icon Sphere/Rings Canvas:
  * - No central cartoon tooth — instead sleek 3D tilted orbital rings & floating clinical glass badges
  *   featuring dentistry & oral health icons revolving in 3D depth AROUND the centered Hero typography
  * - Fluid spring-damped cursor tracking, layered ring/badge/particle parallax, and inertial drag-to-spin

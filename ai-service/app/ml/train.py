@@ -1,5 +1,5 @@
 """
-2-Stage Transfer-Learning tf.GradientTape training and evaluation pipeline for DentHub (T-106).
+2-Stage Transfer-Learning tf.GradientTape training and evaluation pipeline for DentHub.
 
 Features:
 - ImageNet-pretrained MobileNetV2 backbone + ChannelAttention + DualPool head.

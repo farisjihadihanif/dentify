@@ -2,7 +2,7 @@ import React from 'react';
 import { ClinicFinderView } from '../../components/ClinicFinderView';
 
 /**
- * Halaman Klinik (`src/app/clinics/page.tsx`, docs/DESIGN.md §3.4):
+ * Halaman Klinik:
  * Fokus pada pencarian lokasi klinik & dokter gigi terdekat dengan peta interaktif OpenStreetMap & Leaflet.
  */
 export default function ClinicsPage() {

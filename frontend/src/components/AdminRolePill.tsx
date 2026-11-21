@@ -13,7 +13,7 @@ export interface AdminRolePillProps {
 
 /**
  * Subtle floating top-right Admin shortcut pill rendered ONLY when the logged-in
- * user has `role === 'admin'` (docs/DESIGN.md §3.8). Keeps the bottom dock unchanged.
+ * user has `role === 'admin'`. Keeps the bottom dock unchanged.
  */
 export function AdminRolePill({
   initialUser = null,
@@ -46,7 +46,7 @@ export function AdminRolePill({
       href="/admin"
       data-testid="admin-role-pill"
       aria-label="Buka Admin Panel DentHub"
-      className="fixed right-16 top-4 z-30 inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-pill border border-brand/30 bg-surface/95 px-3.5 text-xs font-bold text-brand-dark shadow-sm backdrop-blur-md transition-colors hover:bg-brand hover:text-surface sm:right-20 sm:top-6"
+      className="fixed right-4 top-4 z-30 inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-pill border border-brand/30 bg-surface/95 px-3.5 text-xs font-bold text-brand-dark shadow-sm backdrop-blur-md transition-colors hover:bg-brand hover:text-surface sm:right-6 sm:top-6"
     >
       <ShieldCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       <span>Admin</span>

@@ -1,5 +1,5 @@
 /**
- * Deni conversational assistant service (/api/v1/chat - docs/API_SPECS.md §6.1).
+ * Deni conversational assistant service.
  */
 
 import apiClient from './apiClient';

@@ -7,7 +7,21 @@ export const DISCLAIMER_CHAT =
 export const CONDITIONS = ['caries', 'calculus', 'gingivitis', 'healthy'] as const;
 export type DentalCondition = (typeof CONDITIONS)[number];
 
-export const KNOWLEDGE_KEYS = ['caries', 'calculus', 'gingivitis', 'healthy', 'general'] as const;
+export const KNOWLEDGE_KEYS = [
+  'caries',
+  'calculus',
+  'gingivitis',
+  'healthy',
+  'general',
+  'periodontitis',
+  'dental_abscess',
+  'dentin_hypersensitivity',
+  'tooth_wear',
+  'cracked_tooth',
+  'wisdom_tooth_impaction',
+  'edentulism_implants',
+  'oral_lesions_tmd',
+] as const;
 export type KnowledgeKey = (typeof KNOWLEDGE_KEYS)[number];
 
 export const URGENCY_LEVELS = ['low', 'medium', 'emergency'] as const;

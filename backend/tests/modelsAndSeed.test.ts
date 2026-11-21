@@ -125,7 +125,7 @@ describe('T-003 & T-004 Models and Idempotent Seeder', () => {
     ).rejects.toThrow();
   });
 
-  it('T-004 runSeed is idempotent and seeds 5 dental_knowledge docs + 1 admin without duplicates', async () => {
+  it('T-004 runSeed is idempotent and seeds 13 dental_knowledge docs + 1 admin without duplicates', async () => {
     const first = await runSeed({
       adminEmail: 'admin@denthub.local',
       adminPassword: 'AdminPassword123!',
@@ -137,11 +137,11 @@ describe('T-003 & T-004 Models and Idempotent Seeder', () => {
       adminName: 'Admin DentHub',
     });
 
-    expect(first.knowledgeUpserted).toBe(5);
-    expect(second.knowledgeUpserted).toBe(5);
+    expect(first.knowledgeUpserted).toBe(13);
+    expect(second.knowledgeUpserted).toBe(13);
     expect(first.articlesUpserted).toBeGreaterThanOrEqual(10);
     expect(first.clinicsUpserted).toBeGreaterThanOrEqual(15);
-    expect(await DentalKnowledge.countDocuments()).toBe(5);
+    expect(await DentalKnowledge.countDocuments()).toBe(13);
     expect(await User.countDocuments({ role: 'admin' })).toBe(1);
   });
 });

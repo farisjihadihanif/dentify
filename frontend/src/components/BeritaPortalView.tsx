@@ -302,7 +302,12 @@ export function BeritaPortalView({
                     data-testid={`berita-card-${article.slug}`}
                     className="group flex w-48 shrink-0 cursor-pointer flex-col overflow-hidden rounded-card border border-border bg-surface text-left shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring sm:w-56"
                   >
-                    <div className="aspect-[3/4] w-full overflow-hidden bg-surface-navy">
+                    <div
+                      className={[
+                        'aspect-[3/4] w-full overflow-hidden',
+                        article.coverFit === 'contain' ? 'bg-slate-100 p-1.5' : 'bg-surface-navy',
+                      ].join(' ')}
+                    >
                       <img
                         src={article.coverImageUrl || DEFAULT_COVER_IMAGE}
                         alt={article.title}
@@ -311,7 +316,15 @@ export function BeritaPortalView({
                             e.currentTarget.src = DEFAULT_COVER_IMAGE;
                           }
                         }}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        className={[
+                          'h-full w-full transition-transform duration-300 group-hover:scale-105',
+                          article.coverFit === 'contain' ? 'object-contain' : 'object-cover',
+                        ].join(' ')}
+                        style={
+                          article.coverFit !== 'contain'
+                            ? { objectPosition: article.coverPosition || '50% 50%' }
+                            : undefined
+                        }
                       />
                     </div>
                     <div className="p-3.5">
@@ -357,7 +370,12 @@ export function BeritaPortalView({
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
 
-            <div className="relative aspect-[16/10] w-full overflow-hidden bg-surface-navy">
+            <div
+              className={[
+                'relative aspect-[16/10] w-full overflow-hidden',
+                previewArticle.coverFit === 'contain' ? 'bg-slate-100 p-2' : 'bg-surface-navy',
+              ].join(' ')}
+            >
               <img
                 src={previewArticle.coverImageUrl || DEFAULT_COVER_IMAGE}
                 alt={previewArticle.title}
@@ -366,7 +384,15 @@ export function BeritaPortalView({
                     e.currentTarget.src = DEFAULT_COVER_IMAGE;
                   }
                 }}
-                className="h-full w-full object-cover"
+                className={[
+                  'h-full w-full',
+                  previewArticle.coverFit === 'contain' ? 'object-contain' : 'object-cover',
+                ].join(' ')}
+                style={
+                  previewArticle.coverFit !== 'contain'
+                    ? { objectPosition: previewArticle.coverPosition || '50% 50%' }
+                    : undefined
+                }
               />
               <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-pill bg-surface-sand px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-text shadow-sm">
                 {previewArticle.category === 'Promo' ? (

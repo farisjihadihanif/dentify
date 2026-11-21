@@ -44,7 +44,7 @@ def compute_urgency(
     emergency_confidence: float = 0.85,
 ) -> tuple[UrgencyLevel, bool]:
     """
-    Deterministic urgency rules per docs/PRD.md §6.1:
+    Deterministic urgency rules per:
     - healthy: base low; mild symptoms -> medium; severe symptoms -> emergency
     - gingivitis / calculus: base medium; severe symptoms -> emergency
     - caries: base medium; confidence >= emergency_confidence OR severe symptoms -> emergency

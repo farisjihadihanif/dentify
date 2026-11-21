@@ -134,7 +134,7 @@ const GUIDE_SECTIONS = [
 ] as const;
 
 /**
- * Halaman Panduan (`src/app/panduan/page.tsx`, docs/DESIGN.md §3.6):
+ * Halaman Panduan:
  * - Double crossed bold kinetic marquee ribbons
  * - Section 1: Full-bleed dark-navy container with multi-tone stacked vertical guide cards (`01`–`06`)
  * - Section 2: Full-bleed dark-navy container with multi-tone stacked clickable

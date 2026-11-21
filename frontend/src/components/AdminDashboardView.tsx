@@ -15,6 +15,8 @@ import {
   ExternalLink,
   Eye,
   EyeOff,
+  Maximize2,
+  Minimize2,
   Newspaper,
   Plus,
   Search,
@@ -38,6 +40,7 @@ import {
   ARTICLE_CATEGORIES,
   type ArticleCategory,
   type ArticleItem,
+  type CoverFitMode,
 } from '../services/articleService';
 import {
   fetchCurrentUser,
@@ -46,6 +49,7 @@ import {
   type AuthUser,
 } from '../services/authService';
 import { mapApiError, type MappedUiError } from '../services/errorMapper';
+import { compressImageFileToDataUrl } from '../utils/imageHelper';
 
 export type AdminTabKey = 'articles' | 'users';
 
@@ -61,6 +65,10 @@ interface ArticleFormState {
   title: string;
   category: ArticleCategory;
   coverImageUrl: string;
+  coverFit: CoverFitMode;
+  coverPosX: number;
+  coverPosY: number;
+  coverZoom: number;
   summary: string;
   content: string;
   authorName: string;
@@ -71,15 +79,29 @@ const EMPTY_ARTICLE_FORM: ArticleFormState = {
   id: null,
   title: '',
   category: 'Berita',
-  coverImageUrl: '/images/covers/artikel-default.svg',
+  coverImageUrl: '',
+  coverFit: 'cover',
+  coverPosX: 50,
+  coverPosY: 50,
+  coverZoom: 1,
   summary: '',
   content: '',
   authorName: 'Tim Redaksi DentHub',
   isPublished: true,
 };
 
+function parseCoverPosition(pos?: string): { x: number; y: number } {
+  if (!pos) return { x: 50, y: 50 };
+  const parts = pos.trim().split(/\s+/);
+  const parsePct = (token?: string) => {
+    const num = Number.parseFloat((token || '').replace('%', ''));
+    return Number.isFinite(num) ? Math.max(0, Math.min(100, Math.round(num))) : 50;
+  };
+  return { x: parsePct(parts[0]), y: parsePct(parts[1] ?? parts[0]) };
+}
+
 /**
- * Admin CMS & User Management Dashboard (`AdminDashboardView.tsx`, docs/DESIGN.md §3.8):
+ * Admin CMS & User Management Dashboard:
  * - Strictly accessible only when `user.role === 'admin'`; non-admins are redirected to `/`.
  * - Two tabs:
  *   1. `Kelola Berita, Promo & Artikel`: create, edit, publish/unpublish, and delete items with URL or image upload.
@@ -103,6 +125,7 @@ export function AdminDashboardView({
   const [isLoadingArticles, setIsLoadingArticles] = useState<boolean>(false);
   const [formState, setFormState] = useState<ArticleFormState>(EMPTY_ARTICLE_FORM);
   const [isSavingArticle, setIsSavingArticle] = useState<boolean>(false);
+  const [isProcessingCover, setIsProcessingCover] = useState<boolean>(false);
 
   // Users state
   const [users, setUsers] = useState<AuthUser[]>(initialUsers ?? []);
@@ -169,46 +192,56 @@ export function AdminDashboardView({
     };
   }, [initialUser, initialArticles, initialUsers, loadArticles, loadUsers, router]);
 
-  const handleCoverUpload = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleCoverUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    event.target.value = '';
     if (!file) return;
     setUiError(null);
 
-    if (!['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'].includes(file.type)) {
+    const mime = (file.type || '').toLowerCase();
+    const isImage =
+      ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/gif'].includes(mime) ||
+      mime.startsWith('image/') ||
+      /\.(jpe?g|png|webp|svg|gif)$/i.test(file.name || '');
+
+    if (!isImage) {
       setUiError(mapApiError('INVALID_IMAGE'));
       return;
     }
-    if (file.size > 500 * 1024) {
-      setUiError({
-        code: 'PAYLOAD_TOO_LARGE',
-        action: 'reset_file_input',
-        message: 'Ukuran gambar sampul maksimal 500 KB.',
-      });
-      return;
-    }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setFormState((prev) => ({ ...prev, coverImageUrl: reader.result as string }));
-      }
-    };
-    reader.readAsDataURL(file);
+    setIsProcessingCover(true);
+    try {
+      // Automatically compress uploaded covers > 500 KB via HTML5 Canvas (<= 480 KB)
+      const compressedDataUrl = await compressImageFileToDataUrl(file, 480 * 1024, 1440);
+      setFormState((prev) => ({
+        ...prev,
+        coverImageUrl: compressedDataUrl,
+        coverFit: prev.category === 'Promo' ? 'contain' : prev.coverFit,
+      }));
+    } catch {
+      setUiError(mapApiError('INVALID_IMAGE'));
+    } finally {
+      setIsProcessingCover(false);
+    }
   };
 
   const handleSubmitArticle = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (isSavingArticle) return;
+    if (isSavingArticle || isProcessingCover) return;
 
     setUiError(null);
     setStatusMessage(null);
     setIsSavingArticle(true);
 
     try {
+      const cleanedCover = formState.coverImageUrl.trim();
       const payload = {
         title: formState.title.trim(),
         category: formState.category,
-        coverImageUrl: formState.coverImageUrl.trim() || '/images/covers/artikel-default.svg',
+        coverImageUrl: cleanedCover || '/images/covers/artikel-default.svg',
+        coverFit: formState.coverFit,
+        coverPosition: `${formState.coverPosX}% ${formState.coverPosY}%`,
+        coverZoom: formState.coverZoom,
         summary: formState.summary.trim(),
         content: formState.content.trim(),
         authorName: formState.authorName.trim() || 'Admin DentHub',
@@ -237,11 +270,16 @@ export function AdminDashboardView({
   };
 
   const handleEditArticle = (article: ArticleItem) => {
+    const pos = parseCoverPosition(article.coverPosition);
     setFormState({
       id: article.id,
       title: article.title,
       category: article.category,
-      coverImageUrl: article.coverImageUrl,
+      coverImageUrl: article.coverImageUrl || '',
+      coverFit: article.coverFit === 'contain' ? 'contain' : 'cover',
+      coverPosX: pos.x,
+      coverPosY: pos.y,
+      coverZoom: article.coverZoom ?? 1,
       summary: article.summary,
       content: article.content,
       authorName: article.authorName,
@@ -319,14 +357,9 @@ export function AdminDashboardView({
 
   if (isCheckingRole) {
     return (
-      <div
-        data-testid="admin-monochrome-scope"
-        className="admin-monochrome-theme min-h-screen w-full bg-bg text-text"
-      >
-        <main className="mx-auto max-w-6xl px-4 py-16 text-center text-sm text-text-muted">
-          Memverifikasi hak akses Admin DentHub...
-        </main>
-      </div>
+      <main className="mx-auto max-w-6xl px-4 py-16 text-center text-sm text-text-muted">
+        Memverifikasi hak akses Admin DentHub...
+      </main>
     );
   }
 
@@ -334,15 +367,13 @@ export function AdminDashboardView({
     return null;
   }
 
+  const previewCoverSrc = formState.coverImageUrl.trim() || '/images/covers/artikel-default.svg';
+
   return (
-    <div
-      data-testid="admin-monochrome-scope"
-      className="admin-monochrome-theme min-h-screen w-full bg-bg text-text"
+    <main
+      data-testid="admin-dashboard-workspace"
+      className="mx-auto w-full max-w-7xl space-y-6 px-4 py-10 pb-24 sm:px-6 sm:py-12 lg:px-8"
     >
-      <main
-        data-testid="admin-dashboard-workspace"
-        className="mx-auto w-full max-w-7xl space-y-6 px-4 py-10 pb-24 sm:px-6 sm:py-12 lg:px-8"
-      >
       {/* Header */}
       <header className="flex flex-col justify-between gap-4 border-b border-border pb-5 sm:flex-row sm:items-end">
         <div>
@@ -515,14 +546,14 @@ export function AdminDashboardView({
                 </div>
               </div>
 
-              <div>
+              <div className="space-y-3">
                 <label
                   htmlFor="admin-article-cover"
                   className="block text-xs font-semibold text-text"
                 >
-                  Gambar Sampul (URL atau Unggah File ≤ 500 KB)
+                  Gambar Sampul (URL atau Unggah File — Otomatis Kompres &gt; 500 KB)
                 </label>
-                <div className="mt-1.5 flex gap-2">
+                <div className="flex gap-2">
                   <input
                     id="admin-article-cover"
                     type="text"
@@ -530,7 +561,7 @@ export function AdminDashboardView({
                     onChange={(e) =>
                       setFormState((p) => ({ ...p, coverImageUrl: e.target.value }))
                     }
-                    placeholder="/images/covers/promo-scaling.svg atau https://..."
+                    placeholder="Unggah gambar atau tempel URL (https://...)"
                     className="flex-1 rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
                   />
                   <label
@@ -538,15 +569,150 @@ export function AdminDashboardView({
                     className="inline-flex h-10 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl border border-border bg-brand-soft px-3 text-xs font-bold text-brand-dark hover:bg-brand hover:text-surface"
                   >
                     <Upload className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                    <span>Unggah</span>
+                    <span>{isProcessingCover ? 'Kompres...' : 'Unggah'}</span>
                     <input
                       id="admin-article-cover-file"
                       type="file"
-                      accept="image/jpeg,image/png,image/webp,image/svg+xml"
-                      onChange={handleCoverUpload}
+                      accept="image/jpeg,image/png,image/webp,image/svg+xml,image/gif"
+                      onChange={(e) => void handleCoverUpload(e)}
                       className="sr-only"
                     />
                   </label>
+                </div>
+
+                {/* Live Cover Frame Preview & Fit/Position Adjuster */}
+                <div
+                  data-testid="admin-cover-frame-adjuster"
+                  className="space-y-3 rounded-2xl border border-border bg-bg p-3.5"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
+                      Pratinjau &amp; Penyesuaian Sampul
+                    </span>
+                    <div className="inline-flex rounded-lg border border-border bg-surface p-0.5 text-[11px] font-bold">
+                      <button
+                        type="button"
+                        data-testid="cover-fit-contain-btn"
+                        onClick={() => setFormState((p) => ({ ...p, coverFit: 'contain', coverZoom: 1 }))}
+                        className={[
+                          'inline-flex items-center gap-1 rounded-md px-2.5 py-1 transition-colors',
+                          formState.coverFit === 'contain'
+                            ? 'bg-brand text-surface'
+                            : 'text-text-muted hover:text-text',
+                        ].join(' ')}
+                      >
+                        <Minimize2 className="h-3 w-3" aria-hidden="true" />
+                        <span>Pas Penuh (Utuh tanpa terpotong)</span>
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="cover-fit-cover-btn"
+                        onClick={() => setFormState((p) => ({ ...p, coverFit: 'cover' }))}
+                        className={[
+                          'inline-flex items-center gap-1 rounded-md px-2.5 py-1 transition-colors',
+                          formState.coverFit === 'cover'
+                            ? 'bg-brand text-surface'
+                            : 'text-text-muted hover:text-text',
+                        ].join(' ')}
+                      >
+                        <Maximize2 className="h-3 w-3" aria-hidden="true" />
+                        <span>Isi Frame (Cover)</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div
+                    className={[
+                      'relative aspect-[16/10] w-full overflow-hidden rounded-xl border border-border',
+                      formState.coverFit === 'contain' ? 'bg-slate-100 p-2' : 'bg-surface-navy',
+                    ].join(' ')}
+                  >
+                    <img
+                      src={previewCoverSrc}
+                      alt="Pratinjau sampul konten"
+                      className={[
+                        'h-full w-full transition-transform duration-150',
+                        formState.coverFit === 'contain' ? 'object-contain' : 'object-cover',
+                      ].join(' ')}
+                      style={
+                        formState.coverFit === 'cover'
+                          ? {
+                              objectPosition: `${formState.coverPosX}% ${formState.coverPosY}%`,
+                              transform:
+                                formState.coverZoom > 1 ? `scale(${formState.coverZoom})` : undefined,
+                            }
+                          : undefined
+                      }
+                    />
+                  </div>
+
+                  {formState.coverFit === 'cover' && (
+                    <div className="grid gap-2.5 sm:grid-cols-3">
+                      <div>
+                        <label
+                          htmlFor="admin-cover-zoom"
+                          className="flex justify-between text-[11px] font-semibold text-text-muted"
+                        >
+                          <span>Zoom</span>
+                          <span>{formState.coverZoom.toFixed(1)}x</span>
+                        </label>
+                        <input
+                          id="admin-cover-zoom"
+                          type="range"
+                          min={1}
+                          max={2.2}
+                          step={0.1}
+                          value={formState.coverZoom}
+                          onChange={(e) =>
+                            setFormState((p) => ({ ...p, coverZoom: Number(e.target.value) }))
+                          }
+                          className="mt-1 w-full accent-brand"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="admin-cover-pos-x"
+                          className="flex justify-between text-[11px] font-semibold text-text-muted"
+                        >
+                          <span>Fokus X</span>
+                          <span>{formState.coverPosX}%</span>
+                        </label>
+                        <input
+                          id="admin-cover-pos-x"
+                          type="range"
+                          min={0}
+                          max={100}
+                          step={1}
+                          value={formState.coverPosX}
+                          onChange={(e) =>
+                            setFormState((p) => ({ ...p, coverPosX: Number(e.target.value) }))
+                          }
+                          className="mt-1 w-full accent-brand"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="admin-cover-pos-y"
+                          className="flex justify-between text-[11px] font-semibold text-text-muted"
+                        >
+                          <span>Fokus Y</span>
+                          <span>{formState.coverPosY}%</span>
+                        </label>
+                        <input
+                          id="admin-cover-pos-y"
+                          type="range"
+                          min={0}
+                          max={100}
+                          step={1}
+                          value={formState.coverPosY}
+                          onChange={(e) =>
+                            setFormState((p) => ({ ...p, coverPosY: Number(e.target.value) }))
+                          }
+                          className="mt-1 w-full accent-brand"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -555,15 +721,15 @@ export function AdminDashboardView({
                   htmlFor="admin-article-summary"
                   className="block text-xs font-semibold text-text"
                 >
-                  Ringkasan Singkat (Ditampilkan di Pop-Up &amp; Pratinjau)
+                  Ringkasan / Deskripsi Singkat (Tanpa Batas Karakter)
                 </label>
                 <textarea
                   id="admin-article-summary"
-                  rows={2}
+                  rows={3}
                   required
                   value={formState.summary}
                   onChange={(e) => setFormState((p) => ({ ...p, summary: e.target.value }))}
-                  placeholder="Ringkasan padat 1–2 kalimat..."
+                  placeholder="Tulis ringkasan berita, promo, atau artikel bebas panjang..."
                   className="mt-1.5 w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
                 />
               </div>
@@ -573,11 +739,11 @@ export function AdminDashboardView({
                   htmlFor="admin-article-content"
                   className="block text-xs font-semibold text-text"
                 >
-                  Isi Artikel Lengkap (Pisahkan Paragraf dengan Baris Kosong)
+                  Isi Konten Lengkap (Tanpa Batas Kata — Pisahkan Paragraf dengan Baris Kosong)
                 </label>
                 <textarea
                   id="admin-article-content"
-                  rows={6}
+                  rows={7}
                   required
                   value={formState.content}
                   onChange={(e) => setFormState((p) => ({ ...p, content: e.target.value }))}
@@ -602,12 +768,12 @@ export function AdminDashboardView({
                 type="submit"
                 variant="primary"
                 size="md"
-                loading={isSavingArticle}
-                loadingText="Menyimpan..."
+                loading={isSavingArticle || isProcessingCover}
+                loadingText={isProcessingCover ? 'Memproses Sampul...' : 'Menyimpan...'}
                 disabled={
-                  formState.title.trim().length < 4 ||
-                  formState.summary.trim().length < 10 ||
-                  formState.content.trim().length < 20
+                  formState.title.trim().length < 3 ||
+                  formState.summary.trim().length < 1 ||
+                  formState.content.trim().length < 1
                 }
                 className="w-full"
               >
@@ -832,8 +998,7 @@ export function AdminDashboardView({
           )}
         </section>
       )}
-      </main>
-    </div>
+    </main>
   );
 }
 

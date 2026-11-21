@@ -18,7 +18,7 @@ export interface OsmMapViewProps {
 
 /**
  * Dynamic import tanpa SSR (`ssr: false`) agar Leaflet kompatibel penuh
- * dengan Next.js App Router (`DESIGN.md §7`).
+ * dengan Next.js App Router.
  */
 const DynamicOsmMapCanvas = dynamic(() => import('./OsmMapCanvas'), {
   ssr: false,
@@ -33,7 +33,7 @@ const DynamicOsmMapCanvas = dynamic(() => import('./OsmMapCanvas'), {
 });
 
 /**
- * Komponen pembungkus peta klinik OpenStreetMap (`DESIGN.md §3.4`, `§4.5`, & `§7`).
+ * Komponen pembungkus peta klinik OpenStreetMap.
  */
 export function OsmMapView({
   centerLat,

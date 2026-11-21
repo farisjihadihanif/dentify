@@ -1,5 +1,5 @@
 /**
- * Centralized Axios HTTP client for DentHub frontend (AGENTS.md & DESIGN.md §5).
+ * Centralized Axios HTTP client for DentHub frontend.
  */
 
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';

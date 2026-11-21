@@ -3,16 +3,18 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion, useReducedMotion } from 'framer-motion';
 import { MessageCircle } from 'lucide-react';
 
 const HIDDEN_ROUTES = ['/chat', '/login', '/register'];
 
 /**
- * Floating Deni Mascot (docs/DESIGN.md §0 & §8.1).
- * Subtle idle float animation + "Tanya Deni" tooltip positioned above Deni with a playful bounce.
+ * Floating Deni Mascot:
+ * Energetic idle hop/bounce with springy hover jump + "Tanya Deni" tooltip positioned above Deni.
  */
 export function DeniMascot() {
   const pathname = usePathname() || '/';
+  const prefersReducedMotion = useReducedMotion();
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
 
@@ -55,7 +57,37 @@ export function DeniMascot() {
           />
         </span>
 
-        <div className="animate-deni-float relative flex h-20 w-20 items-center justify-center transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-105 sm:h-24 sm:w-24">
+        <motion.div
+          animate={
+            prefersReducedMotion
+              ? undefined
+              : {
+                  y: [0, -14, 0, -8, 0],
+                  rotate: [-3, 3, -2, 0],
+                }
+          }
+          transition={
+            prefersReducedMotion
+              ? undefined
+              : {
+                  duration: 2.3,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }
+          }
+          whileHover={
+            prefersReducedMotion
+              ? undefined
+              : {
+                  y: -16,
+                  scale: 1.1,
+                  rotate: 4,
+                  transition: { type: 'spring', stiffness: 420, damping: 14 },
+                }
+          }
+          whileTap={prefersReducedMotion ? undefined : { scale: 0.94 }}
+          className="animate-deni-float relative flex h-20 w-20 items-center justify-center sm:h-24 sm:w-24"
+        >
           {!imageError ? (
             <img
               src="/images/deni-mascot.png"
@@ -68,7 +100,7 @@ export function DeniMascot() {
               <MessageCircle className="h-7 w-7" aria-hidden="true" />
             </div>
           )}
-        </div>
+        </motion.div>
       </Link>
     </div>
   );

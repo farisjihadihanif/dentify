@@ -13,7 +13,7 @@ export interface ErrorBannerProps {
 }
 
 /**
- * Komponen banner galat standar (`DESIGN.md §4.6` & `§5`).
+ * Komponen banner galat standar.
  * Menerima `MappedUiError` atau objek galat mentah, lalu menampilkan pesan Bahasa Indonesia
  * beserta tombol aksi kontekstual (`Coba Lagi`, `Input Lokasi Manual`, atau detail validasi per field).
  */

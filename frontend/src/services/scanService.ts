@@ -1,5 +1,5 @@
 /**
- * Dental scan service (/api/v1/scans - docs/API_SPECS.md §5.1 & §5.2).
+ * Dental scan service.
  */
 
 import apiClient from './apiClient';

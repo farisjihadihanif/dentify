@@ -3,20 +3,16 @@
 @tailwind utilities;
 
 /**
- * Centralized Light & Dark Mode CSS design tokens (docs/DESIGN.md §2).
- * - Light Mode (:root): clean clinical daylight (#F8FAFC canvas, #FFFFFF surface, #0B192C ink, #0F4C5C deep clinical teal).
- * - User-Facing Dark Mode (.dark): Deep Clinical Midnight Navy & Teal (#08121E canvas, #0F2035 cards,
- *   #1E3552 borders, #132842 inset panels, #F8FAFC text, #94A3B8 slate muted, #0E7490/#15809E clinical teal CTAs).
- * - Admin-Only Monochrome Dark Mode (.dark .admin-monochrome-theme): Obsidian & Zinc (#09090B canvas, #121215 cards,
- *   #26262B borders, #18181C inset panels, #F4F4F5 monochrome primary buttons & accents with #09090B ink).
+ * Centralized Clinical Light Mode design tokens for DentHub.
+ * Palette: #F8FAFC canvas, #FFFFFF cards, #0B192C deep ink typography, #0E7490 clinical teal accent.
  */
 :root {
-  --color-brand: #0F4C5C;
-  --color-brand-dark: #0B3945;
-  --color-brand-hover: #0B3945;
+  --color-brand: #0E7490;
+  --color-brand-dark: #075985;
+  --color-brand-hover: #075985;
   --color-on-brand: #FFFFFF;
-  --color-brand-ring: #0E7490;
-  --color-brand-soft: #F0F9FA;
+  --color-brand-ring: #0284C7;
+  --color-brand-soft: #F0F9FF;
   --color-surface: #FFFFFF;
   --color-bg: #F8FAFC;
   --color-text: #0B192C;
@@ -25,87 +21,17 @@
   --color-status-green: #15803D;
   --color-status-yellow: #B45309;
   --color-status-red: #B91C1C;
-  --color-accent-deni: #0F4C5C;
-  --color-accent-deni-soft: #E8F4F5;
+  --color-accent-deni: #0F766E;
+  --color-accent-deni-soft: #E6F7F7;
   --color-surface-navy: #0B192C;
-  --color-surface-teal: #0F4C5C;
-  --color-surface-mint: #E2F1F3;
+  --color-surface-teal: #0E7490;
+  --color-surface-mint: #DDF3F5;
   --color-surface-sand: #FEF3C7;
-  --color-orbit-ring: rgba(11, 25, 44, 0.08);
-  --color-orbit-tool-primary: #1E293B;
-  --color-orbit-tool-accent: #0F4C5C;
+  --color-orbit-ring: rgba(11, 25, 44, 0.14);
+  --color-orbit-tool-primary: #0B192C;
+  --color-orbit-tool-accent: #0E7490;
   --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
   --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
-}
-
-.dark {
-  color-scheme: dark;
-  --color-brand: #0E7490;
-  --color-brand-dark: #BAE6FD;
-  --color-brand-hover: #15809E;
-  --color-on-brand: #FFFFFF;
-  --color-brand-ring: #0E7490;
-  --color-brand-soft: #132842;
-  --color-surface: #0F2035;
-  --color-bg: #08121E;
-  --color-text: #F8FAFC;
-  --color-text-muted: #94A3B8;
-  --color-border: #1E3552;
-  --color-status-green: #6EE7B7;
-  --color-status-yellow: #FCD34D;
-  --color-status-red: #FDA4AF;
-  --color-accent-deni: #0E7490;
-  --color-accent-deni-soft: #132842;
-  --color-surface-navy: #08121E;
-  --color-surface-teal: #0E4A5F;
-  --color-surface-mint: #10283E;
-  --color-surface-sand: #242117;
-  --color-orbit-ring: rgba(186, 230, 253, 0.10);
-  --color-orbit-tool-primary: #BAE6FD;
-  --color-orbit-tool-accent: #BAE6FD;
-}
-
-/* Monochrome Obsidian & Zinc theme scoped EXCLUSIVELY to /admin in Dark Mode */
-.dark .admin-monochrome-theme {
-  --color-brand: #F4F4F5;
-  --color-brand-dark: #F4F4F5;
-  --color-brand-hover: #FFFFFF;
-  --color-on-brand: #09090B;
-  --color-brand-ring: #A1A1AA;
-  --color-brand-soft: #18181C;
-  --color-surface: #121215;
-  --color-bg: #09090B;
-  --color-text: #F4F4F5;
-  --color-text-muted: #A1A1AA;
-  --color-border: #26262B;
-  --color-accent-deni: #F4F4F5;
-  --color-accent-deni-soft: #18181C;
-  --color-surface-sand: #1C1A16;
-}
-
-/* Ensure crisp foreground contrast on brand/Deni fills across User Dark Mode (#FFFFFF) & Admin Monochrome (#09090B) */
-.dark .bg-brand.text-surface,
-.dark .bg-accent-deni.text-surface,
-.dark .hover\:bg-brand:hover {
-  color: var(--color-on-brand);
-}
-
-.dark .bg-brand:hover {
-  background-color: var(--color-brand-hover);
-}
-
-.dark .text-accent-deni {
-  color: var(--color-brand-dark);
-}
-
-.dark .admin-monochrome-theme .btn-secondary-surface {
-  background-color: #18181C;
-  border-color: #2E2E35;
-  color: #F4F4F5;
-}
-
-.dark .admin-monochrome-theme .btn-secondary-surface:hover {
-  background-color: #222228;
 }
 
 @layer base {
@@ -125,7 +51,6 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
-    transition: background-color 200ms ease, color 200ms ease;
   }
 
   h1,
@@ -143,25 +68,8 @@
 }
 
 .bg-dental-grid {
-  background-image: radial-gradient(rgba(15, 76, 92, 0.09) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-.dark .bg-dental-grid {
-  background-image: radial-gradient(rgba(186, 230, 253, 0.08) 1px, transparent 1px);
-}
-
-.dark .leaflet-tile-pane {
-  filter: brightness(0.84) contrast(1.06) saturate(0.86);
-}
-
-.dark .leaflet-control-attribution {
-  background: rgba(15, 32, 53, 0.9) !important;
-  color: #94A3B8 !important;
-}
-
-.dark .leaflet-control-attribution a {
-  color: #BAE6FD !important;
+  background-image: radial-gradient(rgba(11, 25, 44, 0.11) 1.15px, transparent 1.15px);
+  background-size: 22px 22px;
 }
 
 /* Concentric dental instrument orbital animations (60s, 75s, 90s, 105s) */
@@ -214,15 +122,21 @@
 @keyframes deni-float {
   0%,
   100% {
-    transform: translateY(0) rotate(-1.5deg);
+    transform: translateY(0) rotate(-2deg);
+  }
+  25% {
+    transform: translateY(-14px) rotate(3deg);
   }
   50% {
-    transform: translateY(-9px) rotate(1.5deg);
+    transform: translateY(0) rotate(-2deg);
+  }
+  75% {
+    transform: translateY(-8px) rotate(2deg);
   }
 }
 
 .animate-deni-float {
-  animation: deni-float 3.6s ease-in-out infinite;
+  animation: deni-float 2.4s ease-in-out infinite;
 }
 
 @keyframes deni-tooltip-bounce {

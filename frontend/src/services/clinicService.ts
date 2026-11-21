@@ -1,5 +1,5 @@
 /**
- * OpenStreetMap Clinic Finder & Geocode service (/api/v1/clinics - docs/API_SPECS.md §7).
+ * OpenStreetMap Clinic Finder & Geocode service.
  */
 
 import apiClient from './apiClient';

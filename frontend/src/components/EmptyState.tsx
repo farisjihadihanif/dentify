@@ -16,7 +16,7 @@ export interface EmptyStateProps {
 }
 
 /**
- * Komponen tampilan saat data/riwayat kosong (`DESIGN.md §4.6` & `§6`).
+ * Komponen tampilan saat data/riwayat kosong.
  */
 export function EmptyState({
   title = 'Belum Ada Riwayat Pemindaian',

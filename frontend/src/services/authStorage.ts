@@ -1,6 +1,6 @@
 /**
  * Single source of truth for storing and reading the client JWT Bearer token
- * (AGENTS.md §8, TASK.md Final Decision #11).
+ *.
  */
 
 export const AUTH_TOKEN_STORAGE_KEY = 'denthub_auth_token';

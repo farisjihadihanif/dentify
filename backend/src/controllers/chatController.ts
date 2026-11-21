@@ -27,9 +27,34 @@ function buildTitleFromMessage(message: string): string {
   return cleaned.length <= 60 ? cleaned : `${cleaned.slice(0, 57)}...`;
 }
 
-async function loadKnowledgeContext(condition?: DentalCondition): Promise<AiChatKnowledgeItem[]> {
-  const keys = condition ? [condition, 'general'] : ['general'];
-  const uniqueKeys = Array.from(new Set(keys));
+const TOPIC_KEYWORD_MAP: Array<{ key: string; keywords: string[] }> = [
+  { key: 'periodontitis', keywords: ['periodontitis', 'gusi surut', 'gigi goyang', 'goyang', 'poket'] },
+  { key: 'dental_abscess', keywords: ['abses', 'nanah', 'bisul gusi', 'bengkak pipi', 'infeksi akar'] },
+  { key: 'dentin_hypersensitivity', keywords: ['sensitif', 'ngilu', 'air dingin', 'es', 'dentin'] },
+  { key: 'tooth_wear', keywords: ['erosi', 'abrasi', 'bruksisme', 'gertak', 'gigi aus', 'menipis'] },
+  { key: 'cracked_tooth', keywords: ['retak', 'patah', 'cuil', 'sompel', 'pecah'] },
+  { key: 'wisdom_tooth_impaction', keywords: ['gigi bungsu', 'impaksi', 'geraham belakang', 'maloklusi', 'berjejal', 'behel'] },
+  { key: 'edentulism_implants', keywords: ['ompong', 'gigi hilang', 'implan', 'gigi palsu', 'gigi tiruan', 'bridge'] },
+  { key: 'oral_lesions_tmd', keywords: ['sariawan', 'lesi', 'luka mulut', 'rahang', 'tmd', 'tmj', 'klik rahang'] },
+  { key: 'calculus', keywords: ['karang gigi', 'kalkulus', 'scaling', 'plak keras'] },
+  { key: 'caries', keywords: ['karies', 'berlubang', 'lubang', 'tambal'] },
+  { key: 'gingivitis', keywords: ['gingivitis', 'radang gusi', 'gusi berdarah', 'gusi merah'] },
+];
+
+async function loadKnowledgeContext(
+  condition?: DentalCondition,
+  message?: string,
+): Promise<AiChatKnowledgeItem[]> {
+  const keys: string[] = condition ? [condition, 'general'] : ['general'];
+  const lowered = (message || '').toLowerCase();
+  if (lowered) {
+    for (const entry of TOPIC_KEYWORD_MAP) {
+      if (entry.keywords.some((kw) => lowered.includes(kw))) {
+        keys.push(entry.key);
+      }
+    }
+  }
+  const uniqueKeys = Array.from(new Set(keys)).slice(0, 4);
   const docs = await DentalKnowledge.find({ condition_key: { $in: uniqueKeys } }).lean();
 
   if (docs.length > 0) {
@@ -99,7 +124,10 @@ export async function postChatMessage(
         }))
       : input.history.slice(-10);
 
-    const knowledgeContext = await loadKnowledgeContext(linkedScan?.primary_condition);
+    const knowledgeContext = await loadKnowledgeContext(
+      linkedScan?.primary_condition,
+      effectiveMessage,
+    );
 
     const scanContext = linkedScan
       ? {

@@ -1,5 +1,5 @@
 /**
- * Frontend authentication service (docs/API_SPECS.md §4.1–§4.3).
+ * Frontend authentication service.
  */
 
 import apiClient from './apiClient';

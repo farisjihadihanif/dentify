@@ -25,7 +25,7 @@ export interface ClinicFinderViewProps {
 }
 
 /**
- * Panel utama Pencari Klinik Gigi Terdekat berbasis OpenStreetMap (`DESIGN.md §3.4` & T-205):
+ * Panel utama Pencari Klinik Gigi Terdekat berbasis OpenStreetMap:
  * - Peta interaktif Leaflet + OpenStreetMap tiles (`OsmMapView` dengan `dynamic import` tanpa SSR)
  * - Filter radius (`2 km`, `5 km`, `10 km`)
  * - Deteksi GPS browser (`navigator.geolocation.getCurrentPosition`)
