@@ -146,11 +146,22 @@ def test_predict_rejects_only_blank_frames_and_accepts_small_nonblank_images(
     assert r_flat.json()["detail"]["code"] == "LOW_QUALITY_IMAGE"
 
 
+def _make_green_foliage_image(width: int = 224, height: int = 224) -> bytes:
+    rng = np.random.default_rng(42)
+    img = np.zeros((height, width, 3), dtype=np.uint8)
+    img[:, :, 0] = rng.integers(20, 70, size=(height, width), dtype=np.uint8)
+    img[:, :, 1] = rng.integers(105, 205, size=(height, width), dtype=np.uint8)
+    img[:, :, 2] = rng.integers(15, 65, size=(height, width), dtype=np.uint8)
+    cv2.line(img, (20, 20), (200, 200), (35, 165, 30), thickness=4)
+    cv2.circle(img, (112, 112), 45, (30, 145, 25), thickness=3)
+    return _encode_png(img)
+
+
 def test_predict_low_confidence_returns_200_with_flag_and_pathology_tiebreaker(
     client: TestClient,
 ) -> None:
-    # Split low-confidence prediction where healthy < 0.45 -> NEVER 422; picks highest pathology
-    inference_service.model = _FakeModel([0.36, 0.22, 0.04, 0.38])  # type: ignore[assignment]
+    # Split low-confidence dental prediction where healthy < 0.45 -> picks highest pathology with is_low_confidence
+    inference_service.model = _FakeModel([0.46, 0.18, 0.04, 0.32])  # type: ignore[assignment]
     img_bytes = _make_sharp_dental_image()
     resp = client.post(
         "/internal/predict",
@@ -164,7 +175,7 @@ def test_predict_low_confidence_returns_200_with_flag_and_pathology_tiebreaker(
     assert body["quality"]["passed"] is True
 
     # Split low-confidence calculus prediction -> returns calculus 200 OK with is_low_confidence: True
-    inference_service.model = _FakeModel([0.18, 0.44, 0.28, 0.10])  # type: ignore[assignment]
+    inference_service.model = _FakeModel([0.16, 0.52, 0.22, 0.10])  # type: ignore[assignment]
     resp_calc = client.post(
         "/internal/predict",
         headers={"X-Internal-Key": "test-key-predict"},
@@ -175,6 +186,93 @@ def test_predict_low_confidence_returns_200_with_flag_and_pathology_tiebreaker(
     assert calc_body["primary_condition"] == "calculus"
     assert calc_body["urgency_level"] == "medium"
     assert calc_body["is_low_confidence"] is True
+
+
+def test_predict_rejects_non_dental_via_gemini_gate_and_accepts_all_four_dental_classes(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GEMINI_API_KEY", "fake-gemini-key")
+    get_settings.cache_clear()
+    inference_service.settings = get_settings()
+
+    # Even when MobileNetV2 predicts healthy at 0.94, Gemini vision gate runs and rejects non-dental images
+    inference_service.model = _FakeModel([0.02, 0.02, 0.02, 0.94])  # type: ignore[assignment]
+    monkeypatch.setattr(
+        inference_service,
+        "_gemini_vision_cross_check",
+        lambda _raw, user_symptoms=None: ("not_dental", 0.95),
+    )
+
+    plant_bytes = _make_green_foliage_image()
+    resp = client.post(
+        "/internal/predict",
+        headers={"X-Internal-Key": "test-key-predict"},
+        files={"image": ("plant.png", io.BytesIO(plant_bytes), "image/png")},
+    )
+    assert resp.status_code == 422
+    assert resp.json()["detail"]["code"] == "NOT_DENTAL_IMAGE"
+
+    # Real dental photos classified by Gemini into any of the 4 dental classes return 200 OK
+    tooth_bytes = _make_sharp_dental_image()
+    for cond in ("caries", "calculus", "gingivitis", "healthy"):
+        inference_service.model = _FakeModel([0.20, 0.20, 0.20, 0.40])  # type: ignore[assignment]
+        monkeypatch.setattr(
+            inference_service,
+            "_gemini_vision_cross_check",
+            lambda _raw, user_symptoms=None, c=cond: (c, 0.86),
+        )
+        ok_resp = client.post(
+            "/internal/predict",
+            headers={"X-Internal-Key": "test-key-predict"},
+            files={"image": (f"{cond}.png", io.BytesIO(tooth_bytes), "image/png")},
+        )
+        assert ok_resp.status_code == 200
+        assert ok_resp.json()["primary_condition"] == cond
+
+
+def test_predict_offline_ood_guard_rejects_non_dental_foliage_and_extreme_low_confidence(
+    client: TestClient,
+) -> None:
+    headers = {"X-Internal-Key": "test-key-predict"}
+
+    # Offline fallback: green foliage image with confidence < 0.62 -> 422 NOT_DENTAL_IMAGE
+    inference_service.model = _FakeModel([0.54, 0.20, 0.16, 0.10])  # type: ignore[assignment]
+    plant_bytes = _make_green_foliage_image()
+    resp_plant = client.post(
+        "/internal/predict",
+        headers=headers,
+        files={"image": ("leaf.png", io.BytesIO(plant_bytes), "image/png")},
+    )
+    assert resp_plant.status_code == 422
+    assert resp_plant.json()["detail"]["code"] == "NOT_DENTAL_IMAGE"
+
+    # Offline fallback: extreme ambiguous confidence < 0.45 -> 422 NOT_DENTAL_IMAGE
+    inference_service.model = _FakeModel([0.30, 0.26, 0.24, 0.20])  # type: ignore[assignment]
+    resp_low = client.post(
+        "/internal/predict",
+        headers=headers,
+        files={"image": ("ambiguous.png", io.BytesIO(_make_sharp_dental_image()), "image/png")},
+    )
+    assert resp_low.status_code == 422
+    assert resp_low.json()["detail"]["code"] == "NOT_DENTAL_IMAGE"
+
+    # Plausible dental photos across all 4 conditions return 200 OK offline
+    tooth_bytes = _make_sharp_dental_image()
+    for probs, expected in [
+        ([0.82, 0.08, 0.06, 0.04], "caries"),
+        ([0.08, 0.80, 0.08, 0.04], "calculus"),
+        ([0.06, 0.10, 0.78, 0.06], "gingivitis"),
+        ([0.04, 0.05, 0.05, 0.86], "healthy"),
+    ]:
+        inference_service.model = _FakeModel(probs)  # type: ignore[assignment]
+        resp_ok = client.post(
+            "/internal/predict",
+            headers=headers,
+            files={"image": (f"{expected}.png", io.BytesIO(tooth_bytes), "image/png")},
+        )
+        assert resp_ok.status_code == 200
+        assert resp_ok.json()["primary_condition"] == expected
 
 
 def test_predict_vision_cross_check_corrects_ambiguous_healthy_caries_and_falls_back_silently(

@@ -16,9 +16,13 @@ class ImageValidationError(Exception):
         self.message = message
 
 
+ImageQualityError = ImageValidationError
+
+
 @dataclass
 class PreprocessedImage:
     tensor: np.ndarray  # shape (1, 224, 224, 3), float32 in [0, 1]
+    rgb: np.ndarray  # decoded RGB uint8 frame
     original_width: int
     original_height: int
     blur_score: float
@@ -133,6 +137,7 @@ def decode_and_preprocess_bytes(raw_bytes: bytes) -> PreprocessedImage:
     tensor = np.expand_dims(arr, axis=0)
     return PreprocessedImage(
         tensor=tensor,
+        rgb=rgb,
         original_width=orig_w,
         original_height=orig_h,
         blur_score=round(blur_score, 2),

@@ -94,6 +94,13 @@ export async function requestDentalPrediction(params: {
         detail.detail?.message ??
         'Foto kurang jelas atau terlalu gelap. Ambil ulang foto di tempat yang terang dengan gigi yang bersih.';
 
+      if (code === 'NOT_DENTAL_IMAGE') {
+        throw new ApiError(
+          422,
+          'NOT_DENTAL_IMAGE',
+          'Foto yang diunggah bukan foto gigi atau rongga mulut. Unggah foto gigi yang terlihat jelas untuk memulai pemindaian.',
+        );
+      }
       if (code === 'INVALID_IMAGE') {
         throw new ApiError(422, 'INVALID_IMAGE', message);
       }

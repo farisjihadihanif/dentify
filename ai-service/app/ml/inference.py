@@ -16,26 +16,102 @@ from PIL import Image
 from app.core.config import Settings, get_settings
 from app.core.state import runtime_state
 from app.ml.custom_model import DENTAL_LABELS, load_denthub_model
-from app.ml.preprocessing import decode_and_preprocess_bytes
+from app.ml.preprocessing import ImageQualityError, decode_and_preprocess_bytes
 from app.ml.urgency import compute_urgency
 from app.schemas import DentalCondition, DetectionItem, ImageQualityReport, PredictResponse
 
 logger = logging.getLogger(__name__)
 
 LOW_CONFIDENCE_THRESHOLD = 0.75
-CROSS_CHECK_CONFIDENCE_THRESHOLD = 0.82
-CROSS_CHECK_HEALTHY_THRESHOLD = 0.90
+CROSS_CHECK_CONFIDENCE_THRESHOLD = 0.88
+OFFLINE_OOD_MIN_CONFIDENCE = 0.45
+OFFLINE_OOD_HEURISTIC_CONFIDENCE = 0.62
 CROSS_CHECK_TIMEOUT_S = 6.0
 
-VISION_CROSS_CHECK_PROMPT = (
-    "You are a dental visual screening classifier. Classify the attached intraoral dental photograph "
-    "strictly into ONE of these four canonical labels:\n"
-    '- "caries": dark brown/black cavities, tooth decay holes, occlusal fissure decay, or front-tooth decay\n'
-    '- "calculus": yellow, brown, or chalky hardened tartar/plaque deposits along the gumline or between teeth\n'
-    '- "gingivitis": visibly red, swollen, puffy, or bleeding gums without primary dark cavities or heavy tartar\n'
-    '- "healthy": clean white/ivory teeth and firm pink gums with no visible decay, tartar, or gum inflammation\n\n'
-    'Respond ONLY with compact JSON: {"condition": "caries|calculus|gingivitis|healthy", "confidence": 0.0-1.0}'
+NOT_DENTAL_ERROR_MESSAGE = (
+    "Gambar yang diunggah bukan foto gigi atau rongga mulut. "
+    "Silakan unggah foto area gigi dan gusi yang terlihat jelas."
 )
+
+VISION_CROSS_CHECK_PROMPT = (
+    "You are a dental visual screening classifier. First determine whether the attached image shows "
+    "human teeth, gums, or an intraoral view.\n"
+    '- Set "is_dental_image": false and "condition": "not_dental" ONLY if the image clearly does NOT '
+    "show human teeth, gums, or an intraoral view (for example: plants, foliage, food, everyday objects, "
+    "animals, landscapes/scenery, closed-mouth portraits, or text/UI screenshots).\n"
+    "- Any image showing teeth or gums — even if dark, blurry, extreme close-up, angled, or low-resolution — "
+    'MUST be treated as "is_dental_image": true and classified into ONE of these four canonical dental labels:\n'
+    '  * "caries": dark brown/black cavities, tooth decay holes, occlusal fissure decay, or front-tooth decay\n'
+    '  * "calculus": yellow, brown, or chalky hardened tartar/plaque deposits along the gumline or between teeth\n'
+    '  * "gingivitis": visibly red, swollen, puffy, or bleeding gums without primary dark cavities or heavy tartar\n'
+    '  * "healthy": clean white/ivory teeth and firm pink gums with no visible decay, tartar, or gum inflammation\n\n'
+    'Respond ONLY with compact JSON: {"is_dental_image": true|false, "condition": "caries|calculus|gingivitis|healthy|not_dental", "confidence": 0.0-1.0}'
+)
+
+
+def _is_plausible_dental_image(rgb_uint8: np.ndarray) -> bool:
+    """
+    Lightweight color-distribution heuristic for offline/fallback OOD screening.
+    Checks for plausible intraoral/enamel/mucosal color presence (warm mucosal pink/red/skin-beige
+    or ivory/enamel pixels) and rejects frames dominated by green foliage, blue sky, or synthetic graphics.
+    """
+    if rgb_uint8 is None or rgb_uint8.size == 0:
+        return False
+
+    h, w = rgb_uint8.shape[:2]
+    if max(h, w) > 224:
+        scale = 224.0 / float(max(h, w))
+        sample = cv2.resize(
+            rgb_uint8,
+            (max(1, int(w * scale)), max(1, int(h * scale))),
+            interpolation=cv2.INTER_AREA,
+        )
+    else:
+        sample = rgb_uint8
+
+    hsv = cv2.cvtColor(sample, cv2.COLOR_RGB2HSV)
+    hue = hsv[:, :, 0]
+    sat = hsv[:, :, 1]
+    val = hsv[:, :, 2]
+
+    r = sample[:, :, 0].astype(np.int16)
+    g = sample[:, :, 1].astype(np.int16)
+    b = sample[:, :, 2].astype(np.int16)
+
+    # Warm mucosal (pink/red gums, lips, skin) and dentin/caries/calculus tones (beige/yellow/brown)
+    warm_mucosal = ((hue <= 34) | (hue >= 152)) & (sat >= 20) & (val >= 28) & (r >= b - 5)
+
+    # Ivory / enamel / white tooth surface pixels (low-medium saturation, bright, without green/blue cast)
+    enamel_ivory = (sat <= 75) & (val >= 115) & (r >= g - 15) & (r >= b - 18)
+
+    # Non-dental dominant hues: green foliage or blue/cyan/violet sky and synthetic graphics
+    green_foliage = (hue >= 36) & (hue <= 88) & (sat >= 42) & (val >= 25) & (g > r + 10)
+    blue_non_dental = (hue >= 90) & (hue <= 148) & (sat >= 50) & (val >= 25) & (b > r + 12)
+
+    warm_ratio = float(np.mean(warm_mucosal))
+    enamel_ratio = float(np.mean(enamel_ivory))
+    dental_ratio = float(np.mean(warm_mucosal | enamel_ivory))
+    green_ratio = float(np.mean(green_foliage))
+    blue_ratio = float(np.mean(blue_non_dental))
+    non_dental_ratio = green_ratio + blue_ratio
+
+    if green_ratio >= 0.30 and green_ratio > dental_ratio:
+        return False
+    if blue_ratio >= 0.45 and blue_ratio > dental_ratio:
+        return False
+    if non_dental_ratio >= 0.50 and non_dental_ratio > dental_ratio:
+        return False
+    if dental_ratio < 0.14:
+        return False
+
+    near_pure_white = (r >= 245) & (g >= 245) & (b >= 245)
+    if float(np.mean(near_pure_white)) > 0.65 and warm_ratio < 0.03:
+        return False
+
+    if warm_ratio < 0.015 and enamel_ratio < 0.08:
+        return False
+
+    return True
 
 
 class DentalInferenceService:
@@ -148,7 +224,7 @@ class DentalInferenceService:
         self,
         raw_bytes: bytes,
         user_symptoms: str | None = None,
-    ) -> tuple[DentalCondition, float] | None:
+    ) -> tuple[str, float] | None:
         api_key = (self.settings.gemini_api_key or "").strip()
         if not api_key:
             return None
@@ -180,21 +256,30 @@ class DentalInferenceService:
 
         cleaned = raw_text.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
         parsed = json.loads(cleaned)
+        is_dental = parsed.get("is_dental_image")
         cond = str(parsed.get("condition", "")).strip().lower()
-        if cond not in self.labels:
-            return None
         conf_raw = float(parsed.get("confidence", 0.78))
         conf_clamped = round(max(0.55, min(0.95, conf_raw)), 4)
-        return cond, conf_clamped  # type: ignore[return-value]
+
+        if (
+            is_dental is False
+            or (isinstance(is_dental, str) and is_dental.strip().lower() == "false")
+            or cond == "not_dental"
+        ):
+            return "not_dental", conf_clamped
+
+        if cond not in self.labels:
+            return None
+        return cond, conf_clamped
 
     def _gemini_vision_cross_check(
         self,
         raw_bytes: bytes,
         user_symptoms: str | None = None,
-    ) -> tuple[DentalCondition, float] | None:
+    ) -> tuple[str, float] | None:
         """
-        Bounded 6.0s Gemini vision cross-check constrained strictly to the 4 dental classes.
-        Silently returns None on timeout, offline environment, or any error so MobileNetV2 stays intact.
+        Bounded 6.0s Gemini vision gate & cross-check across the 4 dental classes plus non-dental rejection.
+        Silently returns None on timeout, offline environment, or any error so fallback logic stays intact.
         """
         if not (self.settings.gemini_api_key or "").strip():
             return None
@@ -254,15 +339,25 @@ class DentalInferenceService:
         primary_condition: DentalCondition = self.labels[top_idx]
         confidence = round(float(probs_vec[top_idx]), 4)
 
-        # Fast bounded vision cross-check for ambiguous or low-margin MobileNetV2 predictions
-        needs_cross_check = confidence < CROSS_CHECK_CONFIDENCE_THRESHOLD or (
-            primary_condition == "healthy" and confidence < CROSS_CHECK_HEALTHY_THRESHOLD
+        is_plausible_dental = _is_plausible_dental_image(preprocessed.rgb)
+
+        # Primary Gemini vision gate & cross-check
+        needs_cross_check = (
+            confidence < CROSS_CHECK_CONFIDENCE_THRESHOLD
+            or primary_condition == "healthy"
+            or not is_plausible_dental
         )
+        verified: tuple[str, float] | None = None
         if needs_cross_check and (self.settings.gemini_api_key or "").strip():
             verified = self._gemini_vision_cross_check(raw_bytes, user_symptoms=user_symptoms)
             if verified is not None:
                 v_cond, v_conf = verified
-                v_idx = self.labels.index(v_cond)
+                if v_cond == "not_dental":
+                    raise ImageQualityError(
+                        code="NOT_DENTAL_IMAGE",
+                        message=NOT_DENTAL_ERROR_MESSAGE,
+                    )
+                v_idx = self.labels.index(v_cond)  # type: ignore[arg-type]
                 remaining_mass = max(0.0, 1.0 - v_conf)
                 other_indices = [i for i in range(len(self.labels)) if i != v_idx]
                 other_sum = float(sum(probs_vec[i] for i in other_indices))
@@ -273,8 +368,18 @@ class DentalInferenceService:
                     new_probs[i] = remaining_mass * share
                 probs_vec = new_probs
                 top_idx = v_idx
-                primary_condition = v_cond
+                primary_condition = v_cond  # type: ignore[assignment]
                 confidence = round(v_conf, 4)
+
+        # Offline / fallback OOD guard when Gemini cross-check is unavailable
+        if verified is None and (
+            confidence < OFFLINE_OOD_MIN_CONFIDENCE
+            or (confidence < OFFLINE_OOD_HEURISTIC_CONFIDENCE and not is_plausible_dental)
+        ):
+            raise ImageQualityError(
+                code="NOT_DENTAL_IMAGE",
+                message=NOT_DENTAL_ERROR_MESSAGE,
+            )
 
         is_low_confidence = confidence < LOW_CONFIDENCE_THRESHOLD
 

@@ -143,6 +143,34 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
     expect(res.body.code).toBe('LOW_QUALITY_IMAGE');
   });
 
+  it('maps 422 NOT_DENTAL_IMAGE from AI service to canonical Indonesian 422 response', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          detail: {
+            code: 'NOT_DENTAL_IMAGE',
+            message: 'Gambar bukan foto gigi.',
+          },
+        }),
+        { status: 422, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+
+    const app = createApp();
+    const validPng = makePngBuffer(320, 320);
+    const res = await request(app)
+      .post('/api/v1/scans')
+      .field('capture_source', 'upload')
+      .attach('image', validPng, { filename: 'plant.png', contentType: 'image/png' });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(res.status).toBe(422);
+    expect(res.body.code).toBe('NOT_DENTAL_IMAGE');
+    expect(res.body.message).toBe(
+      'Foto yang diunggah bukan foto gigi atau rongga mulut. Unggah foto gigi yang terlihat jelas untuk memulai pemindaian.',
+    );
+  });
+
   it('supports guest quick mode (saved: false) and authenticated emergency scan (saved: true, trigger_clinic_finder: true)', async () => {
     vi.spyOn(aiClient, 'requestDentalPrediction').mockResolvedValue({
       primary_condition: 'caries',

@@ -54,7 +54,10 @@ export function ErrorBanner({
             !
           </span>
           <div>
-            <p className="font-semibold text-status-red">{uiError.message}</p>
+            {uiError.title && <p className="font-bold text-status-red">{uiError.title}</p>}
+            <p className={uiError.title ? 'mt-0.5 text-sm text-text' : 'font-semibold text-status-red'}>
+              {uiError.message}
+            </p>
             {fieldEntries.length > 0 && (
               <ul className="mt-2 list-disc space-y-1 pl-5 text-badge text-text-muted">
                 {fieldEntries.flatMap(([field, messages]) =>

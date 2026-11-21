@@ -12,6 +12,7 @@ export type ApiErrorCode =
   | 'VALIDATION_ERROR'
   | 'INVALID_IMAGE'
   | 'LOW_QUALITY_IMAGE'
+  | 'NOT_DENTAL_IMAGE'
   | 'RATE_LIMITED'
   | 'AI_SERVICE_UNAVAILABLE'
   | 'INTERNAL_ERROR'
@@ -30,6 +31,7 @@ export type ErrorUiAction =
 
 export interface MappedUiError {
   code: ApiErrorCode;
+  title?: string;
   message: string;
   action: ErrorUiAction;
   cooldownSeconds?: number;
@@ -60,6 +62,12 @@ const ERROR_CATALOG: Record<ApiErrorCode, Omit<MappedUiError, 'code' | 'fieldErr
     action: 'show_retake_guidance',
     message:
       'Foto kurang jelas atau terlalu gelap. Ambil ulang foto di tempat yang terang dengan gigi yang bersih.',
+  },
+  NOT_DENTAL_IMAGE: {
+    title: 'Bukan Foto Gigi yang Valid',
+    action: 'show_retake_guidance',
+    message:
+      'Foto yang diunggah bukan foto gigi atau rongga mulut. Unggah foto close-up area gigi dan gusi yang terlihat jelas untuk memulai pemindaian.',
   },
   RATE_LIMITED: {
     action: 'cooldown_submit_10s',
@@ -149,6 +157,7 @@ export function mapApiError(errorOrPayload: unknown): MappedUiError {
       }
       return {
         code: payload.code,
+        ...(base.title ? { title: base.title } : {}),
         action: base.action,
         cooldownSeconds: base.cooldownSeconds,
         message:

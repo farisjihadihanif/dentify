@@ -31,6 +31,14 @@ describe('errorMapper', () => {
         'Foto kurang jelas atau terlalu gelap. Ambil ulang foto di tempat yang terang dengan gigi yang bersih.',
     });
 
+    expect(mapApiError('NOT_DENTAL_IMAGE')).toEqual({
+      code: 'NOT_DENTAL_IMAGE',
+      title: 'Bukan Foto Gigi yang Valid',
+      action: 'show_retake_guidance',
+      message:
+        'Foto yang diunggah bukan foto gigi atau rongga mulut. Unggah foto close-up area gigi dan gusi yang terlihat jelas untuk memulai pemindaian.',
+    });
+
     expect(mapApiError('RATE_LIMITED')).toEqual({
       code: 'RATE_LIMITED',
       action: 'cooldown_submit_10s',
@@ -72,6 +80,25 @@ describe('errorMapper', () => {
       message: 'Format email tidak valid.',
       fieldErrors: { email: ['Format email tidak valid.'] },
     });
+
+    const notDentalMapped = mapApiError({
+      response: {
+        status: 422,
+        data: {
+          success: false,
+          code: 'NOT_DENTAL_IMAGE',
+          message:
+            'Foto yang diunggah bukan foto gigi atau rongga mulut. Unggah foto gigi yang terlihat jelas untuk memulai pemindaian.',
+        },
+      },
+    });
+
+    expect(notDentalMapped).toMatchObject({
+      code: 'NOT_DENTAL_IMAGE',
+      title: 'Bukan Foto Gigi yang Valid',
+      action: 'show_retake_guidance',
+    });
+    expect(notDentalMapped.message).toContain('gigi');
   });
 });
 

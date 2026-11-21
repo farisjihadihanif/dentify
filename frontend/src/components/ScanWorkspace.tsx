@@ -259,17 +259,21 @@ export function ScanWorkspace({
             onRetry={selectedFile ? () => void handleAnalyzeSubmit() : undefined}
             onDismiss={() => setUiError(null)}
           />
-          {uiError.code === 'LOW_QUALITY_IMAGE' && (
+          {(uiError.code === 'LOW_QUALITY_IMAGE' || uiError.code === 'NOT_DENTAL_IMAGE') && (
             <div
               role="note"
               data-testid="retake-guidance-card"
               className="rounded-card border border-border bg-brand-soft p-4 text-badge text-text"
             >
-              <p className="font-semibold text-brand-dark">Tips Mengambil Ulang Foto yang Jelas:</p>
+              <p className="font-semibold text-brand-dark">
+                {uiError.code === 'NOT_DENTAL_IMAGE'
+                  ? 'Tips Mengambil Foto Gigi yang Valid:'
+                  : 'Tips Mengambil Ulang Foto yang Jelas:'}
+              </p>
               <ul className="mt-1.5 list-disc space-y-1 pl-5 text-text-muted">
-                <li>Gunakan pencahayaan terang dan merata (hadap sumber cahaya).</li>
-                <li>Bersihkan sisa makanan terlebih dahulu agar tidak memicu deteksi keliru.</li>
-                <li>Tahan kamera dengan stabil dan pastikan area gigi terlihat fokus.</li>
+                <li>Arahkan kamera dekat ke area gigi dan gusi (foto close-up rongga mulut).</li>
+                <li>Gunakan pencahayaan terang dan merata agar permukaan gigi terlihat jelas.</li>
+                <li>Hindari mengunggah objek lain seperti tanaman, pemandangan, atau tangkapan layar.</li>
               </ul>
             </div>
           )}
