@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -26,6 +26,7 @@ export interface BeritaArticleDetailViewProps {
   slug: string;
   initialArticle?: ArticleItem | null;
   initialRelatedArticles?: ArticleItem[];
+  initialCoverNaturalSize?: { width: number; height: number } | null;
 }
 
 const DEFAULT_COVER_IMAGE = '/images/covers/artikel-default.svg';
@@ -60,6 +61,7 @@ export function BeritaArticleDetailView({
   slug,
   initialArticle = null,
   initialRelatedArticles,
+  initialCoverNaturalSize,
 }: BeritaArticleDetailViewProps) {
   const [article, setArticle] = useState<ArticleItem | null>(initialArticle);
   const [relatedArticles, setRelatedArticles] = useState<ArticleItem[]>(
@@ -68,6 +70,24 @@ export function BeritaArticleDetailView({
   const [isLoading, setIsLoading] = useState<boolean>(!initialArticle);
   const [notFound, setNotFound] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
+  const [coverNaturalSize, setCoverNaturalSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(initialCoverNaturalSize ?? null);
+  const coverImgRef = useRef<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    if (initialCoverNaturalSize !== undefined) {
+      setCoverNaturalSize(initialCoverNaturalSize);
+      return;
+    }
+    const img = coverImgRef.current;
+    if (img && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) {
+      setCoverNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
+    } else {
+      setCoverNaturalSize(null);
+    }
+  }, [article?.coverImageUrl, initialCoverNaturalSize]);
 
   useEffect(() => {
     if (initialArticle) return;
@@ -159,8 +179,12 @@ export function BeritaArticleDetailView({
     .filter(Boolean);
 
   const readMinutes = estimateReadingMinutes(article.content);
-  const effectiveFit =
-    article.coverFit ?? (article.category === 'Promo' ? 'contain' : 'cover');
+  const isWideLandscape =
+    coverNaturalSize !== null &&
+    coverNaturalSize.width > 0 &&
+    coverNaturalSize.height > 0 &&
+    coverNaturalSize.width > coverNaturalSize.height;
+  const useWideCoverMode = article.coverFit === 'cover' && isWideLandscape;
   const coverPosition = article.coverPosition || '50% 50%';
   const coverZoom = article.coverZoom && article.coverZoom > 1 ? article.coverZoom : 1;
   const isPromo = article.category === 'Promo';
@@ -258,31 +282,27 @@ export function BeritaArticleDetailView({
         </div>
       </header>
 
-      {/* Full Uncropped Hero Media Stage */}
+      {/* Full Uncropped Hero Media Stage (auto-detects vertical/square images) */}
       <figure
         data-testid="berita-hero-media-stage"
         className={
-          effectiveFit === 'contain'
-            ? 'flex justify-center overflow-hidden rounded-card border border-border bg-bg/80 p-4 shadow-sm sm:p-6'
-            : 'overflow-hidden rounded-card border border-border bg-surface-navy shadow-sm'
+          useWideCoverMode
+            ? 'overflow-hidden rounded-card border border-border bg-surface-navy shadow-sm'
+            : 'flex justify-center overflow-hidden rounded-card border border-border bg-bg/80 p-4 shadow-sm sm:p-6'
         }
       >
-        {effectiveFit === 'contain' ? (
-          <img
-            src={article.coverImageUrl || DEFAULT_COVER_IMAGE}
-            alt={article.title}
-            onError={(e) => {
-              if (!e.currentTarget.src.endsWith(DEFAULT_COVER_IMAGE)) {
-                e.currentTarget.src = DEFAULT_COVER_IMAGE;
-              }
-            }}
-            className="max-h-[560px] w-auto max-w-full rounded-xl object-contain shadow-sm"
-          />
-        ) : (
+        {useWideCoverMode ? (
           <div className="max-h-[460px] w-full overflow-hidden">
             <img
+              ref={coverImgRef}
               src={article.coverImageUrl || DEFAULT_COVER_IMAGE}
               alt={article.title}
+              onLoad={(e) => {
+                const { naturalWidth, naturalHeight } = e.currentTarget;
+                if (naturalWidth > 0 && naturalHeight > 0) {
+                  setCoverNaturalSize({ width: naturalWidth, height: naturalHeight });
+                }
+              }}
               onError={(e) => {
                 if (!e.currentTarget.src.endsWith(DEFAULT_COVER_IMAGE)) {
                   e.currentTarget.src = DEFAULT_COVER_IMAGE;
@@ -295,6 +315,24 @@ export function BeritaArticleDetailView({
               }}
             />
           </div>
+        ) : (
+          <img
+            ref={coverImgRef}
+            src={article.coverImageUrl || DEFAULT_COVER_IMAGE}
+            alt={article.title}
+            onLoad={(e) => {
+              const { naturalWidth, naturalHeight } = e.currentTarget;
+              if (naturalWidth > 0 && naturalHeight > 0) {
+                setCoverNaturalSize({ width: naturalWidth, height: naturalHeight });
+              }
+            }}
+            onError={(e) => {
+              if (!e.currentTarget.src.endsWith(DEFAULT_COVER_IMAGE)) {
+                e.currentTarget.src = DEFAULT_COVER_IMAGE;
+              }
+            }}
+            className="mx-auto max-h-[540px] w-auto max-w-full rounded-xl object-contain"
+          />
         )}
       </figure>
 

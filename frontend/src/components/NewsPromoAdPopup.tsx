@@ -71,12 +71,6 @@ export function NewsPromoAdPopup({
     return null;
   }
 
-  const isPosterCover =
-    featuredArticle.coverFit === 'contain' ||
-    (!featuredArticle.coverFit && featuredArticle.category === 'Promo');
-  const coverZoom =
-    featuredArticle.coverZoom && featuredArticle.coverZoom > 1 ? featuredArticle.coverZoom : 1;
-
   return (
     <div
       role="dialog"
@@ -100,14 +94,10 @@ export function NewsPromoAdPopup({
           <X className="h-4 w-4" aria-hidden="true" />
         </button>
 
-        {/* Ad Poster Cover Image */}
+        {/* Ad Poster Cover Image — always uncropped */}
         <div
           data-testid="ad-popup-media-frame"
-          className={
-            isPosterCover
-              ? 'relative flex w-full items-center justify-center bg-bg/80 p-3'
-              : 'relative aspect-[16/10] w-full overflow-hidden bg-surface-navy'
-          }
+          className="relative flex w-full items-center justify-center overflow-hidden bg-bg/80 p-3 sm:p-4"
         >
           <img
             src={featuredArticle.coverImageUrl || '/images/covers/artikel-default.svg'}
@@ -117,19 +107,7 @@ export function NewsPromoAdPopup({
                 e.currentTarget.src = '/images/covers/artikel-default.svg';
               }
             }}
-            className={
-              isPosterCover
-                ? 'mx-auto max-h-[340px] w-auto max-w-full rounded-xl object-contain sm:max-h-[400px]'
-                : 'h-full w-full object-cover'
-            }
-            style={
-              !isPosterCover
-                ? {
-                    objectPosition: featuredArticle.coverPosition || '50% 50%',
-                    transform: coverZoom > 1 ? `scale(${coverZoom})` : undefined,
-                  }
-                : undefined
-            }
+            className="mx-auto max-h-[340px] w-auto max-w-full rounded-xl object-contain sm:max-h-[400px]"
           />
           <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-pill bg-surface-sand px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-text shadow-sm">
             <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />

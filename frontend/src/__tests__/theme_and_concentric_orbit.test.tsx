@@ -291,26 +291,41 @@ describe('Clinical Light Mode, 12-Instrument Orbit Hero, Profile Adjuster, Admin
     };
 
     const modalHtml = renderToStaticMarkup(
-      <BeritaPortalView initialArticles={[posterArticle]} initialPreviewArticle={posterArticle} />,
+      <BeritaPortalView
+        initialArticles={[{ ...posterArticle, coverFit: 'cover' }]}
+        initialPreviewArticle={{ ...posterArticle, coverFit: 'cover' }}
+      />,
     );
     expect(modalHtml).toContain('data-testid="berita-preview-media-frame"');
     expect(modalHtml).toContain('max-h-[340px] w-auto max-w-full rounded-xl object-contain');
     expect(modalHtml).not.toContain('aspect-[16/10]');
 
     const popupHtml = renderToStaticMarkup(
-      <NewsPromoAdPopup initialArticle={posterArticle} pathnameOverride="/" />,
+      <NewsPromoAdPopup
+        initialArticle={{ ...posterArticle, coverFit: 'cover' }}
+        pathnameOverride="/"
+      />,
     );
     expect(popupHtml).toContain('data-testid="ad-popup-media-frame"');
     expect(popupHtml).toContain('max-h-[340px] w-auto max-w-full rounded-xl object-contain');
     expect(popupHtml).not.toContain('aspect-[16/10]');
+    expect(popupHtml).not.toContain('object-cover');
 
-    const detailPosterHtml = renderToStaticMarkup(
-      <BeritaArticleDetailView slug={posterArticle.slug} initialArticle={posterArticle} />,
+    // Vertical/square image saved with coverFit:'cover' stays uncropped in detail page
+    const detailVerticalCoverHtml = renderToStaticMarkup(
+      <BeritaArticleDetailView
+        slug={posterArticle.slug}
+        initialArticle={{ ...posterArticle, coverFit: 'cover' }}
+        initialCoverNaturalSize={{ width: 800, height: 1200 }}
+      />,
     );
-    expect(detailPosterHtml).toContain('max-h-[560px] w-auto max-w-full rounded-xl object-contain');
-    expect(detailPosterHtml).toContain('pb-28');
+    expect(detailVerticalCoverHtml).toContain(
+      'mx-auto max-h-[540px] w-auto max-w-full rounded-xl object-contain',
+    );
+    expect(detailVerticalCoverHtml).toContain('pb-28');
 
-    const detailCoverHtml = renderToStaticMarkup(
+    // Wide landscape image saved with coverFit:'cover' uses wide hero cover framing
+    const detailLandscapeCoverHtml = renderToStaticMarkup(
       <BeritaArticleDetailView
         slug="artikel-cover-1"
         initialArticle={{
@@ -322,10 +337,11 @@ describe('Clinical Light Mode, 12-Instrument Orbit Hero, Profile Adjuster, Admin
           coverPosition: '50% 30%',
           coverZoom: 1.2,
         }}
+        initialCoverNaturalSize={{ width: 1600, height: 900 }}
       />,
     );
-    expect(detailCoverHtml).toContain('max-h-[460px] w-full object-cover');
-    expect(detailCoverHtml).toContain('object-position:50% 30%');
-    expect(detailCoverHtml).toContain('scale(1.2)');
+    expect(detailLandscapeCoverHtml).toContain('max-h-[460px] w-full object-cover');
+    expect(detailLandscapeCoverHtml).toContain('object-position:50% 30%');
+    expect(detailLandscapeCoverHtml).toContain('scale(1.2)');
   });
 });

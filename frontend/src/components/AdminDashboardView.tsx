@@ -80,7 +80,7 @@ const EMPTY_ARTICLE_FORM: ArticleFormState = {
   title: '',
   category: 'Berita',
   coverImageUrl: '',
-  coverFit: 'cover',
+  coverFit: 'contain',
   coverPosX: 50,
   coverPosY: 50,
   coverZoom: 1,
@@ -276,7 +276,7 @@ export function AdminDashboardView({
       title: article.title,
       category: article.category,
       coverImageUrl: article.coverImageUrl || '',
-      coverFit: article.coverFit === 'contain' ? 'contain' : 'cover',
+      coverFit: article.coverFit === 'cover' ? 'cover' : 'contain',
       coverPosX: pos.x,
       coverPosY: pos.y,
       coverZoom: article.coverZoom ?? 1,
@@ -622,18 +622,20 @@ export function AdminDashboardView({
                   </div>
 
                   <div
-                    className={[
-                      'relative aspect-[16/10] w-full overflow-hidden rounded-xl border border-border',
-                      formState.coverFit === 'contain' ? 'bg-slate-100 p-2' : 'bg-surface-navy',
-                    ].join(' ')}
+                    className={
+                      formState.coverFit === 'contain'
+                        ? 'relative flex w-full items-center justify-center overflow-hidden rounded-xl border border-border bg-bg/80 p-3'
+                        : 'relative aspect-[16/10] w-full overflow-hidden rounded-xl border border-border bg-surface-navy'
+                    }
                   >
                     <img
                       src={previewCoverSrc}
                       alt="Pratinjau sampul konten"
-                      className={[
-                        'h-full w-full transition-transform duration-150',
-                        formState.coverFit === 'contain' ? 'object-contain' : 'object-cover',
-                      ].join(' ')}
+                      className={
+                        formState.coverFit === 'contain'
+                          ? 'mx-auto max-h-[260px] w-auto max-w-full rounded-lg object-contain transition-transform duration-150'
+                          : 'h-full w-full object-cover transition-transform duration-150'
+                      }
                       style={
                         formState.coverFit === 'cover'
                           ? {
