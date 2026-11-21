@@ -33,6 +33,7 @@ import {
   fetchCurrentUser,
   getStoredUser,
   isAuthenticated,
+  notifyUserUpdated,
   updateCurrentUserProfile,
   type AuthUser,
 } from "../services/authService";
@@ -266,6 +267,7 @@ export function ProfileEditorView({
       setFullName(updated.full_name || fullName);
       setUsername(updated.username || "");
       setAvatar(updated.avatar || avatarToSave || "");
+      notifyUserUpdated();
       setSuccessMessage("Profil umum Anda berhasil diperbarui.");
     } catch (error) {
       const mapped =
@@ -309,6 +311,7 @@ export function ProfileEditorView({
 
   const handleLogout = () => {
     clearStoredSession();
+    notifyUserUpdated();
     router.push("/login");
   };
 

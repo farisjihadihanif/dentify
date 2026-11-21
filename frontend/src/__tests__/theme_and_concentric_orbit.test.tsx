@@ -8,6 +8,7 @@ import RegisterPage from '../app/register/page';
 import { AppFooter } from '../components/AppFooter';
 import { AdminDashboardView } from '../components/AdminDashboardView';
 import { BeritaArticleDetailView } from '../components/BeritaArticleDetailView';
+import { BeritaPortalView } from '../components/BeritaPortalView';
 import {
   CONCENTRIC_ORBIT_RINGS,
   ConcentricDentalOrbit,
@@ -15,6 +16,7 @@ import {
 import { DeniMascot } from '../components/DeniMascot';
 import { FloatingNavbar } from '../components/FloatingNavbar';
 import { KineticMarqueeRibbons } from '../components/KineticMarqueeRibbons';
+import { NewsPromoAdPopup } from '../components/NewsPromoAdPopup';
 import { ProfileEditorView } from '../components/ProfileEditorView';
 import {
   LOW_CONFIDENCE_WARNING_TEXT,
@@ -250,5 +252,80 @@ describe('Clinical Light Mode, 12-Instrument Orbit Hero, Profile Adjuster, Admin
     expect(preview.drawH / 144).toBeCloseTo(exported.drawH / 320, 6);
     expect(preview.left / 144).toBeCloseTo(exported.left / 320, 6);
     expect(preview.top / 144).toBeCloseTo(exported.top / 320, 6);
+  });
+
+  it('FloatingNavbar shows circular user avatar in both docks when present, and poster covers remain uncropped in modal, popup, and detail page', () => {
+    const sampleAvatar = 'data:image/jpeg;base64,/9j/4AAQSkZJRg==';
+    const bottomWithAvatar = renderToStaticMarkup(
+      <FloatingNavbar pathnameOverride="/" initialAvatar={sampleAvatar} />,
+    );
+    expect(bottomWithAvatar).toContain('data-testid="navbar-profile-avatar"');
+    expect(bottomWithAvatar).toContain('alt="Foto Profil"');
+    expect(bottomWithAvatar).toContain('rounded-full object-cover ring-1 ring-current');
+
+    const chatWithAvatar = renderToStaticMarkup(
+      <FloatingNavbar pathnameOverride="/chat" initialAvatar={sampleAvatar} />,
+    );
+    expect(chatWithAvatar).toContain('data-orientation="vertical-right"');
+    expect(chatWithAvatar).toContain('data-testid="navbar-profile-avatar"');
+
+    const bottomWithoutAvatar = renderToStaticMarkup(
+      <FloatingNavbar pathnameOverride="/" initialAvatar="" />,
+    );
+    expect(bottomWithoutAvatar).not.toContain('data-testid="navbar-profile-avatar"');
+
+    const posterArticle = {
+      id: 'promo-poster-1',
+      title: 'Promo Poster Scaling Gigi',
+      slug: 'promo-poster-scaling',
+      category: 'Promo' as const,
+      summary: 'Poster vertikal lengkap dengan harga dan syarat ketentuan.',
+      content: 'Detail promo lengkap.',
+      coverImageUrl: 'data:image/png;base64,iVBORw0KGgo=',
+      coverFit: 'contain' as const,
+      coverPosition: '50% 50%',
+      coverZoom: 1,
+      isPublished: true,
+      authorName: 'Tim Promo DentHub',
+      publishedAt: '2026-11-21T08:00:00.000Z',
+    };
+
+    const modalHtml = renderToStaticMarkup(
+      <BeritaPortalView initialArticles={[posterArticle]} initialPreviewArticle={posterArticle} />,
+    );
+    expect(modalHtml).toContain('data-testid="berita-preview-media-frame"');
+    expect(modalHtml).toContain('max-h-[340px] w-auto max-w-full rounded-xl object-contain');
+    expect(modalHtml).not.toContain('aspect-[16/10]');
+
+    const popupHtml = renderToStaticMarkup(
+      <NewsPromoAdPopup initialArticle={posterArticle} pathnameOverride="/" />,
+    );
+    expect(popupHtml).toContain('data-testid="ad-popup-media-frame"');
+    expect(popupHtml).toContain('max-h-[340px] w-auto max-w-full rounded-xl object-contain');
+    expect(popupHtml).not.toContain('aspect-[16/10]');
+
+    const detailPosterHtml = renderToStaticMarkup(
+      <BeritaArticleDetailView slug={posterArticle.slug} initialArticle={posterArticle} />,
+    );
+    expect(detailPosterHtml).toContain('max-h-[560px] w-auto max-w-full rounded-xl object-contain');
+    expect(detailPosterHtml).toContain('pb-28');
+
+    const detailCoverHtml = renderToStaticMarkup(
+      <BeritaArticleDetailView
+        slug="artikel-cover-1"
+        initialArticle={{
+          ...posterArticle,
+          id: 'art-cover-1',
+          slug: 'artikel-cover-1',
+          category: 'Artikel',
+          coverFit: 'cover',
+          coverPosition: '50% 30%',
+          coverZoom: 1.2,
+        }}
+      />,
+    );
+    expect(detailCoverHtml).toContain('max-h-[460px] w-full object-cover');
+    expect(detailCoverHtml).toContain('object-position:50% 30%');
+    expect(detailCoverHtml).toContain('scale(1.2)');
   });
 });

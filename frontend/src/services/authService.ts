@@ -6,6 +6,13 @@ import apiClient from './apiClient';
 import { clearAuthToken, getAuthToken, setAuthToken } from './authStorage';
 
 export const AUTH_USER_STORAGE_KEY = 'denthub_auth_user';
+export const USER_UPDATED_EVENT = 'denthub:user-updated';
+
+export function notifyUserUpdated(): void {
+  if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+    window.dispatchEvent(new Event(USER_UPDATED_EVENT));
+  }
+}
 
 export interface AuthUser {
   id: string;
@@ -67,17 +74,20 @@ export interface LoginInput {
 let inMemoryUser: AuthUser | null = null;
 
 export function getStoredUser(): AuthUser | null {
-  if (inMemoryUser) return inMemoryUser;
   if (typeof window !== 'undefined' && window.localStorage) {
     try {
       const raw = window.localStorage.getItem(AUTH_USER_STORAGE_KEY);
-      if (!raw) return null;
-      return JSON.parse(raw) as AuthUser;
+      if (raw) {
+        const parsed = JSON.parse(raw) as AuthUser;
+        inMemoryUser = parsed;
+        return parsed;
+      }
+      if (!inMemoryUser) return null;
     } catch {
-      return null;
+      return inMemoryUser;
     }
   }
-  return null;
+  return inMemoryUser;
 }
 
 export function setStoredSession(token: string, user: AuthUser): void {
@@ -90,6 +100,7 @@ export function setStoredSession(token: string, user: AuthUser): void {
       // Ignore storage errors in restricted contexts
     }
   }
+  notifyUserUpdated();
 }
 
 export function clearStoredSession(): void {
@@ -102,6 +113,7 @@ export function clearStoredSession(): void {
       // Ignore storage errors in restricted contexts
     }
   }
+  notifyUserUpdated();
 }
 
 export function isAuthenticated(): boolean {
@@ -140,6 +152,7 @@ export async function fetchCurrentUser(): Promise<AuthUser> {
       // Ignore
     }
   }
+  notifyUserUpdated();
   return user;
 }
 
@@ -164,5 +177,6 @@ export async function updateCurrentUserProfile(input: UpdateProfileInput): Promi
       // Ignore
     }
   }
+  notifyUserUpdated();
   return user;
 }

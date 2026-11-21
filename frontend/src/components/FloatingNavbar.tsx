@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -9,6 +9,7 @@ import {
   MapPin,
   UserCircle2,
 } from "lucide-react";
+import { getStoredUser, USER_UPDATED_EVENT } from "../services/authService";
 import { DentHubLogo } from "./DentHubLogo";
 
 export interface NavDockItem {
@@ -19,6 +20,7 @@ export interface NavDockItem {
 
 export interface FloatingNavbarProps {
   pathnameOverride?: string;
+  initialAvatar?: string | null;
 }
 
 export const NAV_DOCK_ITEMS: readonly NavDockItem[] = [
@@ -28,11 +30,53 @@ export const NAV_DOCK_ITEMS: readonly NavDockItem[] = [
   { label: "Profil", href: "/profile", icon: UserCircle2 },
 ];
 
-export function FloatingNavbar({ pathnameOverride }: FloatingNavbarProps = {}) {
+export function FloatingNavbar({
+  pathnameOverride,
+  initialAvatar,
+}: FloatingNavbarProps = {}) {
   const hookPathname = usePathname() || "/";
   const pathname = pathnameOverride ?? hookPathname;
   const isHomeActive = pathname === "/";
   const isChatRoute = pathname === "/chat" || pathname.startsWith("/chat/");
+
+  const [userAvatar, setUserAvatar] = useState<string>(
+    initialAvatar?.trim() || "",
+  );
+
+  useEffect(() => {
+    if (initialAvatar !== undefined) {
+      setUserAvatar(initialAvatar?.trim() || "");
+      return;
+    }
+
+    const syncAvatar = () => {
+      const stored = getStoredUser();
+      setUserAvatar(stored?.avatar?.trim() || "");
+    };
+
+    syncAvatar();
+    window.addEventListener("storage", syncAvatar);
+    window.addEventListener(USER_UPDATED_EVENT, syncAvatar);
+    return () => {
+      window.removeEventListener("storage", syncAvatar);
+      window.removeEventListener(USER_UPDATED_EVENT, syncAvatar);
+    };
+  }, [initialAvatar]);
+
+  const renderItemVisual = (item: NavDockItem) => {
+    if (item.href === "/profile" && userAvatar) {
+      return (
+        <img
+          src={userAvatar}
+          alt="Foto Profil"
+          data-testid="navbar-profile-avatar"
+          className="h-4 w-4 shrink-0 rounded-full object-cover ring-1 ring-current sm:h-5 sm:w-5"
+        />
+      );
+    }
+    const Icon = item.icon;
+    return <Icon className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />;
+  };
 
   if (isChatRoute) {
     return (
@@ -62,7 +106,6 @@ export function FloatingNavbar({ pathnameOverride }: FloatingNavbarProps = {}) {
 
         <ul className="flex flex-col items-center gap-1 sm:gap-1.5">
           {NAV_DOCK_ITEMS.map((item) => {
-            const Icon = item.icon;
             const isActive =
               pathname === item.href || pathname.startsWith(`${item.href}/`);
 
@@ -80,7 +123,7 @@ export function FloatingNavbar({ pathnameOverride }: FloatingNavbarProps = {}) {
                       : "text-text-muted hover:bg-brand-soft hover:text-brand-dark",
                   ].join(" ")}
                 >
-                  <Icon className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                  {renderItemVisual(item)}
                   <span>{item.label}</span>
                 </Link>
               </li>
@@ -125,7 +168,6 @@ export function FloatingNavbar({ pathnameOverride }: FloatingNavbarProps = {}) {
 
         <ul className="flex items-center gap-0.5 sm:gap-1">
           {NAV_DOCK_ITEMS.map((item) => {
-            const Icon = item.icon;
             const isActive =
               pathname === item.href || pathname.startsWith(`${item.href}/`);
 
@@ -142,7 +184,7 @@ export function FloatingNavbar({ pathnameOverride }: FloatingNavbarProps = {}) {
                       : "text-text-muted hover:bg-brand-soft hover:text-brand-dark",
                   ].join(" ")}
                 >
-                  <Icon className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                  {renderItemVisual(item)}
                   <span>{item.label}</span>
                 </Link>
               </li>

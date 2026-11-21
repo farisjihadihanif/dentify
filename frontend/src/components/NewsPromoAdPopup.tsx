@@ -71,6 +71,12 @@ export function NewsPromoAdPopup({
     return null;
   }
 
+  const isPosterCover =
+    featuredArticle.coverFit === 'contain' ||
+    (!featuredArticle.coverFit && featuredArticle.category === 'Promo');
+  const coverZoom =
+    featuredArticle.coverZoom && featuredArticle.coverZoom > 1 ? featuredArticle.coverZoom : 1;
+
   return (
     <div
       role="dialog"
@@ -81,7 +87,7 @@ export function NewsPromoAdPopup({
       onClick={() => setIsOpen(false)}
     >
       <div
-        className="relative w-full max-w-md overflow-hidden rounded-[1.75rem] border border-border bg-surface shadow-2xl"
+        className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[1.75rem] border border-border bg-surface shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -96,10 +102,12 @@ export function NewsPromoAdPopup({
 
         {/* Ad Poster Cover Image */}
         <div
-          className={[
-            'relative aspect-[16/10] w-full overflow-hidden',
-            featuredArticle.coverFit === 'contain' ? 'bg-slate-100 p-2' : 'bg-surface-navy',
-          ].join(' ')}
+          data-testid="ad-popup-media-frame"
+          className={
+            isPosterCover
+              ? 'relative flex w-full items-center justify-center bg-bg/80 p-3'
+              : 'relative aspect-[16/10] w-full overflow-hidden bg-surface-navy'
+          }
         >
           <img
             src={featuredArticle.coverImageUrl || '/images/covers/artikel-default.svg'}
@@ -109,13 +117,17 @@ export function NewsPromoAdPopup({
                 e.currentTarget.src = '/images/covers/artikel-default.svg';
               }
             }}
-            className={[
-              'h-full w-full',
-              featuredArticle.coverFit === 'contain' ? 'object-contain' : 'object-cover',
-            ].join(' ')}
+            className={
+              isPosterCover
+                ? 'mx-auto max-h-[340px] w-auto max-w-full rounded-xl object-contain sm:max-h-[400px]'
+                : 'h-full w-full object-cover'
+            }
             style={
-              featuredArticle.coverFit !== 'contain'
-                ? { objectPosition: featuredArticle.coverPosition || '50% 50%' }
+              !isPosterCover
+                ? {
+                    objectPosition: featuredArticle.coverPosition || '50% 50%',
+                    transform: coverZoom > 1 ? `scale(${coverZoom})` : undefined,
+                  }
                 : undefined
             }
           />

@@ -261,10 +261,11 @@ export function BeritaArticleDetailView({
       {/* Full Uncropped Hero Media Stage */}
       <figure
         data-testid="berita-hero-media-stage"
-        className={[
-          'overflow-hidden rounded-[1.75rem] border border-border shadow-sm',
-          effectiveFit === 'contain' ? 'bg-slate-100 p-3 sm:p-6' : 'bg-surface-navy',
-        ].join(' ')}
+        className={
+          effectiveFit === 'contain'
+            ? 'flex justify-center overflow-hidden rounded-card border border-border bg-bg/80 p-4 shadow-sm sm:p-6'
+            : 'overflow-hidden rounded-card border border-border bg-surface-navy shadow-sm'
+        }
       >
         {effectiveFit === 'contain' ? (
           <img
@@ -275,10 +276,10 @@ export function BeritaArticleDetailView({
                 e.currentTarget.src = DEFAULT_COVER_IMAGE;
               }
             }}
-            className="mx-auto max-h-[680px] w-full rounded-2xl object-contain"
+            className="max-h-[560px] w-auto max-w-full rounded-xl object-contain shadow-sm"
           />
         ) : (
-          <div className="aspect-[16/9] max-h-[560px] w-full overflow-hidden">
+          <div className="max-h-[460px] w-full overflow-hidden">
             <img
               src={article.coverImageUrl || DEFAULT_COVER_IMAGE}
               alt={article.title}
@@ -287,7 +288,7 @@ export function BeritaArticleDetailView({
                   e.currentTarget.src = DEFAULT_COVER_IMAGE;
                 }
               }}
-              className="h-full w-full object-cover"
+              className="max-h-[460px] w-full object-cover"
               style={{
                 objectPosition: coverPosition,
                 transform: coverZoom > 1 ? `scale(${coverZoom})` : undefined,
@@ -403,7 +404,10 @@ export function BeritaArticleDetailView({
                           }}
                           className={[
                             'h-full w-full',
-                            item.coverFit === 'contain' ? 'object-contain p-0.5' : 'object-cover',
+                            item.coverFit === 'contain' ||
+                            (!item.coverFit && item.category === 'Promo')
+                              ? 'object-contain p-0.5'
+                              : 'object-cover',
                           ].join(' ')}
                         />
                       </div>

@@ -294,46 +294,51 @@ export function BeritaPortalView({
                 data-testid={`berita-shelf-track-${category.toLowerCase()}`}
                 className="flex gap-4 overflow-x-auto pb-3"
               >
-                {shelfItems.map((article) => (
-                  <button
-                    key={article.id}
-                    type="button"
-                    onClick={() => setPreviewArticle(article)}
-                    data-testid={`berita-card-${article.slug}`}
-                    className="group flex w-48 shrink-0 cursor-pointer flex-col overflow-hidden rounded-card border border-border bg-surface text-left shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring sm:w-56"
-                  >
-                    <div
-                      className={[
-                        'aspect-[3/4] w-full overflow-hidden',
-                        article.coverFit === 'contain' ? 'bg-slate-100 p-1.5' : 'bg-surface-navy',
-                      ].join(' ')}
+                {shelfItems.map((article) => {
+                  const isPosterCover =
+                    article.coverFit === 'contain' ||
+                    (!article.coverFit && article.category === 'Promo');
+                  return (
+                    <button
+                      key={article.id}
+                      type="button"
+                      onClick={() => setPreviewArticle(article)}
+                      data-testid={`berita-card-${article.slug}`}
+                      className="group flex w-48 shrink-0 cursor-pointer flex-col overflow-hidden rounded-card border border-border bg-surface text-left shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring sm:w-56"
                     >
-                      <img
-                        src={article.coverImageUrl || DEFAULT_COVER_IMAGE}
-                        alt={article.title}
-                        onError={(e) => {
-                          if (!e.currentTarget.src.endsWith(DEFAULT_COVER_IMAGE)) {
-                            e.currentTarget.src = DEFAULT_COVER_IMAGE;
-                          }
-                        }}
+                      <div
                         className={[
-                          'h-full w-full transition-transform duration-300 group-hover:scale-105',
-                          article.coverFit === 'contain' ? 'object-contain' : 'object-cover',
+                          'aspect-[3/4] w-full overflow-hidden',
+                          isPosterCover ? 'bg-bg/80 p-1.5' : 'bg-surface-navy',
                         ].join(' ')}
-                        style={
-                          article.coverFit !== 'contain'
-                            ? { objectPosition: article.coverPosition || '50% 50%' }
-                            : undefined
-                        }
-                      />
-                    </div>
-                    <div className="p-3.5">
-                      <h3 className="line-clamp-3 font-display text-sm font-bold leading-snug text-text group-hover:text-brand-dark">
-                        {article.title}
-                      </h3>
-                    </div>
-                  </button>
-                ))}
+                      >
+                        <img
+                          src={article.coverImageUrl || DEFAULT_COVER_IMAGE}
+                          alt={article.title}
+                          onError={(e) => {
+                            if (!e.currentTarget.src.endsWith(DEFAULT_COVER_IMAGE)) {
+                              e.currentTarget.src = DEFAULT_COVER_IMAGE;
+                            }
+                          }}
+                          className={[
+                            'h-full w-full transition-transform duration-300 group-hover:scale-105',
+                            isPosterCover ? 'object-contain' : 'object-cover',
+                          ].join(' ')}
+                          style={
+                            !isPosterCover
+                              ? { objectPosition: article.coverPosition || '50% 50%' }
+                              : undefined
+                          }
+                        />
+                      </div>
+                      <div className="p-3.5">
+                        <h3 className="line-clamp-3 font-display text-sm font-bold leading-snug text-text group-hover:text-brand-dark">
+                          {article.title}
+                        </h3>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             ) : (
               <div className="rounded-card border border-border bg-surface p-6 text-center text-sm text-text-muted">
@@ -347,95 +352,113 @@ export function BeritaPortalView({
       {/* =====================================================================
           STEP 1 PREVIEW MODAL (Click Card -> Preview -> Baca Selengkapnya)
          ===================================================================== */}
-      {previewArticle && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="preview-modal-title"
-          data-testid="berita-preview-modal"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-surface-navy/70 p-4 backdrop-blur-sm"
-          onClick={() => setPreviewArticle(null)}
-        >
+      {previewArticle && (() => {
+        const isPosterPreview =
+          previewArticle.coverFit === 'contain' ||
+          (!previewArticle.coverFit && previewArticle.category === 'Promo');
+        const previewZoom =
+          previewArticle.coverZoom && previewArticle.coverZoom > 1
+            ? previewArticle.coverZoom
+            : 1;
+
+        return (
           <div
-            className="relative w-full max-w-lg overflow-hidden rounded-[1.75rem] border border-border bg-surface shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="preview-modal-title"
+            data-testid="berita-preview-modal"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-surface-navy/70 p-4 backdrop-blur-sm"
+            onClick={() => setPreviewArticle(null)}
           >
-            <button
-              type="button"
-              onClick={() => setPreviewArticle(null)}
-              aria-label="Tutup pratinjau artikel"
-              data-testid="berita-preview-close"
-              className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-pill border border-border bg-surface text-text opacity-100 shadow-md transition-transform hover:scale-105 hover:bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
-            >
-              <X className="h-4 w-4" aria-hidden="true" />
-            </button>
-
             <div
-              className={[
-                'relative aspect-[16/10] w-full overflow-hidden',
-                previewArticle.coverFit === 'contain' ? 'bg-slate-100 p-2' : 'bg-surface-navy',
-              ].join(' ')}
+              className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[1.75rem] border border-border bg-surface shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
             >
-              <img
-                src={previewArticle.coverImageUrl || DEFAULT_COVER_IMAGE}
-                alt={previewArticle.title}
-                onError={(e) => {
-                  if (!e.currentTarget.src.endsWith(DEFAULT_COVER_IMAGE)) {
-                    e.currentTarget.src = DEFAULT_COVER_IMAGE;
-                  }
-                }}
-                className={[
-                  'h-full w-full',
-                  previewArticle.coverFit === 'contain' ? 'object-contain' : 'object-cover',
-                ].join(' ')}
-                style={
-                  previewArticle.coverFit !== 'contain'
-                    ? { objectPosition: previewArticle.coverPosition || '50% 50%' }
-                    : undefined
-                }
-              />
-              <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-pill bg-surface-sand px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-text shadow-sm">
-                {previewArticle.category === 'Promo' ? (
-                  <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                ) : (
-                  <Tag className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                )}
-                <span>{previewArticle.category}</span>
-              </span>
-            </div>
+              <button
+                type="button"
+                onClick={() => setPreviewArticle(null)}
+                aria-label="Tutup pratinjau artikel"
+                data-testid="berita-preview-close"
+                className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-pill border border-border bg-surface text-text opacity-100 shadow-md transition-transform hover:scale-105 hover:bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+              </button>
 
-            <div className="space-y-4 p-6">
-              <div className="space-y-2">
-                <h2
-                  id="preview-modal-title"
-                  className="font-display text-xl font-extrabold leading-snug text-text sm:text-2xl"
-                >
-                  {previewArticle.title}
-                </h2>
-                <p className="text-sm leading-relaxed text-text-muted">{previewArticle.summary}</p>
+              <div
+                data-testid="berita-preview-media-frame"
+                className={
+                  isPosterPreview
+                    ? 'relative flex w-full items-center justify-center bg-bg/80 p-3'
+                    : 'relative aspect-[16/10] w-full overflow-hidden bg-surface-navy'
+                }
+              >
+                <img
+                  src={previewArticle.coverImageUrl || DEFAULT_COVER_IMAGE}
+                  alt={previewArticle.title}
+                  onError={(e) => {
+                    if (!e.currentTarget.src.endsWith(DEFAULT_COVER_IMAGE)) {
+                      e.currentTarget.src = DEFAULT_COVER_IMAGE;
+                    }
+                  }}
+                  className={
+                    isPosterPreview
+                      ? 'mx-auto max-h-[340px] w-auto max-w-full rounded-xl object-contain sm:max-h-[400px]'
+                      : 'h-full w-full object-cover'
+                  }
+                  style={
+                    !isPosterPreview
+                      ? {
+                          objectPosition: previewArticle.coverPosition || '50% 50%',
+                          transform: previewZoom > 1 ? `scale(${previewZoom})` : undefined,
+                        }
+                      : undefined
+                  }
+                />
+                <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-pill bg-surface-sand px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-text shadow-sm">
+                  {previewArticle.category === 'Promo' ? (
+                    <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  ) : (
+                    <Tag className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  )}
+                  <span>{previewArticle.category}</span>
+                </span>
               </div>
 
-              <div className="flex flex-wrap items-center justify-end gap-2.5 border-t border-border pt-4">
-                <button
-                  type="button"
-                  onClick={() => setPreviewArticle(null)}
-                  className="inline-flex h-11 min-h-touch items-center justify-center rounded-xl border border-border bg-bg px-4 text-sm font-semibold text-text transition-colors hover:bg-brand-soft"
-                >
-                  Tutup
-                </button>
-                <Link
-                  href={`/berita/${previewArticle.slug}`}
-                  data-testid="berita-preview-read-more"
-                  className="inline-flex h-11 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-brand px-5 text-sm font-bold text-surface shadow-sm transition-colors hover:bg-brand-dark"
-                >
-                  <span>Baca Selengkapnya</span>
-                  <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
-                </Link>
+              <div className="space-y-4 p-6">
+                <div className="space-y-2">
+                  <h2
+                    id="preview-modal-title"
+                    className="font-display text-xl font-extrabold leading-snug text-text sm:text-2xl"
+                  >
+                    {previewArticle.title}
+                  </h2>
+                  <p className="text-sm leading-relaxed text-text-muted">
+                    {previewArticle.summary}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-end gap-2.5 border-t border-border pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewArticle(null)}
+                    className="inline-flex h-11 min-h-touch items-center justify-center rounded-xl border border-border bg-bg px-4 text-sm font-semibold text-text transition-colors hover:bg-brand-soft"
+                  >
+                    Tutup
+                  </button>
+                  <Link
+                    href={`/berita/${previewArticle.slug}`}
+                    data-testid="berita-preview-read-more"
+                    className="inline-flex h-11 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-brand px-5 text-sm font-bold text-surface shadow-sm transition-colors hover:bg-brand-dark"
+                  >
+                    <span>Baca Selengkapnya</span>
+                    <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </main>
   );
 }
