@@ -12,6 +12,8 @@ export {
   type MedicalDisclaimerBannerProps,
 } from './MedicalDisclaimerBanner';
 export { ErrorBanner, type ErrorBannerProps } from './ErrorBanner';
+export { ServerWakingNotice, type ServerWakingNoticeProps } from './ServerWakingNotice';
+export { ServerWarmup } from './ServerWarmup';
 export {
   WebcamCapture,
   PHOTO_LIGHTING_GUIDE_TEXT,

@@ -5,6 +5,7 @@ import { AppFooter } from '../components/AppFooter';
 import { DeniMascot } from '../components/DeniMascot';
 import { FloatingNavbar } from '../components/FloatingNavbar';
 import { NewsPromoAdPopup } from '../components/NewsPromoAdPopup';
+import { ServerWarmup } from '../components/ServerWarmup';
 import './globals.css';
 
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -38,6 +39,7 @@ export default function RootLayout({
       className={`${bricolageGrotesque.variable} ${plusJakartaSans.variable}`}
     >
       <body className="flex min-h-screen flex-col bg-bg font-sans text-body text-text antialiased">
+        <ServerWarmup />
         <AdminRolePill />
         <NewsPromoAdPopup />
         <FloatingNavbar />

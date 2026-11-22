@@ -18,6 +18,7 @@ export type ApiErrorCode =
   | 'INTERNAL_ERROR'
   | 'GEOLOCATION_DENIED'
   | 'NETWORK_ERROR'
+  | 'SERVER_WAKING'
   | 'UNKNOWN_ERROR';
 
 export type ErrorUiAction =
@@ -107,6 +108,11 @@ const ERROR_CATALOG: Record<ApiErrorCode, Omit<MappedUiError, 'code' | 'fieldErr
     action: 'show_retry_button',
     message: 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.',
   },
+  SERVER_WAKING: {
+    title: 'Server sedang dinyalakan',
+    action: 'show_retry_button',
+    message: 'Server sedang dinyalakan, tunggu sekitar 1 menit, lalu coba lagi.',
+  },
   UNKNOWN_ERROR: {
     action: 'show_alert',
     message: 'Terjadi kendala pada sistem. Silakan coba kembali beberapa saat lagi.',
@@ -175,16 +181,33 @@ export function mapApiError(errorOrPayload: unknown): MappedUiError {
     if (candidate.response?.status === 429) {
       return { code: 'RATE_LIMITED', ...ERROR_CATALOG.RATE_LIMITED };
     }
-    if (candidate.response?.status === 502) {
-      return { code: 'AI_SERVICE_UNAVAILABLE', ...ERROR_CATALOG.AI_SERVICE_UNAVAILABLE };
+    // Free-tier servers sleep when idle: while one wakes up (~1 minute) requests time out, fail
+    // without a response (the platform's wake-up page has no CORS headers) or get a bare 5xx.
+    const status = candidate.response?.status;
+    if (status === 502 || status === 503 || status === 504) {
+      return { code: 'SERVER_WAKING', ...ERROR_CATALOG.SERVER_WAKING };
     }
-
+    if (!candidate.response && (candidate.code === 'ECONNABORTED' || candidate.code === 'ETIMEDOUT')) {
+      return { code: 'SERVER_WAKING', ...ERROR_CATALOG.SERVER_WAKING };
+    }
     if (!candidate.response && candidate.code === 'ERR_NETWORK') {
-      return { code: 'NETWORK_ERROR', ...ERROR_CATALOG.NETWORK_ERROR };
+      const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+      return offline
+        ? { code: 'NETWORK_ERROR', ...ERROR_CATALOG.NETWORK_ERROR }
+        : { code: 'SERVER_WAKING', ...ERROR_CATALOG.SERVER_WAKING };
     }
   }
 
   return { code: 'UNKNOWN_ERROR', ...ERROR_CATALOG.UNKNOWN_ERROR };
+}
+
+/**
+ * Errors shown as the calm "server sedang dinyalakan" state instead of an error. The backend
+ * answers AI_SERVICE_UNAVAILABLE when it cannot reach the ai-service, which on the free tier is
+ * almost always the ai-service still waking up; the notice checks /health to confirm.
+ */
+export function isServerWakingError(error: Pick<MappedUiError, 'code'>): boolean {
+  return error.code === 'SERVER_WAKING' || error.code === 'AI_SERVICE_UNAVAILABLE';
 }
 
 export { ERROR_CATALOG };

@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { mapApiError, type MappedUiError } from '../services/errorMapper';
+import { isServerWakingError, mapApiError, type MappedUiError } from '../services/errorMapper';
 import { AppButton } from './AppButton';
+import { ServerWakingNotice } from './ServerWakingNotice';
 
 export interface ErrorBannerProps {
   error: MappedUiError | unknown;
@@ -30,6 +31,11 @@ export function ErrorBanner({
     typeof error === 'object' && error !== null && 'action' in error && 'code' in error
       ? (error as MappedUiError)
       : mapApiError(error);
+
+  // Free-tier cold start: a calm waiting state with retry instead of a red error
+  if (isServerWakingError(uiError)) {
+    return <ServerWakingNotice onRetry={onRetry} onDismiss={onDismiss} className={className} />;
+  }
 
   const fieldEntries = uiError.fieldErrors ? Object.entries(uiError.fieldErrors) : [];
 

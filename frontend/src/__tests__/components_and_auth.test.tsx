@@ -86,8 +86,10 @@ describe('Komponen UI Bersama', () => {
     const retryHtml = renderToStaticMarkup(
       <ErrorBanner error="AI_SERVICE_UNAVAILABLE" onRetry={() => {}} />,
     );
-    expect(retryHtml).toContain('Layanan analisis AI sedang sibuk');
+    // AI_SERVICE_UNAVAILABLE is almost always a free-tier cold start: calm notice, not a red error
+    expect(retryHtml).toContain('Server sedang dinyalakan, tunggu sekitar 1 menit');
     expect(retryHtml).toContain('Coba Lagi');
+    expect(retryHtml).not.toContain('bg-status-red');
 
     const validationHtml = renderToStaticMarkup(
       <ErrorBanner
