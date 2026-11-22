@@ -15,7 +15,7 @@ export interface AppFooterProps {
  * - Uses high-contrast dark-navy (`bg-surface-navy`) styling on `/panduan` only
  * - Desktop (`md:` and up): left credits stacked above `Dentify © 2026`, right `Panduan Aplikasi`
  *   stacked above `Promo, Berita & Artikel`
- * - Mobile (`< md`): generous bottom clearance (`pb-24 sm:pb-28 md:pb-4`) above the floating dock.
+ * - Bottom padding `--dock-clearance` (globals.css) keeps it clear of the floating dock at every width.
  */
 export function AppFooter({ pathnameOverride }: AppFooterProps = {}) {
   const hookPathname = usePathname() || "/";
@@ -32,7 +32,7 @@ export function AppFooter({ pathnameOverride }: AppFooterProps = {}) {
       data-testid="app-footer"
       data-theme={isPanduan ? "navy" : "default"}
       className={[
-        "mt-auto w-full border-t pb-24 pt-4 text-xs sm:pb-28 md:pb-4",
+        "mt-auto w-full border-t pb-[var(--dock-clearance)] pt-4 text-xs",
         isPanduan
           ? "border-white/15 bg-surface-navy text-slate-200"
           : "border-border/70 bg-bg/95 text-text-muted",
@@ -82,7 +82,7 @@ export function AppFooter({ pathnameOverride }: AppFooterProps = {}) {
           <Link
             href="/panduan"
             className={[
-              "inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-pill px-3.5 text-xs font-semibold transition-colors",
+              "inline-flex min-h-touch items-center gap-1.5 whitespace-nowrap rounded-pill px-4 text-sm font-semibold transition-colors",
               isPanduan
                 ? "border border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
                 : "bg-brand-soft text-brand-dark hover:bg-brand hover:text-surface",
@@ -94,7 +94,7 @@ export function AppFooter({ pathnameOverride }: AppFooterProps = {}) {
           <Link
             href="/berita"
             className={[
-              "inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-pill border px-3.5 text-xs font-semibold transition-colors",
+              "inline-flex min-h-touch items-center gap-1.5 whitespace-nowrap rounded-pill border px-4 text-sm font-semibold transition-colors",
               isPanduan
                 ? "border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
                 : "border-border bg-surface text-brand-dark hover:border-brand hover:bg-brand-soft",

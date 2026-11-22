@@ -173,8 +173,12 @@ describe('AI transparency labels, honest confidence, fallback banner, and feedba
     expect(navHtml).toContain('sm:bottom-6');
     expect(navHtml).toContain('data-testid="navbar-logo-home-link"');
     expect(navHtml).not.toContain('>Beranda<');
-    expect(footerHtml).toContain('pb-24');
-    expect(footerHtml).toContain('md:pb-4');
+    // dock clearance applies at every width (it used to drop to pb-4 from md, hiding the footer)
+    expect(footerHtml).toContain('pb-[var(--dock-clearance)]');
+    expect(footerHtml).not.toContain('md:pb-4');
+    // every dock target is at least 44 px
+    expect(navHtml).toContain('min-h-touch min-w-touch');
+    expect(navHtml).not.toContain('h-8');
     expect(footerHtml).toContain('text-xs');
     expect(footerHtml).not.toContain('Disclaimer Medis');
     expect(mascotHtml).toContain('bottom-24');

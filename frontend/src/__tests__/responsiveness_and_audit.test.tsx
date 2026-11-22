@@ -55,11 +55,10 @@ describe('Audit Responsivitas Mobile (360px–1920px), Pembersihan Kamera, & Pen
     },
   );
 
-  it('AppFooter tidak menampilkan Disclaimer Medis dan memberi ruang clearance mobile di atas floating dock (pb-24 sm:pb-28 md:pb-4)', () => {
+  it('AppFooter tidak menampilkan Disclaimer Medis dan memberi ruang clearance di atas floating dock di semua lebar (pb-[var(--dock-clearance)])', () => {
     const footerHtml = renderToStaticMarkup(<AppFooter />);
     expect(footerHtml).not.toContain('Disclaimer Medis');
-    expect(footerHtml).toContain('pb-24');
-    expect(footerHtml).toContain('md:pb-4');
+    expect(footerHtml).toContain('pb-[var(--dock-clearance)]');
     expect(footerHtml).toContain('Dentify © 2026');
     expect(footerHtml).toContain('Promo, Berita &amp; Artikel');
   });

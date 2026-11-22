@@ -32,6 +32,15 @@
   --color-orbit-tool-accent: #0E7490;
   --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
   --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  /* Space reserved under page content for the floating bottom dock (FloatingNavbar):
+     mobile = 12px offset + 54px dock + 14px gap; sm+ = 24px offset + 58px dock + 22px gap. */
+  --dock-clearance: 5rem;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --dock-clearance: 6.5rem;
+  }
 }
 
 @layer base {

@@ -243,8 +243,8 @@ describe('Clinical Light Mode, 12-Instrument Orbit Hero, Profile Adjuster, Admin
     const navHtml = renderToStaticMarkup(<FloatingNavbar pathnameOverride="/" />);
     expect(navHtml).toContain('bottom-3');
     expect(navHtml).toContain('px-1.5 py-1');
-    expect(navHtml).toContain('h-8 shrink-0');
-    expect(navHtml).toContain('text-[11px]');
+    expect(navHtml).toContain('min-h-touch min-w-touch shrink-0');
+    expect(navHtml).toContain('text-xs');
 
     // Exact 1:1 normalized geometry parity between 144px circular preview and 320px canvas export
     const preview = computeAvatarFrameLayout(144, 1600, 900, 1.6, 25, -18);

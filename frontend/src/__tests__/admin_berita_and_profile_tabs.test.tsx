@@ -102,8 +102,7 @@ describe('Footer Vertical Link Stack & Admin Role Pill', () => {
     expect(html).toContain('created by');
     expect(html).toContain('Dentify © 2026');
     expect(html).toContain('data-testid="footer-right-links"');
-    expect(html).toContain('pb-24');
-    expect(html).toContain('md:pb-4');
+    expect(html).toContain('pb-[var(--dock-clearance)]');
     expect(html).toContain('href="/panduan"');
     expect(html).toContain('href="/berita"');
     expect(html).toContain('Panduan Aplikasi');
