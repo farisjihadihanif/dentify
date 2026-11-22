@@ -81,6 +81,9 @@ describe('AI transparency labels, honest confidence, fallback banner, and feedba
     // no urgency badge for an unsure scan, only the neutral chip
     expect(html).toContain('data-testid="unsure-badge"');
     expect(html).not.toContain('data-urgency');
+    // the three actions share one even grid: stacked full-width on mobile, three columns from md
+    expect(html).toContain('data-testid="low-confidence-actions"');
+    expect(html).toContain('md:grid-cols-3');
   });
 
   it('shows "Dibuat oleh AI" and feedback controls on Deni messages', () => {

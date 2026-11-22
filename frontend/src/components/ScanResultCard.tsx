@@ -71,95 +71,98 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
     >
       <MedicalDisclaimerBanner message={report.medical_disclaimer} />
 
-      <div className="flex flex-col justify-between gap-4 border-b border-border pb-5 sm:flex-row sm:items-start">
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <span
-              data-testid="scan-ai-label"
-              className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-brand-soft px-3 py-0.5 text-xs font-semibold text-brand-dark"
-            >
-              <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              <span>Hasil analisis AI</span>
-            </span>
-            <span className="text-xs text-text-muted">
-              Sumber foto: {report.capture_source === 'camera' ? 'Kamera Langsung' : 'Unggahan File'}
-            </span>
+      <div className="space-y-4 border-b border-border pb-5">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start sm:gap-4">
+          <div className="min-w-0 flex-1 space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                data-testid="scan-ai-label"
+                className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-brand-soft px-3 py-0.5 text-xs font-semibold text-brand-dark"
+              >
+                <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <span>Hasil analisis AI</span>
+              </span>
+              <span className="text-xs text-text-muted">
+                Sumber foto: {report.capture_source === 'camera' ? 'Kamera Langsung' : 'Unggahan File'}
+              </span>
+            </div>
+
+            <h2 className="text-screen-title text-text">{report.condition_label}</h2>
+
+            {isUncertain ? (
+              <p className="text-badge text-text-muted">
+                Keyakinan model AI terlalu rendah untuk menunjukkan indikasi kondisi tertentu, jadi
+                Dentify tidak menampilkan tebakan.
+              </p>
+            ) : (
+              <p className="text-badge text-text-muted">
+                Tingkat keyakinan model AI:{' '}
+                <strong className="font-bold text-text">{confidencePercent}%</strong> —{' '}
+                <span>{describeConfidenceMeaning(report.confidence_score)}</span>
+              </p>
+            )}
           </div>
 
-          <h2 className="text-screen-title text-text">{report.condition_label}</h2>
-
           {isUncertain ? (
-            <p className="text-badge text-text-muted">
-              Keyakinan model AI terlalu rendah untuk menunjukkan indikasi kondisi tertentu, jadi
-              Dentify tidak menampilkan tebakan.
-            </p>
+            <UnsureBadge className="sm:mt-1" />
           ) : (
-            <p className="text-badge text-text-muted">
-              Tingkat keyakinan model AI:{' '}
-              <strong className="font-bold text-text">{confidencePercent}%</strong> —{' '}
-              <span>{describeConfidenceMeaning(report.confidence_score)}</span>
-            </p>
-          )}
-
-          {isUncertain && (
-            <div
-              role="note"
-              data-testid="low-confidence-warning"
-              className="mt-3 space-y-3 rounded-card border border-amber-500/40 bg-amber-50 p-4 text-xs text-amber-950"
-            >
-              <div className="flex items-start gap-2.5">
-                <AlertCircle
-                  className="mt-0.5 h-4 w-4 shrink-0 text-amber-700"
-                  aria-hidden="true"
-                />
-                <div className="space-y-1">
-                  <p className="font-bold text-amber-900">
-                    {LOW_CONFIDENCE_WARNING_TEXT}
-                  </p>
-                  <p className="leading-relaxed text-amber-900/90">
-                    Pencahayaan yang kurang merata, sudut kamera, atau gigi yang tertutup bisa
-                    membuat foto sulit dianalisis. Ambil ulang foto mengikuti panduan memotret, dan
-                    periksakan ke dokter gigi bila ada keluhan.
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 pl-6">
-                {onScanAgain && (
-                  <button
-                    type="button"
-                    onClick={onScanAgain}
-                    data-testid="low-confidence-cta-retake"
-                    className="inline-flex h-9 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg bg-brand px-3.5 text-xs font-bold text-surface shadow-sm transition-colors hover:bg-brand-dark"
-                  >
-                    <RotateCcw className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                    <span>Ambil Ulang Foto</span>
-                  </button>
-                )}
-                <Link
-                  href={deniHref}
-                  data-testid="low-confidence-cta-deni"
-                  className="inline-flex h-9 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg border border-amber-700/30 bg-white px-3.5 text-xs font-bold text-amber-950 transition-colors hover:bg-amber-100"
-                >
-                  <MessageCircleHeart className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  <span>Tanya Deni →</span>
-                </Link>
-                <Link
-                  href="/panduan#panduan-hasil-kurang-meyakinkan"
-                  data-testid="low-confidence-cta-panduan"
-                  className="inline-flex h-9 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg border border-amber-700/30 bg-white px-3.5 text-xs font-bold text-amber-950 transition-colors hover:bg-amber-100"
-                >
-                  <BookOpen className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  <span>Panduan Memotret →</span>
-                </Link>
-              </div>
-            </div>
+            <StatusBadge urgency={report.urgency_level} className="sm:mt-1 sm:max-w-[17rem]" />
           )}
         </div>
 
-        {isUncertain ? (
-          <UnsureBadge className="sm:mt-1" />
-        ) : (
-          <StatusBadge urgency={report.urgency_level} className="sm:mt-1 sm:max-w-[17rem]" />
+        {isUncertain && (
+          <div
+            role="note"
+            data-testid="low-confidence-warning"
+            className="space-y-4 rounded-card border border-amber-500/40 bg-amber-50 p-4 text-sm text-amber-950 sm:p-5"
+          >
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" aria-hidden="true" />
+              <div className="space-y-1">
+                <p className="font-bold text-amber-900">{LOW_CONFIDENCE_WARNING_TEXT}</p>
+                <p className="leading-relaxed text-amber-900/90">
+                  Pencahayaan yang kurang merata, sudut kamera, atau gigi yang tertutup bisa membuat
+                  foto sulit dianalisis. Ambil ulang foto mengikuti panduan memotret, dan periksakan
+                  ke dokter gigi bila ada keluhan.
+                </p>
+              </div>
+            </div>
+            <div
+              data-testid="low-confidence-actions"
+              className={[
+                'grid grid-cols-1 gap-2',
+                onScanAgain ? 'md:grid-cols-3' : 'sm:grid-cols-2',
+              ].join(' ')}
+            >
+              {onScanAgain && (
+                <button
+                  type="button"
+                  onClick={onScanAgain}
+                  data-testid="low-confidence-cta-retake"
+                  className="inline-flex min-h-touch w-full items-center justify-center gap-2 rounded-lg bg-brand px-3 text-sm font-semibold text-surface shadow-sm transition-colors hover:bg-brand-dark"
+                >
+                  <RotateCcw className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span>Ambil Ulang Foto</span>
+                </button>
+              )}
+              <Link
+                href={deniHref}
+                data-testid="low-confidence-cta-deni"
+                className="inline-flex min-h-touch w-full items-center justify-center gap-2 rounded-lg border border-amber-700/30 bg-white px-3 text-sm font-semibold text-amber-950 transition-colors hover:bg-amber-100"
+              >
+                <MessageCircleHeart className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>Tanya Deni</span>
+              </Link>
+              <Link
+                href="/panduan#panduan-hasil-kurang-meyakinkan"
+                data-testid="low-confidence-cta-panduan"
+                className="inline-flex min-h-touch w-full items-center justify-center gap-2 rounded-lg border border-amber-700/30 bg-white px-3 text-sm font-semibold text-amber-950 transition-colors hover:bg-amber-100"
+              >
+                <BookOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>Panduan Memotret</span>
+              </Link>
+            </div>
+          </div>
         )}
       </div>
 
