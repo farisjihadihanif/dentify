@@ -64,3 +64,9 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Local AI-agent instructions and specs (kept out of git)
+CLAUDE.md
+AGENTS.md
+docs/
+.claude/
