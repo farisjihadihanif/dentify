@@ -66,7 +66,7 @@ export const INITIAL_ARTICLES_SEED: readonly ArticleSeedItem[] = [
     summary:
       'Pembaruan model Deep Learning Dentify memanfaatkan peningkatan kontras LAB CLAHE untuk membantu mengenali indikasi karies, karang gigi, dan gingivitis dengan lebih konsisten.',
     content:
-      'Dentify resmi menghadirkan pembaruan pipeline Computer Vision yang menggabungkan normalisasi pencahayaan OpenCV LAB CLAHE dengan arsitektur CNN kustom TensorFlow/Keras.\n\nDalam pengujian internal terkontrol pada ratusan foto intraoral bebas kebocoran data, penggunaan preprocessing CLAHE terbukti meningkatkan akurasi pengenalan visual secara signifikan dibandingkan foto tanpa koreksi pencahayaan.\n\nMeski demikian, Dentify menegaskan bahwa seluruh keluaran AI bersifat skrining awal non-diagnostik dan selalu disertai panduan tindak lanjut menuju dokter gigi profesional.',
+      'Dentify resmi menghadirkan pembaruan pipeline Computer Vision yang menggabungkan normalisasi pencahayaan OpenCV LAB CLAHE dengan model transfer learning MobileNetV2 TensorFlow/Keras yang dilengkapi komponen kustom.\n\nDalam pengujian internal terkontrol pada ratusan foto intraoral bebas kebocoran data, penggunaan preprocessing CLAHE terbukti meningkatkan akurasi pengenalan visual secara signifikan dibandingkan foto tanpa koreksi pencahayaan.\n\nMeski demikian, Dentify menegaskan bahwa seluruh keluaran AI bersifat skrining awal non-diagnostik dan selalu disertai panduan tindak lanjut menuju dokter gigi profesional.',
     coverImageUrl: '/images/covers/berita-ai.svg',
     isPublished: true,
     authorName: 'Redaksi Teknologi Dentify',

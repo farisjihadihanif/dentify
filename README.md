@@ -1,6 +1,6 @@
 # Dentify (CC26-PSU285)
 
-**Dentify** (Capstone `CC26-PSU285`, Coding Camp 2026 × DBS Foundation) is a mobile-responsive web application for **early, non-diagnostic dental screening**. Users capture or upload a dental photo; a custom TensorFlow/Keras Computer Vision model detects `caries`, `calculus`, `gingivitis`, or `healthy`; **Deni** (LangChain + Gemini) explains the screening result and builds an Indonesian self-care plan; and **Clinic Finder** (OpenStreetMap Overpass + Nominatim + Leaflet) locates nearby dentists, automatically on emergency triggers.
+**Dentify** (Capstone `CC26-PSU285`, Coding Camp 2026 × DBS Foundation) is a mobile-responsive web application for **early, non-diagnostic dental screening**. Users capture or upload a dental photo; a TensorFlow/Keras Computer Vision model (MobileNetV2 transfer learning with custom layers, loss, and callback) detects `caries`, `calculus`, `gingivitis`, or `healthy`; **Deni** (LangChain + Gemini) explains the screening result and builds an Indonesian self-care plan; and **Clinic Finder** (OpenStreetMap Overpass + Nominatim + Leaflet) locates nearby dentists, automatically on emergency triggers.
 
 ## Monorepo Structure
 
@@ -41,7 +41,7 @@ cd data-science && python wrangle.py
 # 2. Extract engineered image-quality features, charts, and EDA notebook
 python features.py
 
-# 3. Train custom Keras model from scratch with tf.GradientTape + TensorBoard logs
+# 3. Fine-tune the MobileNetV2 transfer-learning model (2-stage tf.GradientTape loop) + TensorBoard logs
 cd ../ai-service && python -m app.ml.train
 
 # 4. Run standalone CLI inference
@@ -50,6 +50,19 @@ python -m app.ml.infer_cli <path-to-dental-photo.jpg>
 # 5. Run Baseline vs CLAHE McNemar A/B test & generate Technical Report PDF
 cd ../data-science && python ab_test.py && python generate_report_pdf.py
 ```
+
+## Model
+
+The screening model is **not trained from scratch**. It is **transfer learning on MobileNetV2** (ImageNet weights) built with the Keras Functional API, plus custom components: a `ChannelAttention` layer, dual (avg + max) pooling head, `ClassWeightedFocalLoss`, a `MacroF1Checkpoint` callback, and a two-stage (warm-up, then fine-tune) `tf.GradientTape` training loop. Input is CLAHE-normalised 224×224 RGB; inference averages 4 test-time-augmentation (TTA) views.
+
+Current metrics (held-out test set, n = 255, source: `ai-service/models/model_meta.json`, model `dentify-mobilenetv2-2.0.0`):
+
+| | Accuracy | Macro-F1 |
+|---|---|---|
+| With 4-view TTA (served) | **80.8%** | **0.79** |
+| Single view | 76.5% | 0.74 |
+
+Per-class F1 (TTA): caries 0.70, calculus 0.81, gingivitis 0.82, healthy 0.84. Caries recall is 0.71, so treat caries results with extra caution. This is a screening aid, not a diagnosis.
 
 ## Deployment Targets
 

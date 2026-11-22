@@ -120,8 +120,8 @@ def build_pdf(out_path: Path) -> None:
     tm = model_meta.get("test_metrics", {})
     story.append(
         Paragraph(
-            f"Architecture: {model_meta.get('architecture', 'Custom Functional API MobileNetV2-style + ChannelAttention')}. "
-            f"Pretrained weights: {model_meta.get('pretrained_weights', False)} (trained from scratch per capstone rules). "
+            f"Architecture: {model_meta.get('architecture', 'MobileNetV2 (ImageNet transfer learning) + ChannelAttention')}. "
+            f"Pretrained weights: {model_meta.get('pretrained_weights', False)} (MobileNetV2 ImageNet transfer learning, fine-tuned in two stages). "
             f"Custom serializable components: {', '.join(model_meta.get('custom_components', []))}. "
             "Trained via custom tf.GradientTape loop with TensorBoard logs recorded under ai-service/logs/.",
             body,
