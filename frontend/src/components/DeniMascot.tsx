@@ -75,7 +75,10 @@ export function DeniMascot() {
       typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule);
     resizeObserver?.observe(document.body);
     window.addEventListener('load', schedule);
+    // Scripted entrance animations move content without DOM or size changes; re-check slowly.
+    const interval = window.setInterval(schedule, 1000);
     return () => {
+      window.clearInterval(interval);
       resizeObserver?.disconnect();
       window.removeEventListener('load', schedule);
       if (frame) window.cancelAnimationFrame(frame);
