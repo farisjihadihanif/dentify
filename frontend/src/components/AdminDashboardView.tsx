@@ -391,7 +391,7 @@ export function AdminDashboardView({
 
         <Link
           href="/berita"
-          className="inline-flex h-10 items-center gap-2 self-start rounded-pill border border-border bg-surface px-4 text-xs font-bold text-brand-dark shadow-sm transition-colors hover:bg-brand-soft sm:self-auto"
+          className="inline-flex min-h-touch shrink-0 items-center gap-2 self-start whitespace-nowrap rounded-pill border border-border bg-surface px-4 text-sm font-bold text-brand-dark shadow-sm transition-colors hover:bg-brand-soft sm:self-auto"
         >
           <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           <span>Lihat Portal Berita Publik</span>
@@ -496,7 +496,7 @@ export function AdminDashboardView({
                   value={formState.title}
                   onChange={(e) => setFormState((p) => ({ ...p, title: e.target.value }))}
                   placeholder="Contoh: Promo Scaling Gigi Akhir Pekan"
-                  className="mt-1.5 w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
+                  className="mt-1.5 min-h-touch w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
                 />
               </div>
 
@@ -517,7 +517,7 @@ export function AdminDashboardView({
                         category: e.target.value as ArticleCategory,
                       }))
                     }
-                    className="mt-1.5 w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm font-semibold text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
+                    className="mt-1.5 min-h-touch w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm font-semibold text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
                   >
                     {ARTICLE_CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
@@ -541,7 +541,7 @@ export function AdminDashboardView({
                     onChange={(e) =>
                       setFormState((p) => ({ ...p, authorName: e.target.value }))
                     }
-                    className="mt-1.5 w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
+                    className="mt-1.5 min-h-touch w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
                   />
                 </div>
               </div>
@@ -562,11 +562,11 @@ export function AdminDashboardView({
                       setFormState((p) => ({ ...p, coverImageUrl: e.target.value }))
                     }
                     placeholder="Unggah gambar atau tempel URL (https://...)"
-                    className="flex-1 rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
+                    className="min-h-touch min-w-0 flex-1 rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
                   />
                   <label
                     htmlFor="admin-article-cover-file"
-                    className="inline-flex h-10 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl border border-border bg-brand-soft px-3 text-xs font-bold text-brand-dark hover:bg-brand hover:text-surface"
+                    className="inline-flex min-h-touch cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl border border-border bg-brand-soft px-3 text-sm font-bold text-brand-dark hover:bg-brand hover:text-surface"
                   >
                     <Upload className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                     <span>{isProcessingCover ? 'Kompres...' : 'Unggah'}</span>
@@ -586,22 +586,22 @@ export function AdminDashboardView({
                   className="space-y-3 rounded-2xl border border-border bg-bg p-3.5"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
+                    <span className="text-xs font-bold text-text-muted">
                       Pratinjau &amp; Penyesuaian Sampul
                     </span>
-                    <div className="inline-flex rounded-lg border border-border bg-surface p-0.5 text-[11px] font-bold">
+                    <div className="grid w-full grid-cols-1 gap-0.5 rounded-lg border border-border bg-surface p-0.5 text-xs font-bold sm:inline-grid sm:w-auto sm:grid-cols-2">
                       <button
                         type="button"
                         data-testid="cover-fit-contain-btn"
                         onClick={() => setFormState((p) => ({ ...p, coverFit: 'contain', coverZoom: 1 }))}
                         className={[
-                          'inline-flex items-center gap-1 rounded-md px-2.5 py-1 transition-colors',
+                          'inline-flex min-h-touch items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 transition-colors',
                           formState.coverFit === 'contain'
                             ? 'bg-brand text-surface'
                             : 'text-text-muted hover:text-text',
                         ].join(' ')}
                       >
-                        <Minimize2 className="h-3 w-3" aria-hidden="true" />
+                        <Minimize2 className="h-3.5 w-3.5" aria-hidden="true" />
                         <span>Pas Penuh (Utuh tanpa terpotong)</span>
                       </button>
                       <button
@@ -609,13 +609,13 @@ export function AdminDashboardView({
                         data-testid="cover-fit-cover-btn"
                         onClick={() => setFormState((p) => ({ ...p, coverFit: 'cover' }))}
                         className={[
-                          'inline-flex items-center gap-1 rounded-md px-2.5 py-1 transition-colors',
+                          'inline-flex min-h-touch items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 transition-colors',
                           formState.coverFit === 'cover'
                             ? 'bg-brand text-surface'
                             : 'text-text-muted hover:text-text',
                         ].join(' ')}
                       >
-                        <Maximize2 className="h-3 w-3" aria-hidden="true" />
+                        <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
                         <span>Isi Frame (Cover)</span>
                       </button>
                     </div>
@@ -653,7 +653,7 @@ export function AdminDashboardView({
                       <div>
                         <label
                           htmlFor="admin-cover-zoom"
-                          className="flex justify-between text-[11px] font-semibold text-text-muted"
+                          className="flex justify-between text-xs font-semibold text-text-muted"
                         >
                           <span>Zoom</span>
                           <span>{formState.coverZoom.toFixed(1)}x</span>
@@ -668,13 +668,13 @@ export function AdminDashboardView({
                           onChange={(e) =>
                             setFormState((p) => ({ ...p, coverZoom: Number(e.target.value) }))
                           }
-                          className="mt-1 w-full accent-brand"
+                          className="mt-1 h-11 w-full accent-brand"
                         />
                       </div>
                       <div>
                         <label
                           htmlFor="admin-cover-pos-x"
-                          className="flex justify-between text-[11px] font-semibold text-text-muted"
+                          className="flex justify-between text-xs font-semibold text-text-muted"
                         >
                           <span>Fokus X</span>
                           <span>{formState.coverPosX}%</span>
@@ -689,13 +689,13 @@ export function AdminDashboardView({
                           onChange={(e) =>
                             setFormState((p) => ({ ...p, coverPosX: Number(e.target.value) }))
                           }
-                          className="mt-1 w-full accent-brand"
+                          className="mt-1 h-11 w-full accent-brand"
                         />
                       </div>
                       <div>
                         <label
                           htmlFor="admin-cover-pos-y"
-                          className="flex justify-between text-[11px] font-semibold text-text-muted"
+                          className="flex justify-between text-xs font-semibold text-text-muted"
                         >
                           <span>Fokus Y</span>
                           <span>{formState.coverPosY}%</span>
@@ -710,7 +710,7 @@ export function AdminDashboardView({
                           onChange={(e) =>
                             setFormState((p) => ({ ...p, coverPosY: Number(e.target.value) }))
                           }
-                          className="mt-1 w-full accent-brand"
+                          className="mt-1 h-11 w-full accent-brand"
                         />
                       </div>
                     </div>
@@ -732,7 +732,7 @@ export function AdminDashboardView({
                   value={formState.summary}
                   onChange={(e) => setFormState((p) => ({ ...p, summary: e.target.value }))}
                   placeholder="Tulis ringkasan berita, promo, atau artikel bebas panjang..."
-                  className="mt-1.5 w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
+                  className="mt-1.5 min-h-touch w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
                 />
               </div>
 
@@ -750,7 +750,7 @@ export function AdminDashboardView({
                   value={formState.content}
                   onChange={(e) => setFormState((p) => ({ ...p, content: e.target.value }))}
                   placeholder="Tulis isi lengkap berita, promo, atau artikel edukasi gigi..."
-                  className="mt-1.5 w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
+                  className="mt-1.5 min-h-touch w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
                 />
               </div>
 
@@ -820,12 +820,12 @@ export function AdminDashboardView({
                     />
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="rounded-pill bg-brand-soft px-2.5 py-0.5 text-[11px] font-bold text-brand-dark">
+                        <span className="rounded-pill bg-brand-soft px-2.5 py-0.5 text-xs font-bold text-brand-dark">
                           {article.category}
                         </span>
                         <span
                           className={[
-                            'rounded-pill px-2.5 py-0.5 text-[11px] font-bold',
+                            'rounded-pill px-2.5 py-0.5 text-xs font-bold',
                             article.isPublished
                               ? 'bg-status-green/15 text-status-green'
                               : 'bg-surface-sand text-text',
@@ -845,7 +845,7 @@ export function AdminDashboardView({
                         type="button"
                         onClick={() => handleEditArticle(article)}
                         aria-label={`Edit ${article.title}`}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-brand-dark transition-colors hover:bg-brand-soft"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-surface text-brand-dark transition-colors hover:bg-brand-soft"
                       >
                         <Edit3 className="h-4 w-4" aria-hidden="true" />
                       </button>
@@ -857,7 +857,7 @@ export function AdminDashboardView({
                             ? `Sembunyikan ${article.title}`
                             : `Publikasikan ${article.title}`
                         }
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-text transition-colors hover:bg-brand-soft"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-surface text-text transition-colors hover:bg-brand-soft"
                       >
                         {article.isPublished ? (
                           <EyeOff className="h-4 w-4" aria-hidden="true" />
@@ -869,7 +869,7 @@ export function AdminDashboardView({
                         type="button"
                         onClick={() => void handleDeleteArticle(article)}
                         aria-label={`Hapus ${article.title}`}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-status-red/30 bg-surface text-status-red transition-colors hover:bg-status-red/10"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-status-red/30 bg-surface text-status-red transition-colors hover:bg-status-red/10"
                       >
                         <Trash2 className="h-4 w-4" aria-hidden="true" />
                       </button>
@@ -915,7 +915,7 @@ export function AdminDashboardView({
                   onChange={(e) => setUserSearch(e.target.value)}
                   placeholder="Cari nama, email, username..."
                   aria-label="Cari akun pengguna"
-                  className="h-10 w-full rounded-xl border border-border bg-bg pl-9 pr-3 text-sm text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
+                  className="h-11 w-full rounded-xl border border-border bg-bg pl-9 pr-3 text-sm text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
                 />
               </div>
               <AppButton type="submit" variant="secondary" size="sm">
@@ -945,7 +945,7 @@ export function AdminDashboardView({
                         <p className="font-semibold text-text">{user.full_name}</p>
                         <span
                           className={[
-                            'rounded-pill px-2.5 py-0.5 text-[11px] font-bold uppercase',
+                            'rounded-pill px-2.5 py-0.5 text-xs font-bold uppercase',
                             user.role === 'admin'
                               ? 'bg-brand text-surface'
                               : 'bg-brand-soft text-brand-dark',
@@ -954,7 +954,7 @@ export function AdminDashboardView({
                           {user.role}
                         </span>
                         {isSelf && (
-                          <span className="rounded-pill bg-surface-sand px-2 py-0.5 text-[11px] font-bold text-text">
+                          <span className="rounded-pill bg-surface-sand px-2 py-0.5 text-xs font-bold text-text">
                             Akun Anda
                           </span>
                         )}
@@ -976,7 +976,7 @@ export function AdminDashboardView({
                         onChange={(e) =>
                           void handleRoleSwitch(user, e.target.value as 'user' | 'admin')
                         }
-                        className="h-9 rounded-lg border border-border bg-surface px-3 text-xs font-semibold text-text disabled:cursor-not-allowed disabled:opacity-60"
+                        className="min-h-touch rounded-lg border border-border bg-surface px-3 text-sm font-semibold text-text disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
@@ -987,7 +987,7 @@ export function AdminDashboardView({
                         disabled={isSelf}
                         onClick={() => void handleDeleteUser(user)}
                         aria-label={`Hapus akun ${user.full_name}`}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-status-red/30 bg-surface px-3 text-xs font-semibold text-status-red transition-colors hover:bg-status-red/10 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="inline-flex min-h-touch items-center gap-1.5 rounded-lg border border-status-red/30 bg-surface px-3 text-sm font-semibold text-status-red transition-colors hover:bg-status-red/10 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         <Trash2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         <span>Hapus</span>
