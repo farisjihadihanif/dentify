@@ -200,9 +200,12 @@ export function BeritaArticleDetailView({
         data-testid="berita-detail-breadcrumb"
         className="flex flex-wrap items-center justify-between gap-3"
       >
-        <ol className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-text-muted">
+        <ol className="flex flex-wrap items-center gap-x-1.5 text-sm font-semibold text-text-muted">
           <li>
-            <Link href="/" className="transition-colors hover:text-brand-dark">
+            <Link
+              href="/"
+              className="inline-flex min-h-touch items-center transition-colors hover:text-brand-dark"
+            >
               Beranda
             </Link>
           </li>
@@ -213,7 +216,7 @@ export function BeritaArticleDetailView({
             <Link
               href="/berita"
               data-testid="berita-detail-back-link"
-              className="transition-colors hover:text-brand-dark"
+              className="inline-flex min-h-touch items-center transition-colors hover:text-brand-dark"
             >
               Portal Berita &amp; Promo
             </Link>
@@ -386,7 +389,7 @@ export function BeritaArticleDetailView({
           )}
 
           {/* Editorial Attribution & Footer */}
-          <div className="rounded-2xl border border-border bg-bg p-4 text-xs leading-relaxed text-text-muted">
+          <div className="rounded-2xl border border-border bg-bg p-4 text-sm leading-relaxed text-text-muted">
             <strong className="font-bold text-text">Catatan Redaksi Dentify: </strong>
             Konten ini disusun untuk tujuan informasi dan edukasi kesehatan gigi preventif. Untuk
             diagnosis medis maupun tindakan klinis, selalu konsultasikan langsung dengan dokter
@@ -396,14 +399,14 @@ export function BeritaArticleDetailView({
           <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6">
             <Link
               href="/berita"
-              className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-bg px-4 text-xs font-bold text-brand-dark transition-colors hover:bg-brand-soft"
+              className="inline-flex min-h-touch w-full items-center justify-center gap-2 whitespace-nowrap sm:w-auto rounded-xl border border-border bg-bg px-4 text-sm font-bold text-brand-dark transition-colors hover:bg-brand-soft"
             >
               <ArrowLeft className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               <span>Kembali ke Portal Berita &amp; Promo</span>
             </Link>
             <Link
               href="/scan"
-              className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand px-4 text-xs font-bold text-surface transition-colors hover:bg-brand-dark"
+              className="inline-flex min-h-touch w-full items-center justify-center gap-2 whitespace-nowrap sm:w-auto rounded-xl bg-brand px-4 text-sm font-bold text-surface transition-colors hover:bg-brand-dark"
             >
               <Camera className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               <span>Coba AI Dental Scan Gratis</span>
@@ -450,10 +453,10 @@ export function BeritaArticleDetailView({
                         />
                       </div>
                       <div className="min-w-0 flex-1 space-y-1">
-                        <span className="inline-block rounded-pill bg-brand-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-dark">
+                        <span className="inline-block rounded-pill bg-brand-soft px-2 py-0.5 text-xs font-bold text-brand-dark">
                           {item.category}
                         </span>
-                        <p className="line-clamp-2 text-xs font-bold leading-snug text-text group-hover:text-brand-dark">
+                        <p className="line-clamp-2 text-sm font-bold leading-snug text-text group-hover:text-brand-dark">
                           {item.title}
                         </p>
                       </div>
@@ -462,7 +465,7 @@ export function BeritaArticleDetailView({
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-text-muted">
+              <p className="text-sm text-text-muted">
                 Jelajahi berbagai artikel dan promo terbaru lainnya di Portal Berita Dentify.
               </p>
             )}
@@ -470,7 +473,7 @@ export function BeritaArticleDetailView({
             <div className="pt-1">
               <Link
                 href="/berita"
-                className="inline-flex h-9 w-full items-center justify-center rounded-xl border border-border bg-bg text-xs font-bold text-brand-dark transition-colors hover:bg-brand-soft"
+                className="inline-flex min-h-touch w-full items-center justify-center rounded-xl border border-border bg-bg text-sm font-bold text-brand-dark transition-colors hover:bg-brand-soft"
               >
                 Lihat Semua Terbitan →
               </Link>
@@ -482,7 +485,7 @@ export function BeritaArticleDetailView({
             <h2 className="font-display text-lg font-extrabold text-text">
               Skrining &amp; Konsultasi Dentify
             </h2>
-            <p className="text-xs leading-relaxed text-text-muted">
+            <p className="text-sm leading-relaxed text-text-muted">
               Periksa kondisi gigi Anda secara mandiri lewat AI Dental Scan atau konsultasikan
               keluhan gigi harian bersama asisten AI Deni.
             </p>

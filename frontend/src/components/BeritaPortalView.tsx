@@ -271,7 +271,7 @@ export function BeritaPortalView({
                 >
                   {category}
                 </h2>
-                <p className="mt-0.5 text-xs text-text-muted sm:text-sm">
+                <p className="mt-0.5 text-sm text-text-muted">
                   {CATEGORY_DESCRIPTIONS[category]}
                 </p>
               </div>
