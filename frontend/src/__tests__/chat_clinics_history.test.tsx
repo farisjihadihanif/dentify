@@ -144,7 +144,7 @@ describe('Global layout, identity, /profile, and /panduan', () => {
 
     const mascotHtml = renderToStaticMarkup(<DeniMascot />);
     expect(mascotHtml).toContain('data-testid="deni-mascot-widget"');
-    expect(mascotHtml).toContain('/images/deni-mascot.png');
+    expect(mascotHtml).toContain('/images/deni-mascot.svg');
     expect(mascotHtml).toContain('animate-deni-float');
     expect(mascotHtml).toContain('Tanya Deni');
     expect(mascotHtml).toContain('href="/chat"');

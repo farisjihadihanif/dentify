@@ -494,7 +494,7 @@ export function DeniChat({
         <div className="flex items-center justify-between gap-2 border-b border-border pb-3">
           <div className="flex items-center gap-2.5">
             <img
-              src="/images/deni-mascot.png"
+              src="/images/deni-mascot.svg"
               alt="Maskot Deni"
               className="h-10 w-10 shrink-0 object-contain"
             />
@@ -703,7 +703,7 @@ export function DeniChat({
                 >
                   {!isUser && (
                     <img
-                      src="/images/deni-mascot.png"
+                      src="/images/deni-mascot.svg"
                       alt="Avatar Deni"
                       className="mt-1 h-9 w-9 shrink-0 rounded-pill border border-border bg-accent-deni-soft object-contain p-0.5"
                     />

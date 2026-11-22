@@ -348,7 +348,7 @@ export default function HomePage() {
 
               <div className="flex items-center gap-4">
                 <img
-                  src="/images/deni-mascot.png"
+                  src="/images/deni-mascot.svg"
                   alt="Maskot Deni"
                   className="h-16 w-16 shrink-0 object-contain drop-shadow-sm"
                 />
