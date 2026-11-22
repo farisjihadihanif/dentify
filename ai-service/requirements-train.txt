@@ -1,0 +1,4 @@
+# Training, evaluation, .keras -> .tflite conversion and MODEL_RUNTIME=keras.
+-r requirements.txt
+tensorflow==2.21.0
+psutil==7.1.3

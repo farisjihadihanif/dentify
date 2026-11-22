@@ -117,13 +117,39 @@ Notes:
 - **Pretrained weights:** ImageNet weights may conflict with the capstone brief's no-pretrained default. Advisor confirmation is pending.
 - **Serving behaviour differs from the evaluated model:** the Gemini gate and the out-of-distribution guard can reject photos (never relabel them), and how often they reject real dental photos has not been measured on the test set.
 
-## 6. Reproduce
+## 6. TFLite serving export
+
+Production serves `models/dentify_model.tflite` (`MODEL_RUNTIME=tflite`, the default) through LiteRT (`ai-edge-litert`), without TensorFlow, so the service fits a 512 MB instance. `MODEL_RUNTIME=keras` still serves the `.keras` file with full TensorFlow (`requirements-train.txt`).
+
+- **Conversion:** `python -m training.convert_tflite`. Float32 weights (no quantisation), TFLite builtin ops only (no Flex ops). The custom `ChannelAttention` layer traces into builtin ops (mean, fully connected, logistic, mul) and converts without changes.
+- **Signatures:** `serving` (batch → probabilities) and `gradcam` (one image + class one-hot → 7×7 Grad-CAM map). For `gradcam` the classifier head after `gradcam_conv` is rebuilt from the trained layers with ReLU6 written as `clip_by_value`, so its gradient ops are builtins too.
+- **Parity on the validation split** (`python -m training.verify_tflite`, n = 256, 2026-11-23):
+
+| | max abs prob diff | mean abs prob diff | accuracy `.keras` | accuracy `.tflite` | label disagreements |
+|---|---:|---:|---:|---:|---:|
+| single view, raw argmax | 3.9e-6 | 3.4e-7 | 0.7695 | 0.7695 | – |
+| single view, decision weights | | | 0.7930 | 0.7930 | 0 |
+| 4-view TTA, raw argmax | 2.6e-6 | 2.2e-7 | 0.7930 | 0.7930 | – |
+| 4-view TTA, decision weights (served) | | | 0.8203 | 0.8203 | 0 |
+
+  Grad-CAM: max abs difference of the normalised heatmap over 40 val images = 0.0034.
+- **Memory** (`python -m training.measure_memory`: real app startup + one `/internal/predict`, process high-water mark):
+
+| Runtime | Platform | Peak after startup | Peak after 1 prediction | TensorFlow imported |
+|---|---|---:|---:|---|
+| tflite (serving deps only) | Linux (WSL2, Python 3.13) | 158 MB | 184 MB | no |
+| tflite | Windows 11, Python 3.13 | 129 MB | 152 MB | no |
+| keras | Windows 11, Python 3.13 | 676 MB | 724 MB | yes |
+
+## 7. Reproduce
 
 ```bash
 cd ai-service
 python -m app.ml.train                                   # MobileNetV2 -> models/candidates/mobilenetv2.keras
 python -m app.ml.train_scratch --tag baseline_t106       # from-scratch fallback -> models/candidates/
 python -m app.ml.evaluate --model models/dentify_model.keras --out eval.json
+python -m training.convert_tflite                        # -> models/dentify_model.tflite + parity check
+python -m training.measure_memory                        # peak memory per runtime
 ```
 
 Training writes to `models/candidates/` only. Promote a model by hand after comparing it with `models/backup/` and the served model. Copy the decision weights from the evaluation JSON (`decision_weights_tta.weights`) into `model_meta.json` → `decision_weights`.

@@ -46,6 +46,7 @@ data-science/data/processed/*.webp
 
 # Model binaries & checkpoints
 *.keras
+*.tflite
 *.h5
 *.weights.h5
 *.ckpt

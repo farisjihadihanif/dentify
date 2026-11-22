@@ -1,39 +1,6 @@
-"""Dentify OpenCV preprocessing, custom Keras model, urgency engine, and CV inference package."""
+"""
+Dentify OpenCV preprocessing, custom Keras model, urgency engine, and CV inference package.
 
-from app.ml.custom_model import (
-    DENTAL_LABELS,
-    ChannelAttention,
-    ClassWeightedFocalLoss,
-    MacroF1Checkpoint,
-    build_dentify_mobilenetv2_model,
-    build_dentify_model,
-    compute_macro_f1,
-    load_dentify_model,
-)
-from app.ml.preprocessing import (
-    INPUT_SIZE,
-    ImageValidationError,
-    PreprocessedImage,
-    apply_clahe_rgb,
-    decode_and_preprocess_bytes,
-    preprocess_rgb_for_model,
-)
-from app.ml.urgency import compute_urgency
-
-__all__ = [
-    "DENTAL_LABELS",
-    "INPUT_SIZE",
-    "ChannelAttention",
-    "ClassWeightedFocalLoss",
-    "ImageValidationError",
-    "MacroF1Checkpoint",
-    "PreprocessedImage",
-    "apply_clahe_rgb",
-    "build_dentify_mobilenetv2_model",
-    "build_dentify_model",
-    "compute_macro_f1",
-    "compute_urgency",
-    "decode_and_preprocess_bytes",
-    "load_dentify_model",
-    "preprocess_rgb_for_model",
-]
+Submodules are imported directly (e.g. `app.ml.custom_model`). This package deliberately does not
+re-export them: `custom_model` imports TensorFlow, and the TFLite serving path must not load it.
+"""

@@ -21,7 +21,7 @@ import numpy as np
 import tensorflow as tf
 from keras import layers
 
-DENTAL_LABELS: tuple[str, ...] = ("caries", "calculus", "gingivitis", "healthy")
+from app.ml.labels import DENTAL_LABELS
 
 
 @keras.saving.register_keras_serializable(package="Dentify", name="ChannelAttention")

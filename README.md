@@ -24,7 +24,7 @@ Copy `.env.example` → `.env` (or `.env.local` for frontend) in each service fo
 |---|---|---|---|---|---|
 | `frontend/` (:3000) | `npm install` | `npm run dev` | `npm test` | `npm run lint` | `npm run build` |
 | `backend/` (:5000) | `npm install` | `npm run dev` | `npm test` | `npm run lint` | `npm run build` |
-| `ai-service/` (:8000) | `pip install -r requirements.txt` | `uvicorn app.main:app --reload --port 8000` | `pytest` | `ruff check .` | – |
+| `ai-service/` (:8000) | `pip install -r requirements-train.txt` | `uvicorn app.main:app --reload --port 8000` | `pytest` | `ruff check .` | – |
 | `data-science/` (:8501) | `pip install -r requirements.txt` | `streamlit run app.py` | – | `ruff check .` | – |
 
 Seed MongoDB (`dental_knowledge`, `articles`, `clinic_directory`, and initial Admin from env):

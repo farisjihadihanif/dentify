@@ -18,8 +18,9 @@ from app.routers.predict import router as predict_router
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     try:
         if inference_service.load() and inference_service.model is not None:
-            # Warm up TensorFlow graph once at startup so /scan and /chat have zero cold-start lag
-            dummy = np.zeros((1, 224, 224, 3), dtype=np.float32)
+            # Warm up once at startup with the 4-view TTA batch shape used by /internal/predict, so
+            # the first scan does not pay graph tracing (Keras) or tensor allocation (TFLite).
+            dummy = np.zeros((4, 224, 224, 3), dtype=np.float32)
             _ = inference_service.model(dummy, training=False)
     except Exception:
         # Keep health endpoint responsive in degraded mode if model is not yet trained

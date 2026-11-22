@@ -1,11 +1,13 @@
+# Serving requirements (MODEL_RUNTIME=tflite). No TensorFlow: it alone exceeds a 512 MB instance.
+# Training, conversion and MODEL_RUNTIME=keras need requirements-train.txt instead.
 fastapi==0.163.2
 uvicorn[standard]==0.54.0
 pydantic==2.14.3
 pydantic-settings==2.16.3
 python-dotenv==1.2.4
 python-multipart==0.0.34
-tensorflow==2.21.0
-opencv-python==5.1.0.95
+ai-edge-litert==2.4.0
+opencv-python-headless==5.1.0.95
 numpy==2.5.5
 pillow==12.3.0
 langchain==1.5.2

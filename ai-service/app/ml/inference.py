@@ -8,14 +8,12 @@ from pathlib import Path
 from typing import Any
 
 import cv2
-import keras
 import numpy as np
-import tensorflow as tf
 from PIL import Image
 
 from app.core.config import Settings, get_settings
 from app.core.state import runtime_state
-from app.ml.custom_model import DENTAL_LABELS, load_dentify_model
+from app.ml.labels import DENTAL_LABELS
 from app.ml.preprocessing import ImageQualityError, decode_and_preprocess_bytes
 from app.ml.urgency import compute_unsure_urgency, compute_urgency
 from app.schemas import DentalCondition, DetectionItem, ImageQualityReport, PredictResponse
@@ -111,8 +109,12 @@ def _is_plausible_dental_image(rgb_uint8: np.ndarray) -> bool:
 class DentalInferenceService:
     def __init__(self, settings: Settings | None = None) -> None:
         self.settings = settings or get_settings()
-        self.model: keras.Model | None = None
-        self.grad_model: keras.Model | None = None
+        # Callable as model(batch, training=False) -> probabilities. Either a keras.Model
+        # (MODEL_RUNTIME=keras) or a TFLiteDentifyModel (MODEL_RUNTIME=tflite, the default).
+        self.model: Any | None = None
+        # keras.Model exposing [gradcam_conv output, probabilities]; only used by the keras runtime
+        self.grad_model: Any | None = None
+        self.runtime: str = "tflite"
         self.labels: tuple[DentalCondition, ...] = DENTAL_LABELS  # type: ignore[assignment]
         self.model_version: str = "dentify-cnn-1.0.0"
         # Per-class decision weights tuned on the validation split (model_meta.json "decision_weights")
@@ -142,13 +144,28 @@ class DentalInferenceService:
             runtime_state.model_version = None
             return False
 
-        self.model = load_dentify_model(model_path)
-        self._init_grad_model()
+        self.runtime = self.settings.normalized_model_runtime()
+        if self.runtime == "tflite":
+            from app.ml.tflite_runtime import TFLiteDentifyModel
+
+            self.model = TFLiteDentifyModel(
+                model_path, num_threads=self.settings.tflite_num_threads
+            )
+            self.grad_model = None
+        else:
+            # Imported lazily: TensorFlow alone needs more RAM than a 512 MB instance has.
+            from app.ml.custom_model import load_dentify_model
+
+            self.model = load_dentify_model(model_path)
+            self._init_grad_model()
+        logger.info("Loaded %s model from %s", self.runtime, model_path.name)
         runtime_state.model_loaded = True
         runtime_state.model_version = self.model_version
         return True
 
     def _init_grad_model(self) -> None:
+        import keras
+
         if self.model is None:
             self.grad_model = None
             return
@@ -170,6 +187,29 @@ class DentalInferenceService:
         else:
             self.grad_model = None
 
+    def _keras_gradcam_heatmap(self, tensor: np.ndarray, class_idx: int) -> np.ndarray | None:
+        if self.grad_model is None:
+            return None
+        import tensorflow as tf
+
+        img_tensor = tf.convert_to_tensor(tensor, dtype=tf.float32)
+        with tf.GradientTape() as tape:
+            conv_outputs, predictions = self.grad_model(img_tensor, training=False)
+            loss = predictions[:, class_idx]
+        grads = tape.gradient(loss, conv_outputs)
+        if grads is None:
+            return None
+        pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
+        heatmap = tf.reduce_sum(conv_outputs[0] * pooled_grads, axis=-1)
+        return tf.maximum(heatmap, 0).numpy()
+
+    def _gradcam_heatmap(self, tensor: np.ndarray, class_idx: int) -> np.ndarray | None:
+        """Raw ReLU-ed Grad-CAM map over the `gradcam_conv` grid for the active runtime."""
+        gradcam = getattr(self.model, "gradcam", None)
+        if callable(gradcam):
+            return gradcam(tensor, class_idx)
+        return self._keras_gradcam_heatmap(tensor, class_idx)
+
     def _compute_gradcam_bbox(
         self,
         tensor: np.ndarray,
@@ -177,26 +217,15 @@ class DentalInferenceService:
         orig_w: int,
         orig_h: int,
     ) -> list[int] | None:
-        if self.grad_model is None:
-            return None
         try:
-            img_tensor = tf.convert_to_tensor(tensor, dtype=tf.float32)
-            with tf.GradientTape() as tape:
-                conv_outputs, predictions = self.grad_model(img_tensor, training=False)
-                loss = predictions[:, class_idx]
-            grads = tape.gradient(loss, conv_outputs)
-            if grads is None:
+            heatmap = self._gradcam_heatmap(tensor, class_idx)
+            if heatmap is None:
                 return None
-
-            pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
-            conv_map = conv_outputs[0]
-            heatmap = tf.reduce_sum(conv_map * pooled_grads, axis=-1)
-            heatmap = tf.maximum(heatmap, 0)
-            max_val = float(tf.reduce_max(heatmap).numpy())
+            max_val = float(np.max(heatmap))
             if max_val <= 1e-8:
                 return None
 
-            heatmap_np = (heatmap.numpy() / max_val).astype(np.float32)
+            heatmap_np = (np.asarray(heatmap) / max_val).astype(np.float32)
             resized_map = cv2.resize(heatmap_np, (orig_w, orig_h), interpolation=cv2.INTER_LINEAR)
             mask = (resized_map >= 0.5).astype(np.uint8)
             ys, xs = np.where(mask > 0)
@@ -308,7 +337,8 @@ class DentalInferenceService:
             axis=0,
         ).astype(np.float32)
 
-        raw_preds = self.model(tta_batch, training=False).numpy()
+        raw_out = self.model(tta_batch, training=False)
+        raw_preds = raw_out.numpy() if hasattr(raw_out, "numpy") else raw_out
         probs_vec = np.mean(np.asarray(raw_preds, dtype=np.float64), axis=0)
         total = float(np.sum(probs_vec))
         if total > 0:

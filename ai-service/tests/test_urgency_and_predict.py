@@ -400,6 +400,7 @@ def test_predict_applies_val_tuned_decision_weights(client: TestClient) -> None:
 
 @pytest.mark.parametrize("arch", ["scratch", "mobilenetv2"])
 def test_custom_keras_model_roundtrip_reload(tmp_path: Path, arch: str) -> None:
+    pytest.importorskip("tensorflow", reason="training requirements not installed")
     from app.ml.custom_model import (
         ClassWeightedFocalLoss,
         build_dentify_mobilenetv2_model,
