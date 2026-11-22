@@ -32,14 +32,22 @@
   --color-orbit-tool-accent: #0E7490;
   --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
   --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
-  /* Space reserved under page content for the floating bottom dock (FloatingNavbar):
-     mobile = 12px offset + 54px dock + 14px gap; sm+ = 24px offset + 58px dock + 22px gap. */
-  --dock-clearance: 5rem;
+  /* Minimum space under the footer's last line so the floating bottom dock (FloatingNavbar)
+     never covers it when the dock is shown at the page end:
+     < sm = 12px offset + 54px dock + 6px gap; sm–xl = 24px offset + 58px dock + 6px gap;
+     xl+ = the dock sits between the footer's left and right columns, so only normal padding. */
+  --dock-clearance: 4.5rem;
 }
 
 @media (min-width: 640px) {
   :root {
-    --dock-clearance: 6.5rem;
+    --dock-clearance: 5.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --dock-clearance: 1rem;
   }
 }
 

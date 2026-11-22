@@ -15,7 +15,8 @@ export interface AppFooterProps {
  * - Uses high-contrast dark-navy (`bg-surface-navy`) styling on `/panduan` only
  * - Desktop (`md:` and up): left credits stacked above `Dentify © 2026`, right `Panduan Aplikasi`
  *   stacked above `Promo, Berita & Artikel`
- * - Bottom padding `--dock-clearance` (globals.css) keeps it clear of the floating dock at every width.
+ * - Bottom padding `--dock-clearance` (globals.css) is the minimum that keeps the last line clear of the
+ *   floating dock: dock height + offset below xl, normal padding from xl where the dock sits between columns.
  */
 export function AppFooter({ pathnameOverride }: AppFooterProps = {}) {
   const hookPathname = usePathname() || "/";
