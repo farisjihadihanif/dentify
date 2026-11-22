@@ -128,7 +128,7 @@ const GUIDE_SECTIONS = [
     badge: "Tahap 7 • Tindak Lanjut",
     title: "Jika Hasil Scan Kurang Meyakinkan",
     description:
-      "Jika skor keyakinan AI di bawah 75% atau kondisi tampak tumpang tindih: (1) ambil ulang foto close-up di bawah cahaya terang tanpa bayangan setelah membersihkan sisa makanan; (2) lampirkan foto gigi langsung ke Deni AI di halaman Chat (+ Tambah Foto atau Ctrl+V) agar Deni mengevaluasi foto bersama keluhan Anda; dan (3) segera kunjungi dokter gigi apabila muncul nyeri berdenyut, bengkak, perdarahan terus-menerus, atau keraguan yang menetap.",
+      "Jika skor keyakinan AI di bawah 60% atau kondisi tampak tumpang tindih: (1) ambil ulang foto close-up di bawah cahaya terang tanpa bayangan setelah membersihkan sisa makanan; (2) lampirkan foto gigi langsung ke Deni AI di halaman Chat (+ Tambah Foto atau Ctrl+V) agar Deni mengevaluasi foto bersama keluhan Anda; dan (3) segera kunjungi dokter gigi apabila muncul nyeri berdenyut, bengkak, perdarahan terus-menerus, atau keraguan yang menetap.",
     icon: ShieldAlert,
   },
 ] as const;

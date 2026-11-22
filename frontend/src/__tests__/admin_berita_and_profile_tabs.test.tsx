@@ -340,6 +340,9 @@ describe('Edge-to-Edge Home Section 2 & /panduan + Tabbed /profile', () => {
     expect(panduanHtml).not.toContain('hover:text-surface-mint');
     expect(panduanHtml).toContain('max-w-[1380px]');
     expect(panduanHtml).toContain('min-h-[250px]');
+    // the unclear-result card quotes CONFIDENCE_THRESHOLD (0.60, Decision #4)
+    expect(panduanHtml).toContain('di bawah 60%');
+    expect(panduanHtml).not.toContain('di bawah 75%');
   });
 
   it('renders only the single active tab in ProfileEditorView and shows Admin Panel link for admins', () => {
