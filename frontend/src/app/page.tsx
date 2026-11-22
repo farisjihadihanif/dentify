@@ -114,7 +114,7 @@ export default function HomePage() {
           href="/"
           aria-label="Dentify Beranda"
           data-testid="hero-top-left-logo"
-          className="absolute left-5 top-5 z-20 inline-flex items-center rounded-pill bg-surface/90 px-3 py-1.5 shadow-sm ring-1 ring-border transition-colors hover:bg-surface sm:left-8 sm:top-7"
+          className="absolute left-5 top-5 z-20 inline-flex min-h-touch items-center rounded-pill bg-surface/90 px-3 py-1.5 shadow-sm ring-1 ring-border transition-colors hover:bg-surface sm:left-8 sm:top-7"
         >
           <DentifyLogo size={30} showText />
         </Link>
@@ -219,7 +219,7 @@ export default function HomePage() {
                       </span>
                       <span
                         className={[
-                          'inline-flex items-center gap-1.5 rounded-pill px-4 py-1.5 text-xs font-bold',
+                          'inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill px-4 py-1.5 text-xs font-bold',
                           theme.badge,
                         ].join(' ')}
                       >
@@ -279,8 +279,8 @@ export default function HomePage() {
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="flex flex-col justify-between rounded-card border border-border bg-surface p-6 shadow-sm">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-1.5 rounded-pill bg-brand-soft px-3 py-1 text-xs font-bold text-brand-dark">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill bg-brand-soft px-3 py-1 text-xs font-bold text-brand-dark">
                   <Camera className="h-3.5 w-3.5" />
                   <span>Fitur Utama • AI Dental Scan</span>
                 </span>
@@ -299,8 +299,8 @@ export default function HomePage() {
               </p>
 
               <div className="rounded-card border border-border bg-bg p-4">
-                <div className="flex items-center justify-between border-b border-border pb-2.5">
-                  <div>
+                <div className="flex items-start justify-between gap-3 border-b border-border pb-2.5">
+                  <div className="min-w-0">
                     <p className="text-xs font-bold text-text">
                       Ilustrasi Hasil: Indikasi Karies Gigi
                     </p>
@@ -308,11 +308,11 @@ export default function HomePage() {
                       Hasil analisis AI • Indikasi visual terdeteksi • Dapat Diunduh
                     </p>
                   </div>
-                  <span className="rounded-pill bg-status-red px-2.5 py-0.5 text-xs font-semibold text-surface">
+                  <span className="shrink-0 whitespace-nowrap rounded-pill bg-status-red px-2.5 py-0.5 text-xs font-semibold text-surface">
                     Segera Periksa
                   </span>
                 </div>
-                <p className="mt-2.5 flex items-start gap-1.5 text-xs text-text-muted">
+                <p className="mt-2.5 flex items-start gap-1.5 text-sm text-text-muted">
                   <CheckCircle2
                     className="mt-0.5 h-3.5 w-3.5 shrink-0 text-status-green"
                     aria-hidden="true"
@@ -338,8 +338,8 @@ export default function HomePage() {
 
           <div className="flex flex-col justify-between rounded-card border border-border bg-surface p-6 shadow-sm">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-1.5 rounded-pill bg-accent-deni-soft px-3 py-1 text-xs font-bold text-accent-deni">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill bg-accent-deni-soft px-3 py-1 text-xs font-bold text-accent-deni">
                   <MessageCircleHeart className="h-3.5 w-3.5" />
                   <span>Asisten AI • Tanyakan ke Deni</span>
                 </span>
@@ -363,14 +363,14 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="space-y-2 rounded-card border border-border bg-bg p-3.5 text-xs">
+              <div className="space-y-2 rounded-card border border-border bg-bg p-3.5 text-sm">
                 <div className="ml-auto max-w-xs rounded-xl bg-brand px-3 py-2 text-surface">
                   &ldquo;Deni, gigi geraham saya ngilu saat minum air dingin, harus bagaimana?&rdquo;
                 </div>
                 <div className="max-w-md rounded-xl border border-accent-deni/20 bg-accent-deni-soft px-3 py-2 text-text">
                   <span className="mb-1 flex items-center gap-1.5">
                     <strong className="text-accent-deni">Deni</strong>
-                    <span className="rounded-pill bg-surface px-1.5 py-0.5 text-[10px] font-semibold text-accent-deni">
+                    <span className="rounded-pill bg-surface px-2 py-0.5 text-xs font-semibold text-accent-deni">
                       Dibuat oleh AI
                     </span>
                   </span>
