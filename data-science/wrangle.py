@@ -320,11 +320,11 @@ def write_data_dictionary(out_path: Path, report: dict[str, Any]) -> None:
         "",
         "| Dataset Source | Raw Folder / Label | Action / Canonical Label | License |",
         "|---|---|---|---|",
-        "| Kaggle `salmansajid05/oral-diseases` | `Data caries/caries orignal data set/done` | Mapped → `caries` | Kaggle open research / educational terms |",
-        "| Kaggle `salmansajid05/oral-diseases` | `Calculus/Calculus` | Mapped → `calculus` | Kaggle open research / educational terms |",
-        "| Kaggle `salmansajid05/oral-diseases` | `Gingivitis/Gingivitis` | Mapped → `gingivitis` | Kaggle open research / educational terms |",
-        "| Kaggle `salmansajid05/oral-diseases` | `caries augmented data set`, `*_augmented_*`, `*_yolo_annotated_*` | **Removed** (pre-augmented / duplicate exports) | Kaggle open research / educational terms |",
-        "| Kaggle `salmansajid05/oral-diseases` | `hypodontia`, `Mouth Ulcer`, `Tooth Discoloration` | **Removed** (out-of-scope conditions) | Kaggle open research / educational terms |",
+        "| Kaggle `salmansajid05/oral-diseases` | `Data caries/caries orignal data set/done` | Mapped → `caries` | Unknown (per Kaggle API) |",
+        "| Kaggle `salmansajid05/oral-diseases` | `Calculus/Calculus` | Mapped → `calculus` | Unknown (per Kaggle API) |",
+        "| Kaggle `salmansajid05/oral-diseases` | `Gingivitis/Gingivitis` | Mapped → `gingivitis` | Unknown (per Kaggle API) |",
+        "| Kaggle `salmansajid05/oral-diseases` | `caries augmented data set`, `*_augmented_*`, `*_yolo_annotated_*` | **Removed** (pre-augmented / duplicate exports) | Unknown (per Kaggle API) |",
+        "| Kaggle `salmansajid05/oral-diseases` | `hypodontia`, `Mouth Ulcer`, `Tooth Discoloration` | **Removed** (out-of-scope conditions) | Unknown (per Kaggle API) |",
         "| Kaggle `shahjahanabdullatif/dental-cavity-detection-dataset` | `Yolo_Dataset/{train,val,test}` (IDs `0`, `1`) | **Removed** after manual audit (missing class YAML, mixed severe pathology in both IDs, caption overlays, `.rf.` pre-augmentations) | CC BY-SA 4.0 |",
         "| Kaggle `hamza202404/al-zahrawi-twenty-oral-teeth-mouth-diseases` (authenticated 3rd Kaggle source) | `Healthy Teeth`, `Data caries`, `Calculus A`, `Gingivitis A` (`al-Zahrawi.csv`) | Mapped → `healthy`, `caries`, `calculus`, `gingivitis` (dropped `Normal` `.rf.` segments & 15 off-target oral cancer/lesion classes) | CC0: Public Domain |",
         "| Local `dentalscan` supplement (brief `jehanbhathena/dental-caries-dataset` remains 403/private on Kaggle) | `gigi caries`, `karang gigi`, `gigi sehat`, `gusi sehat` | Mapped → `caries`, `calculus`, `healthy` | Internal Capstone `CC26-PSU285` research set |",
@@ -390,7 +390,7 @@ def write_wrangling_notebook(notebook_path: Path, report: dict[str, Any]) -> Non
             "## 1. Dataset Sources & Licenses\n\n"
             "| # | Dataset | Origin / Path | License | Usage Decision |\n"
             "|---|---|---|---|---|\n"
-            "| 1 | **Oral Diseases** (`salmansajid05/oral-diseases`) | Kaggle (cached via `kagglehub`) | Kaggle open research / educational terms | **Included** (clean original `caries`, `calculus`, `gingivitis` folders only) |\n"
+            "| 1 | **Oral Diseases** (`salmansajid05/oral-diseases`) | Kaggle (cached via `kagglehub`) | Unknown (per Kaggle API) | **Included** (clean original `caries`, `calculus`, `gingivitis` folders only) |\n"
             f"| 2 | **Dental Cavity Detection Dataset** (`shahjahanabdullatif/dental-cavity-detection-dataset`) | Kaggle (cached via `kagglehub`, {yolo_audit['total_images']} imgs / {yolo_audit['unique_roboflow_prefixes']} Roboflow prefixes) | **CC BY-SA 4.0** | **Excluded after manual visual audit** (see Step 2 below) |\n"
             "| 3 | **Dental Caries Dataset** (Project Brief 3rd source) + Local Curated `dentalscan` | Kaggle slug returned HTTP 403 without private auth; supplemented by local curated intraoral photos (`gigi caries`, `karang gigi`, `gigi sehat`, `gusi sehat`) | Internal Capstone `CC26-PSU285` educational set | **Included** (provides verified `healthy` teeth/gums + `caries` + `calculus`) |"
         ),

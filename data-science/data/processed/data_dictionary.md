@@ -15,11 +15,11 @@ Cleaned, deduplicated, leak-free dental image dataset for Capstone `CC26-PSU285`
 
 | Dataset Source | Raw Folder / Label | Action / Canonical Label | License |
 |---|---|---|---|
-| Kaggle `salmansajid05/oral-diseases` | `Data caries/caries orignal data set/done` | Mapped → `caries` | Kaggle open research / educational terms |
-| Kaggle `salmansajid05/oral-diseases` | `Calculus/Calculus` | Mapped → `calculus` | Kaggle open research / educational terms |
-| Kaggle `salmansajid05/oral-diseases` | `Gingivitis/Gingivitis` | Mapped → `gingivitis` | Kaggle open research / educational terms |
-| Kaggle `salmansajid05/oral-diseases` | `caries augmented data set`, `*_augmented_*`, `*_yolo_annotated_*` | **Removed** (pre-augmented / duplicate exports) | Kaggle open research / educational terms |
-| Kaggle `salmansajid05/oral-diseases` | `hypodontia`, `Mouth Ulcer`, `Tooth Discoloration` | **Removed** (out-of-scope conditions per `PRD §5.2`) | Kaggle open research / educational terms |
+| Kaggle `salmansajid05/oral-diseases` | `Data caries/caries orignal data set/done` | Mapped → `caries` | Unknown (per Kaggle API) |
+| Kaggle `salmansajid05/oral-diseases` | `Calculus/Calculus` | Mapped → `calculus` | Unknown (per Kaggle API) |
+| Kaggle `salmansajid05/oral-diseases` | `Gingivitis/Gingivitis` | Mapped → `gingivitis` | Unknown (per Kaggle API) |
+| Kaggle `salmansajid05/oral-diseases` | `caries augmented data set`, `*_augmented_*`, `*_yolo_annotated_*` | **Removed** (pre-augmented / duplicate exports) | Unknown (per Kaggle API) |
+| Kaggle `salmansajid05/oral-diseases` | `hypodontia`, `Mouth Ulcer`, `Tooth Discoloration` | **Removed** (out-of-scope conditions per `PRD §5.2`) | Unknown (per Kaggle API) |
 | Kaggle `shahjahanabdullatif/dental-cavity-detection-dataset` | `Yolo_Dataset/{train,val,test}` (IDs `0`, `1`) | **Removed** after manual audit (missing class YAML, mixed severe pathology in both IDs, caption overlays, `.rf.` pre-augmentations) | CC BY-SA 4.0 |
 | Kaggle `hamza202404/al-zahrawi-twenty-oral-teeth-mouth-diseases` (authenticated 3rd Kaggle source) | `Healthy Teeth`, `Data caries`, `Calculus A`, `Gingivitis A` (`al-Zahrawi.csv`) | Mapped → `healthy`, `caries`, `calculus`, `gingivitis` (dropped `Normal` `.rf.` segments & 15 off-target oral cancer/lesion classes) | CC0: Public Domain |
 | Local `dentalscan` supplement (brief `jehanbhathena/dental-caries-dataset` remains 403/private on Kaggle) | `gigi caries`, `karang gigi`, `gigi sehat`, `gusi sehat` | Mapped → `caries`, `calculus`, `healthy` | Internal Capstone `CC26-PSU285` research set |
