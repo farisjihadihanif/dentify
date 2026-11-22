@@ -1,8 +1,11 @@
 """
 Custom TensorFlow/Keras Computer Vision architecture for Dentify (CC26-PSU285).
 
-Uses an ImageNet-pretrained MobileNetV2 transfer-learning backbone wrapped in a Keras
-Functional API model with three registered custom components so `.keras` reloads cleanly:
+Two TensorFlow/Keras Functional API builders (no TF Hub, no AutoML):
+- `build_dentify_mobilenetv2_model`: live model, MobileNetV2 transfer learning via
+  `keras.applications` (ImageNet weights; advisor confirmation pending).
+- `build_dentify_model`: from-scratch fallback (weights=None), MobileNetV2-style inverted residuals.
+Three registered custom components make `.keras` reload cleanly:
   1. `ChannelAttention` (custom Keras Layer)
   2. `ClassWeightedFocalLoss` (custom Keras Loss)
   3. `MacroF1Checkpoint` (custom Keras Callback)
@@ -105,7 +108,12 @@ def compute_macro_f1(y_true_idx: np.ndarray, y_pred_idx: np.ndarray, num_classes
 
 
 class MacroF1Checkpoint(keras.callbacks.Callback):
-    """Custom callback that tracks validation Macro-F1 and checkpoints the best .keras model."""
+    """
+    Custom callback that checkpoints the best `.keras` model on the validation split.
+
+    Selection score = val macro-F1 + `caries_recall_weight` * val caries recall (default weight 0,
+    i.e. pure macro-F1).
+    """
 
     def __init__(
         self,
@@ -113,27 +121,150 @@ class MacroF1Checkpoint(keras.callbacks.Callback):
         val_y_onehot: np.ndarray,
         filepath: str | Path,
         batch_size: int = 32,
+        caries_recall_weight: float = 0.0,
     ) -> None:
         super().__init__()
         self.val_x = val_x
         self.val_y_idx = np.argmax(val_y_onehot, axis=1)
         self.filepath = Path(filepath)
         self.batch_size = batch_size
+        self.caries_recall_weight = float(caries_recall_weight)
         self.best_macro_f1: float = -1.0
+        self.best_score: float = -1.0
 
     def on_epoch_end(self, epoch: int, logs: dict[str, Any] | None = None) -> None:
         probs = self.model.predict(self.val_x, batch_size=self.batch_size, verbose=0)
         preds = np.argmax(probs, axis=1)
         macro_f1 = compute_macro_f1(self.val_y_idx, preds, num_classes=probs.shape[-1])
+        caries_idx = DENTAL_LABELS.index("caries")
+        n_caries = int(np.sum(self.val_y_idx == caries_idx))
+        caries_recall = (
+            float(np.sum((self.val_y_idx == caries_idx) & (preds == caries_idx))) / n_caries
+            if n_caries > 0
+            else 0.0
+        )
+        score = macro_f1 + self.caries_recall_weight * caries_recall
         if logs is not None:
-            logs["val_macro_f1"] = macro_f1
-        if macro_f1 > self.best_macro_f1:
+            logs["val_macro_f1"] = round(macro_f1, 4)
+            logs["val_caries_recall"] = round(caries_recall, 4)
+            logs["val_selection_score"] = round(score, 4)
+        if score > self.best_score:
+            self.best_score = score
             self.best_macro_f1 = macro_f1
             self.filepath.parent.mkdir(parents=True, exist_ok=True)
             self.model.save(self.filepath)
 
 
+def _inverted_residual_block(
+    x: tf.Tensor,
+    out_channels: int,
+    stride: int,
+    expansion: int,
+    block_id: int,
+) -> tf.Tensor:
+    """In-house MobileNetV2-style inverted residual block built with Keras Functional API."""
+    in_channels = int(x.shape[-1])
+    prefix = f"irb_{block_id}"
+
+    h = layers.Conv2D(
+        in_channels * expansion,
+        kernel_size=1,
+        padding="same",
+        use_bias=False,
+        name=f"{prefix}_expand_conv",
+    )(x)
+    h = layers.BatchNormalization(momentum=0.9, name=f"{prefix}_expand_bn")(h)
+    h = layers.ReLU(max_value=6.0, name=f"{prefix}_expand_relu")(h)
+
+    h = layers.DepthwiseConv2D(
+        kernel_size=3,
+        strides=stride,
+        padding="same",
+        use_bias=False,
+        name=f"{prefix}_dw_conv",
+    )(h)
+    h = layers.BatchNormalization(momentum=0.9, name=f"{prefix}_dw_bn")(h)
+    h = layers.ReLU(max_value=6.0, name=f"{prefix}_dw_relu")(h)
+
+    h = layers.Conv2D(
+        out_channels,
+        kernel_size=1,
+        padding="same",
+        use_bias=False,
+        name=f"{prefix}_proj_conv",
+    )(h)
+    h = layers.BatchNormalization(momentum=0.9, name=f"{prefix}_proj_bn")(h)
+
+    if stride == 1 and in_channels == out_channels:
+        return layers.Add(name=f"{prefix}_add")([x, h])
+    return h
+
+
 def build_dentify_model(
+    input_shape: tuple[int, int, int] = (224, 224, 3),
+    num_classes: int = 4,
+    dropout_rate: float = 0.3,
+) -> keras.Model:
+    """
+    Build the Dentify MobileNetV2-inspired Functional API model from scratch (weights=None)
+    with ChannelAttention and named final conv layer (`gradcam_conv`) for Grad-CAM.
+    """
+    inputs = keras.Input(shape=input_shape, name="dental_image")
+
+    # Stem
+    x = layers.Conv2D(
+        32,
+        kernel_size=3,
+        strides=2,
+        padding="same",
+        use_bias=False,
+        kernel_regularizer=keras.regularizers.l2(1e-4),
+        name="stem_conv",
+    )(inputs)
+    x = layers.BatchNormalization(momentum=0.9, name="stem_bn")(x)
+    x = layers.ReLU(max_value=6.0, name="stem_relu")(x)
+
+    # MobileNetV2-style inverted residual stages (built completely from scratch)
+    x = _inverted_residual_block(x, out_channels=32, stride=2, expansion=2, block_id=1)
+    x = _inverted_residual_block(x, out_channels=48, stride=2, expansion=3, block_id=2)
+    x = _inverted_residual_block(x, out_channels=48, stride=1, expansion=3, block_id=3)
+    x = _inverted_residual_block(x, out_channels=80, stride=2, expansion=3, block_id=4)
+    x = _inverted_residual_block(x, out_channels=80, stride=1, expansion=3, block_id=5)
+    x = ChannelAttention(reduction_ratio=8, name="mid_channel_attention")(x)
+    x = _inverted_residual_block(x, out_channels=128, stride=2, expansion=3, block_id=6)
+    x = _inverted_residual_block(x, out_channels=128, stride=1, expansion=3, block_id=7)
+
+    # Final convolutional projection named for Grad-CAM localization
+    x = layers.Conv2D(
+        192,
+        kernel_size=1,
+        padding="same",
+        use_bias=False,
+        kernel_regularizer=keras.regularizers.l2(1e-4),
+        name="gradcam_conv",
+    )(x)
+    x = layers.BatchNormalization(momentum=0.9, name="head_bn")(x)
+    x = layers.ReLU(max_value=6.0, name="head_relu")(x)
+    x = ChannelAttention(reduction_ratio=8, name="head_channel_attention")(x)
+
+    gap = layers.GlobalAveragePooling2D(name="global_avg_pool")(x)
+    gmp = layers.GlobalMaxPooling2D(name="global_max_pool")(x)
+    x = layers.Concatenate(name="dual_pool_concat")([gap, gmp])
+    x = layers.Dropout(dropout_rate, name="head_dropout")(x)
+    x = layers.Dense(
+        128,
+        activation="swish",
+        kernel_regularizer=keras.regularizers.l2(1e-4),
+        name="head_dense",
+    )(x)
+    x = layers.BatchNormalization(momentum=0.9, name="head_dense_bn")(x)
+    x = layers.Dropout(dropout_rate * 0.7, name="head_dense_dropout")(x)
+    outputs = layers.Dense(num_classes, activation="softmax", name="condition_probs")(x)
+
+    return keras.Model(inputs=inputs, outputs=outputs, name="dentify_scratch_attention")
+
+
+def build_dentify_mobilenetv2_model(
     input_shape: tuple[int, int, int] = (224, 224, 3),
     num_classes: int = 4,
     dropout_rate: float = 0.35,
@@ -194,6 +325,9 @@ def load_dentify_model(model_path: str | Path) -> keras.Model:
         custom_objects={
             "ChannelAttention": ChannelAttention,
             "ClassWeightedFocalLoss": ClassWeightedFocalLoss,
+            # Models saved before the DentHub -> Dentify rebrand use the legacy package prefix
+            "DentHub>ChannelAttention": ChannelAttention,
+            "DentHub>ClassWeightedFocalLoss": ClassWeightedFocalLoss,
         },
         compile=False,
     )

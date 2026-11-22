@@ -93,6 +93,7 @@ def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
     inference_service.model = _FakeModel([0.91, 0.04, 0.03, 0.02])  # type: ignore[assignment]
     inference_service.grad_model = None
     inference_service.model_version = "dentify-cnn-1.0.0"
+    inference_service.decision_weights = None
 
     app = create_app()
     yield TestClient(app)
@@ -417,18 +418,52 @@ def test_predict_accepts_mismatched_webp_extension_with_jpeg_bytes_and_octet_str
     assert body["quality"]["passed"] is True
 
 
-def test_custom_keras_model_roundtrip_reload(tmp_path: Path) -> None:
+def test_predict_applies_val_tuned_decision_weights(client: TestClient) -> None:
+    # Raw argmax is gingivitis; caries/calculus decision weights from model_meta flip it to calculus
+    inference_service.model = _FakeModel([0.05, 0.42, 0.48, 0.05])  # type: ignore[assignment]
+    img_bytes = _make_sharp_dental_image()
+    headers = {"X-Internal-Key": "test-key-predict"}
+
+    raw = client.post(
+        "/internal/predict",
+        headers=headers,
+        files={"image": ("tooth.png", io.BytesIO(img_bytes), "image/png")},
+    )
+    assert raw.status_code == 200
+    assert raw.json()["primary_condition"] == "gingivitis"
+
+    inference_service.decision_weights = np.array([1.0, 1.5, 1.0, 1.0])
+    weighted = client.post(
+        "/internal/predict",
+        headers=headers,
+        files={"image": ("tooth.png", io.BytesIO(img_bytes), "image/png")},
+    )
+    assert weighted.status_code == 200
+    body = weighted.json()
+    assert body["primary_condition"] == "calculus"
+    # Reported probabilities/confidence stay raw so urgency thresholds are not inflated by the weights
+    assert body["probabilities"]["calculus"] == pytest.approx(0.42, abs=1e-3)
+    assert body["confidence_score"] == pytest.approx(0.42, abs=1e-3)
+    assert body["is_low_confidence"] is True
+    inference_service.decision_weights = None
+
+
+@pytest.mark.parametrize("arch", ["scratch", "mobilenetv2"])
+def test_custom_keras_model_roundtrip_reload(tmp_path: Path, arch: str) -> None:
     from app.ml.custom_model import (
         ClassWeightedFocalLoss,
+        build_dentify_mobilenetv2_model,
         build_dentify_model,
         load_dentify_model,
     )
 
-    model = build_dentify_model(
-        input_shape=(224, 224, 3),
-        num_classes=4,
-        backbone_weights=None,
-    )
+    if arch == "mobilenetv2":
+        # weights=None keeps the test offline; the live model uses ImageNet weights
+        model = build_dentify_mobilenetv2_model(
+            input_shape=(224, 224, 3), num_classes=4, backbone_weights=None
+        )
+    else:
+        model = build_dentify_model(input_shape=(224, 224, 3), num_classes=4)
     model.compile(optimizer="adam", loss=ClassWeightedFocalLoss())
     out_file = tmp_path / "test_dentify.keras"
     model.save(out_file)

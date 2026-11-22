@@ -121,6 +121,8 @@ class DentalInferenceService:
         self.grad_model: keras.Model | None = None
         self.labels: tuple[DentalCondition, ...] = DENTAL_LABELS  # type: ignore[assignment]
         self.model_version: str = "dentify-cnn-1.0.0"
+        # Per-class decision weights tuned on the validation split (model_meta.json "decision_weights")
+        self.decision_weights: np.ndarray | None = None
 
     def load(self) -> bool:
         model_path: Path = self.settings.resolved_model_path()
@@ -133,6 +135,9 @@ class DentalInferenceService:
                     self.model_version = str(meta["model_version"])
                 if isinstance(meta.get("labels"), list) and len(meta["labels"]) == 4:
                     self.labels = tuple(meta["labels"])  # type: ignore[assignment]
+                weights = meta.get("decision_weights")
+                if isinstance(weights, list) and len(weights) == len(self.labels):
+                    self.decision_weights = np.asarray([float(w) for w in weights], dtype=np.float64)
             except Exception:
                 pass
 
@@ -324,6 +329,13 @@ class DentalInferenceService:
         total = float(np.sum(probs_vec))
         if total > 0:
             probs_vec = probs_vec / total
+        # Val-tuned decision weights only choose the class; reported probabilities and confidence
+        # stay the model's raw TTA probabilities so urgency/low-confidence thresholds keep their meaning.
+        decision_vec = (
+            probs_vec * self.decision_weights if self.decision_weights is not None else probs_vec
+        )
+        # Dental-plausibility signal for the offline OOD guard: the model's strongest raw belief
+        ood_score = float(np.max(probs_vec))
 
         healthy_idx = self.labels.index("healthy") if "healthy" in self.labels else -1
         healthy_prob = float(probs_vec[healthy_idx]) if healthy_idx >= 0 else 0.0
@@ -332,9 +344,9 @@ class DentalInferenceService:
         # pathology class (caries, calculus, or gingivitis) instead of rejecting or picking healthy.
         if healthy_idx >= 0 and healthy_prob < 0.45:
             pathology_indices = [i for i, lbl in enumerate(self.labels) if lbl != "healthy"]
-            top_idx = max(pathology_indices, key=lambda i: float(probs_vec[i]))
+            top_idx = max(pathology_indices, key=lambda i: float(decision_vec[i]))
         else:
-            top_idx = int(np.argmax(probs_vec))
+            top_idx = int(np.argmax(decision_vec))
 
         primary_condition: DentalCondition = self.labels[top_idx]
         confidence = round(float(probs_vec[top_idx]), 4)
@@ -373,8 +385,8 @@ class DentalInferenceService:
 
         # Offline / fallback OOD guard when Gemini cross-check is unavailable
         if verified is None and (
-            confidence < OFFLINE_OOD_MIN_CONFIDENCE
-            or (confidence < OFFLINE_OOD_HEURISTIC_CONFIDENCE and not is_plausible_dental)
+            ood_score < OFFLINE_OOD_MIN_CONFIDENCE
+            or (ood_score < OFFLINE_OOD_HEURISTIC_CONFIDENCE and not is_plausible_dental)
         ):
             raise ImageQualityError(
                 code="NOT_DENTAL_IMAGE",

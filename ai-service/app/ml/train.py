@@ -7,7 +7,8 @@ Features:
 - Stage 1: Frozen backbone warmup (head calibration).
 - Stage 2: Fine-tuning upper MobileNetV2 blocks (BatchNorm kept frozen for stability) with CosineDecay.
 - Custom tf.GradientTape loop with TensorBoard logs under ai-service/logs/.
-- Exports models/dentify_model.keras and models/model_meta.json.
+- Writes to models/candidates/ by default (never the live model); evaluate with app.ml.evaluate
+  and promote manually.
 """
 
 from __future__ import annotations
@@ -27,7 +28,7 @@ from app.ml.custom_model import (
     DENTAL_LABELS,
     ClassWeightedFocalLoss,
     MacroF1Checkpoint,
-    build_dentify_model,
+    build_dentify_mobilenetv2_model,
     compute_macro_f1,
     load_dentify_model,
 )
@@ -345,7 +346,7 @@ def train_model(
     )
     val_ds = tf.data.Dataset.from_tensor_slices((val_x, val_y)).batch(batch_size)
 
-    model = build_dentify_model(
+    model = build_dentify_mobilenetv2_model(
         input_shape=(INPUT_SIZE, INPUT_SIZE, 3),
         num_classes=len(DENTAL_LABELS),
         dropout_rate=0.35,
@@ -492,12 +493,12 @@ def main() -> None:
     parser.add_argument(
         "--model-out",
         type=Path,
-        default=Path(__file__).resolve().parents[2] / "models" / "dentify_model.keras",
+        default=Path(__file__).resolve().parents[2] / "models" / "candidates" / "mobilenetv2.keras",
     )
     parser.add_argument(
         "--meta-out",
         type=Path,
-        default=Path(__file__).resolve().parents[2] / "models" / "model_meta.json",
+        default=Path(__file__).resolve().parents[2] / "models" / "candidates" / "mobilenetv2_meta.json",
     )
     parser.add_argument(
         "--logs-dir",

@@ -1,6 +1,6 @@
 # Dentify (CC26-PSU285)
 
-**Dentify** (Capstone `CC26-PSU285`, Coding Camp 2026 × DBS Foundation) is a mobile-responsive web application for **early, non-diagnostic dental screening**. Users capture or upload a dental photo; a TensorFlow/Keras Computer Vision model (MobileNetV2 transfer learning with custom layers, loss, and callback) detects `caries`, `calculus`, `gingivitis`, or `healthy`; **Deni** (LangChain + Gemini) explains the screening result and builds an Indonesian self-care plan; and **Clinic Finder** (OpenStreetMap Overpass + Nominatim + Leaflet) locates nearby dentists, automatically on emergency triggers.
+**Dentify** (Capstone `CC26-PSU285`, Coding Camp 2026 × DBS Foundation) is a mobile-responsive web application for **early, non-diagnostic dental screening**. Users capture or upload a dental photo; a TensorFlow/Keras Computer Vision model (MobileNetV2 transfer learning via `keras.applications`, with custom layer, loss, and callback; advisor confirmation pending) detects `caries`, `calculus`, `gingivitis`, or `healthy`; **Deni** (LangChain + Gemini) explains the screening result and builds an Indonesian self-care plan; and **Clinic Finder** (OpenStreetMap Overpass + Nominatim + Leaflet) locates nearby dentists, automatically on emergency triggers.
 
 ## Monorepo Structure
 
@@ -41,8 +41,11 @@ cd data-science && python wrangle.py
 # 2. Extract engineered image-quality features, charts, and EDA notebook
 python features.py
 
-# 3. Fine-tune the MobileNetV2 transfer-learning model (2-stage tf.GradientTape loop) + TensorBoard logs
+# 3. Fine-tune the MobileNetV2 transfer-learning model (2-stage tf.GradientTape loop) -> models/candidates/
 cd ../ai-service && python -m app.ml.train
+#    From-scratch fallback (weights=None):  python -m app.ml.train_scratch --tag baseline_t106
+#    Evaluate any model (test set, with/without TTA, val-tuned decision weights):
+python -m app.ml.evaluate --model models/candidates/mobilenetv2.keras
 
 # 4. Run standalone CLI inference
 python -m app.ml.infer_cli <path-to-dental-photo.jpg>
@@ -53,16 +56,20 @@ cd ../data-science && python ab_test.py && python generate_report_pdf.py
 
 ## Model
 
-The screening model is **not trained from scratch**. It is **transfer learning on MobileNetV2** (ImageNet weights) built with the Keras Functional API, plus custom components: a `ChannelAttention` layer, dual (avg + max) pooling head, `ClassWeightedFocalLoss`, a `MacroF1Checkpoint` callback, and a two-stage (warm-up, then fine-tune) `tf.GradientTape` training loop. Input is CLAHE-normalised 224×224 RGB; inference averages 4 test-time-augmentation (TTA) views.
+The screening model is **MobileNetV2 transfer learning** loaded from `keras.applications` (ImageNet weights; not TF Hub, not AutoML), as named in the Project Plan. The model is built with the Keras Functional API and adds custom components: a `ChannelAttention` layer, a dual (avg + max) pooling head, `ClassWeightedFocalLoss`, a `MacroF1Checkpoint` callback, and a two-stage (warm-up, then fine-tune) `tf.GradientTape` training loop. Input is CLAHE-normalised 224×224 RGB, and inference averages 4 test-time-augmentation (TTA) views. Per-class decision weights (`decision_weights` in `model_meta.json`) are tuned on the validation split only. They choose the class; the reported probabilities and confidence remain the model's raw outputs.
 
-Current metrics (held-out test set, n = 255, source: `ai-service/models/model_meta.json`, model `dentify-mobilenetv2-2.0.0`):
+> **Advisor confirmation pending** on the use of ImageNet pretrained weights. A from-scratch fallback (`weights=None`, `app.ml.train_scratch`) is kept in `ai-service/models/candidates/baseline_t106.keras`. It is weaker (test macro-F1 0.71) and is not served.
 
-| | Accuracy | Macro-F1 |
-|---|---|---|
-| With 4-view TTA (served) | **80.8%** | **0.79** |
-| Single view | 76.5% | 0.74 |
+Current metrics (held-out test set, n = 255, model `dentify-mobilenetv2-2.1.0`, source: `ai-service/models/model_meta.json`):
 
-Per-class F1 (TTA): caries 0.70, calculus 0.81, gingivitis 0.82, healthy 0.84. Caries recall is 0.71, so treat caries results with extra caution. This is a screening aid, not a diagnosis.
+| | Accuracy | Macro-F1 | Caries recall |
+|---|---|---|---|
+| TTA + val-tuned decision weights (served) | **83.9%** | **0.84** | **0.89** |
+| TTA, plain argmax | 80.8% | 0.79 | 0.71 |
+| Single view + val-tuned weights | 80.8% | 0.81 | 0.93 |
+| Single view, plain argmax | 76.5% | 0.74 | 0.57 |
+
+Served per-class recall: caries 0.89, calculus 0.85, gingivitis 0.80, healthy 0.88. The decision weights reduced calculus→gingivitis confusion from 17 to 10 test images, but more gingivitis is now called caries or calculus. The test set has only 28 caries images, so these figures carry wide uncertainty. Full details, every training run, data licences and limitations: [`ai-service/training/MODEL_CARD.md`](ai-service/training/MODEL_CARD.md). This is a screening aid, not a diagnosis.
 
 ## Deployment Targets
 
