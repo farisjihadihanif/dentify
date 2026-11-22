@@ -423,3 +423,42 @@ def test_custom_keras_model_roundtrip_reload(tmp_path: Path, arch: str) -> None:
     preds = reloaded(sample, training=False).numpy()
     assert preds.shape == (1, 4)
     assert float(np.sum(preds[0])) == pytest.approx(1.0, abs=1e-3)
+
+
+def test_confidence_threshold_marks_unsure_result_without_detections(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    headers = {"X-Internal-Key": "test-key-predict"}
+    img_bytes = _make_sharp_dental_image()
+
+    def post(symptoms: str = "") -> dict:
+        resp = client.post(
+            "/internal/predict",
+            headers=headers,
+            files={"image": ("tooth.png", io.BytesIO(img_bytes), "image/png")},
+            data={"user_symptoms": symptoms},
+        )
+        assert resp.status_code == 200
+        return resp.json()
+
+    # Exactly at the default 0.60 threshold -> a normal result with a focus area
+    inference_service.model = _FakeModel([0.60, 0.20, 0.10, 0.10])  # type: ignore[assignment]
+    at = post()
+    assert at["is_low_confidence"] is False
+    assert len(at["detections"]) == 1
+
+    # Below the threshold -> unsure: no focus area, urgency from symptoms only (healthy is not "low")
+    inference_service.model = _FakeModel([0.15, 0.15, 0.12, 0.58])  # type: ignore[assignment]
+    unsure = post()
+    assert unsure["is_low_confidence"] is True
+    assert unsure["detections"] == []
+    assert unsure["urgency_level"] == "medium"
+    assert unsure["trigger_clinic_finder"] is False
+    assert post("gusi bengkak dan bernanah")["urgency_level"] == "emergency"
+
+    # CONFIDENCE_THRESHOLD comes from the environment
+    monkeypatch.setenv("CONFIDENCE_THRESHOLD", "0.50")
+    get_settings.cache_clear()
+    inference_service.settings = get_settings()
+    assert post()["is_low_confidence"] is False

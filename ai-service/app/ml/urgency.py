@@ -65,3 +65,13 @@ def compute_urgency(
 
     # gingivitis or calculus
     return "medium", False
+
+
+def compute_unsure_urgency(user_symptoms: str | None = None) -> tuple[UrgencyLevel, bool]:
+    """
+    Urgency for an unsure (below CONFIDENCE_THRESHOLD) result: the label is not trusted, so only
+    symptoms count. Severe symptoms -> emergency; otherwise medium (retake the photo and see a dentist).
+    """
+    if has_severe_symptoms(user_symptoms):
+        return "emergency", True
+    return "medium", False

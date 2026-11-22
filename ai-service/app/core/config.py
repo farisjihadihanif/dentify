@@ -24,7 +24,8 @@ class Settings(BaseSettings):
 
     model_path: str = "models/dentify_model.keras"
     model_meta_path: str = "models/model_meta.json"
-    min_confidence: float = 0.60
+    # Below this top-class probability the result is "unsure, retake the photo" (Decision #4)
+    confidence_threshold: float = 0.60
     emergency_confidence: float = 0.85
     llm_timeout_s: float = 35.0
 

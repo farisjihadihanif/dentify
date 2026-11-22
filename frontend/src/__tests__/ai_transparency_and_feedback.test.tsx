@@ -58,12 +58,26 @@ describe('AI transparency labels, honest confidence, fallback banner, and feedba
     expect(html).toContain('Tidak akurat');
   });
 
-  it('shows honest low-confidence warning when confidence_score < 0.75', () => {
+  it('shows a weak-indication note but no unsure warning between the threshold and 0.75', () => {
     const html = renderToStaticMarkup(<ScanResultCard report={makeScanReport(0.62)} />);
-    expect(html).toContain('Hasil analisis AI');
     expect(html).toContain('62%');
+    expect(html).toContain('Indikasi visual masih lemah');
+    expect(html).not.toContain(LOW_CONFIDENCE_WARNING_TEXT);
+  });
+
+  it('shows the unsure retake result instead of a condition when is_low_confidence is set', () => {
+    const report = {
+      ...makeScanReport(0.52),
+      is_low_confidence: true,
+      condition_label: 'Hasil Belum Meyakinkan – Silakan Ambil Ulang Foto',
+    };
+    const html = renderToStaticMarkup(<ScanResultCard report={report} onScanAgain={() => {}} />);
     expect(html).toContain(LOW_CONFIDENCE_WARNING_TEXT);
-    expect(html).toContain('Hasil kurang pasti, pertimbangkan mengambil ulang foto');
+    expect(html).toContain('Hasil Belum Meyakinkan');
+    expect(html).toContain('data-testid="low-confidence-cta-retake"');
+    expect(html).not.toContain('52%');
+    expect(html).not.toContain('Indikasi Karies');
+    expect(html).not.toContain('condition=caries');
   });
 
   it('shows "Dibuat oleh AI" and feedback controls on Deni messages', () => {

@@ -9,6 +9,7 @@ import {
   Download,
   MapPin,
   MessageCircleHeart,
+  RotateCcw,
   Sparkles,
   XCircle,
 } from 'lucide-react';
@@ -27,7 +28,7 @@ export interface ScanResultCardProps {
 }
 
 export const LOW_CONFIDENCE_WARNING_TEXT =
-  'Hasil kurang pasti, pertimbangkan mengambil ulang foto';
+  'Hasil belum meyakinkan, silakan ambil ulang foto';
 
 function describeConfidenceMeaning(score: number): string {
   if (score >= 0.85) {
@@ -36,22 +37,25 @@ function describeConfidenceMeaning(score: number): string {
   if (score >= 0.75) {
     return 'Indikasi visual cukup jelas pada foto ini; gunakan sebagai skrining awal.';
   }
-  return LOW_CONFIDENCE_WARNING_TEXT;
+  return 'Indikasi visual masih lemah; gunakan hanya sebagai gambaran awal dan periksakan ke dokter gigi.';
 }
 
 /**
  * Dental screening report card.
- * Displays "Hasil analisis AI", honest confidence interpretation (<0.75 warning),
- * structured Do's & Don'ts, MedicalDisclaimerBanner, AiFeedbackControl, and action links.
+ * Displays "Hasil analisis AI", honest confidence interpretation, structured Do's & Don'ts,
+ * MedicalDisclaimerBanner, AiFeedbackControl, and action links. When the API marks the scan
+ * `is_low_confidence` (below CONFIDENCE_THRESHOLD) it shows an "unsure, retake the photo" result
+ * and never the model's label.
  */
 export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCardProps) {
   const confidencePercent = Math.round(report.confidence_score * 100);
-  const isUncertain = Boolean(report.is_low_confidence) || report.confidence_score < 0.75;
+  const isUncertain = Boolean(report.is_low_confidence);
+  const conditionQuery = isUncertain
+    ? ''
+    : `condition=${encodeURIComponent(report.primary_condition)}`;
   const deniHref = report.id
-    ? `/chat?scan_id=${encodeURIComponent(report.id)}&condition=${encodeURIComponent(
-        report.primary_condition,
-      )}`
-    : `/chat?condition=${encodeURIComponent(report.primary_condition)}`;
+    ? `/chat?scan_id=${encodeURIComponent(report.id)}${conditionQuery ? `&${conditionQuery}` : ''}`
+    : `/chat${conditionQuery ? `?${conditionQuery}` : ''}`;
   const clinicsHref = report.id
     ? `/clinics?from_scan=${encodeURIComponent(report.id)}`
     : '/clinics';
@@ -84,11 +88,18 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
 
           <h2 className="text-screen-title text-text">{report.condition_label}</h2>
 
-          <p className="text-badge text-text-muted">
-            Tingkat keyakinan model AI:{' '}
-            <strong className="font-bold text-text">{confidencePercent}%</strong> —{' '}
-            <span>{describeConfidenceMeaning(report.confidence_score)}</span>
-          </p>
+          {isUncertain ? (
+            <p className="text-badge text-text-muted">
+              Keyakinan model AI terlalu rendah untuk menunjukkan indikasi kondisi tertentu, jadi
+              Dentify tidak menampilkan tebakan.
+            </p>
+          ) : (
+            <p className="text-badge text-text-muted">
+              Tingkat keyakinan model AI:{' '}
+              <strong className="font-bold text-text">{confidencePercent}%</strong> —{' '}
+              <span>{describeConfidenceMeaning(report.confidence_score)}</span>
+            </p>
+          )}
 
           {isUncertain && (
             <div
@@ -106,21 +117,31 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
                     {LOW_CONFIDENCE_WARNING_TEXT}
                   </p>
                   <p className="leading-relaxed text-amber-900/90">
-                    Pencahayaan yang kurang merata, sudut kamera, atau kondisi gigi yang saling
-                    tumpang tindih dapat membatasi kepastian analisis visual otomatis. Anda dapat
-                    melanjutkan konsultasi interaktif dengan Deni AI atau membaca panduan
-                    pengambilan foto.
+                    Pencahayaan yang kurang merata, sudut kamera, atau gigi yang tertutup bisa
+                    membuat foto sulit dianalisis. Ambil ulang foto mengikuti panduan memotret, dan
+                    periksakan ke dokter gigi bila ada keluhan.
                   </p>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 pl-6">
+                {onScanAgain && (
+                  <button
+                    type="button"
+                    onClick={onScanAgain}
+                    data-testid="low-confidence-cta-retake"
+                    className="inline-flex h-9 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg bg-brand px-3.5 text-xs font-bold text-surface shadow-sm transition-colors hover:bg-brand-dark"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span>Ambil Ulang Foto</span>
+                  </button>
+                )}
                 <Link
                   href={deniHref}
                   data-testid="low-confidence-cta-deni"
-                  className="inline-flex h-9 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg bg-brand px-3.5 text-xs font-bold text-surface shadow-sm transition-colors hover:bg-brand-dark"
+                  className="inline-flex h-9 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg border border-amber-700/30 bg-white px-3.5 text-xs font-bold text-amber-950 transition-colors hover:bg-amber-100"
                 >
                   <MessageCircleHeart className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  <span>Tanya Lebih Lanjut ke Deni →</span>
+                  <span>Tanya Deni →</span>
                 </Link>
                 <Link
                   href="/panduan#panduan-hasil-kurang-meyakinkan"
@@ -128,7 +149,7 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
                   className="inline-flex h-9 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg border border-amber-700/30 bg-white px-3.5 text-xs font-bold text-amber-950 transition-colors hover:bg-amber-100"
                 >
                   <BookOpen className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  <span>Baca Panduan Aplikasi →</span>
+                  <span>Panduan Memotret →</span>
                 </Link>
               </div>
             </div>
@@ -145,7 +166,7 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
             alt="Foto gigi yang dianalisis"
             className="mx-auto max-h-72 rounded-card object-contain"
           />
-          {report.detections.length > 0 && (
+          {!isUncertain && report.detections.length > 0 && (
             <p className="mt-2 text-center text-badge text-text-muted">
               Terdeteksi {report.detections.length} area fokus ({report.detections[0].label} •{' '}
               {Math.round(report.detections[0].confidence * 100)}%)

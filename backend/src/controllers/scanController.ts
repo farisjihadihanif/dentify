@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import {
   CONDITION_LABELS,
   DISCLAIMER_SCAN,
+  UNSURE_CONDITION_LABEL,
   type CaptureSource,
 } from '../constants/domain';
 import { ChatSession, ScanRecord, type IScanRecordDocument } from '../models';
@@ -68,17 +69,21 @@ export async function createScan(
       userSymptoms,
     });
 
-    // 4. Compose Indonesian care_recommendations from dental_knowledge + urgency
+    // 4. Compose Indonesian care_recommendations from dental_knowledge + urgency.
+    // Below CONFIDENCE_THRESHOLD (ai-service sets is_low_confidence) the result is "unsure, retake
+    // the photo" instead of a condition (Decision #4).
+    const isLowConfidence = Boolean(prediction.is_low_confidence);
     const careRecommendations = await composeCareRecommendations({
       condition: prediction.primary_condition,
       urgency: prediction.urgency_level,
-      confidence: prediction.confidence_score,
+      isLowConfidence,
     });
 
-    const conditionLabel = CONDITION_LABELS[prediction.primary_condition];
+    const conditionLabel = isLowConfidence
+      ? UNSURE_CONDITION_LABEL
+      : CONDITION_LABELS[prediction.primary_condition];
     const triggerClinicFinder =
       prediction.urgency_level === 'emergency' || Boolean(prediction.trigger_clinic_finder);
-    const isLowConfidence = Boolean(prediction.is_low_confidence);
 
     // 5. Save only if authenticated (quick mode returns saved: false)
     if (req.user) {

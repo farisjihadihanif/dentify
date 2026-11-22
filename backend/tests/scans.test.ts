@@ -2,7 +2,11 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vites
 import request from 'supertest';
 import { createApp } from '../src/app';
 import { ChatSession, DentalKnowledge, ScanRecord, User } from '../src/models';
-import { DISCLAIMER_SCAN } from '../src/constants/domain';
+import {
+  DISCLAIMER_SCAN,
+  UNSURE_CARE_RECOMMENDATIONS,
+  UNSURE_CONDITION_LABEL,
+} from '../src/constants/domain';
 import { runSeed } from '../src/scripts/seed';
 import * as aiClient from '../src/services/aiServiceClient';
 import { ApiError } from '../src/utils/ApiError';
@@ -74,13 +78,13 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
     expect(res.body.code).toBe('INVALID_IMAGE');
   });
 
-  it('accepts small valid image (24x24) and returns 201 with calculus label & is_low_confidence flag without 422 rejection', async () => {
+  it('accepts small valid image (24x24) and returns 201 with an unsure retake result below CONFIDENCE_THRESHOLD', async () => {
     vi.spyOn(aiClient, 'requestDentalPrediction').mockResolvedValueOnce({
       primary_condition: 'calculus',
       confidence_score: 0.52,
       is_low_confidence: true,
       probabilities: { caries: 0.18, calculus: 0.52, gingivitis: 0.22, healthy: 0.08 },
-      detections: [{ label: 'calculus', confidence: 0.52, bbox: [4, 4, 16, 16] }],
+      detections: [],
       urgency_level: 'medium',
       trigger_clinic_finder: false,
       quality: { blur_score: 42.0, mean_luminance: 108.0, passed: true },
@@ -96,8 +100,10 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.data.primary_condition).toBe('calculus');
-    expect(res.body.data.condition_label).toBe('Indikasi Karang Gigi & Plak (Kalkulus Dental)');
+    expect(res.body.data.condition_label).toBe(UNSURE_CONDITION_LABEL);
     expect(res.body.data.is_low_confidence).toBe(true);
+    expect(res.body.data.care_recommendations.summary).toBe(UNSURE_CARE_RECOMMENDATIONS.summary);
+    expect(res.body.data.care_recommendations.summary).not.toMatch(/karang gigi/i);
     expect(res.body.data.care_recommendations.dos.length).toBeGreaterThan(0);
   });
 

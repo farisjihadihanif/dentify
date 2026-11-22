@@ -57,7 +57,7 @@ The model can therefore partly learn *which dataset a photo looks like it came f
 - **Inference:** averages 4 TTA views (original, horizontal flip, 90% centre crop, flipped crop).
 - **Decision weights (new in 2.1.0):** per-class multipliers `[caries 2.5, calculus 2.5, gingivitis 1.75, healthy 1.0]`.
   - They were chosen by grid search on the **validation split only**. The objective was the best val macro-F1, subject to val caries recall ≥ 0.85, with a small penalty for moving away from 1.0. The test split was never used for training, checkpoint selection or tuning.
-  - The weights only choose the class. The reported probabilities and confidence stay the model's raw TTA outputs, so the urgency (`caries` ≥ 0.85 → emergency) and low-confidence (< 0.75) thresholds keep their meaning.
+  - The weights only choose the class. The reported probabilities and confidence stay the model's raw TTA outputs, so the urgency (`caries` ≥ 0.85 → emergency) and unsure (`CONFIDENCE_THRESHOLD`, default 0.60: below it the app shows "unsure, retake the photo" instead of a label) thresholds keep their meaning.
 - **Serving rules outside the model** (`app/ml/inference.py`): the model's label and confidence are final. Before the model runs, Gemini Vision may be asked one question, "is this a clear photo of teeth?", and only when the OpenCV colour heuristic is unsure; it can reject the photo (`NOT_DENTAL_IMAGE`) but never changes the label. When Gemini is unavailable or not asked, an offline out-of-distribution guard rejects photos with very low top probability. The metrics below cover the model plus the decision weights.
 
 ## 4. Metrics (held-out test set, n = 255)

@@ -1,16 +1,13 @@
 import {
   CONDITION_LABELS,
+  UNSURE_CARE_RECOMMENDATIONS,
   type DentalCondition,
   type UrgencyLevel,
 } from '../constants/domain';
 import { DENTAL_KNOWLEDGE_SEED } from '../constants/knowledgeSeed';
 import { DentalKnowledge, type ICareRecommendations } from '../models';
 
-function buildUrgencySummary(
-  condition: DentalCondition,
-  urgency: UrgencyLevel,
-  confidence: number,
-): string {
+function buildUrgencySummary(condition: DentalCondition, urgency: UrgencyLevel): string {
   const label = CONDITION_LABELS[condition];
   let base: string;
 
@@ -28,27 +25,30 @@ function buildUrgencySummary(
       'Gigi dan gusi Anda tampak sehat pada skrining visual awal ini. Pertahankan kebiasaan perawatan mandiri harian dan pemeriksaan rutin setiap 6 bulan.';
   }
 
-  // Low-confidence (< 0.75) scans add an actionable certainty note pointing to Deni AI & Panduan
-  if (confidence < 0.75) {
-    base +=
-      ' Catatan: tingkat keyakinan analisis visual masih terbatas karena pencahayaan, sudut kamera, atau kondisi yang saling tumpang tindih; Anda dapat berkonsultasi lebih lanjut dengan Deni AI atau membaca Panduan Aplikasi untuk tips pengambilan foto yang lebih jelas.';
-  }
-
   return base;
 }
 
 export async function composeCareRecommendations(params: {
   condition: DentalCondition;
   urgency: UrgencyLevel;
-  confidence: number;
+  isLowConfidence?: boolean;
 }): Promise<ICareRecommendations> {
+  if (params.isLowConfidence) {
+    const unsure = UNSURE_CARE_RECOMMENDATIONS;
+    const summary =
+      params.urgency === 'emergency'
+        ? `${unsure.summary} Karena keluhan Anda termasuk tanda darurat, segera kunjungi dokter gigi terdekat.`
+        : unsure.summary;
+    return { summary, dos: [...unsure.dos], donts: [...unsure.donts] };
+  }
+
   const doc = await DentalKnowledge.findOne({ condition_key: params.condition }).lean();
   const fallback =
     DENTAL_KNOWLEDGE_SEED.find((item) => item.condition_key === params.condition) ??
     DENTAL_KNOWLEDGE_SEED[DENTAL_KNOWLEDGE_SEED.length - 1];
 
   return {
-    summary: buildUrgencySummary(params.condition, params.urgency, params.confidence),
+    summary: buildUrgencySummary(params.condition, params.urgency),
     dos: doc?.dos?.length ? doc.dos : fallback.dos,
     donts: doc?.donts?.length ? doc.donts : fallback.donts,
   };

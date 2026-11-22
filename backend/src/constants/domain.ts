@@ -40,6 +40,25 @@ export const CONDITION_LABELS: Record<DentalCondition, string> = {
   healthy: 'Gigi dan Gusi Tampak Sehat',
 };
 
+// Shown instead of a condition when the model's confidence is below CONFIDENCE_THRESHOLD (Decision #4)
+export const UNSURE_CONDITION_LABEL = 'Hasil Belum Meyakinkan – Silakan Ambil Ulang Foto';
+
+export const UNSURE_CARE_RECOMMENDATIONS = {
+  summary:
+    'Foto ini belum cukup jelas bagi Dentify untuk menunjukkan indikasi kondisi tertentu, jadi kami tidak menampilkan tebakan. Silakan ambil ulang foto mengikuti panduan memotret. Bila ada keluhan, sebaiknya periksakan gigi ke dokter gigi dalam 1–2 minggu.',
+  dos: [
+    'Ambil ulang foto di tempat yang terang, sebaiknya dengan cahaya dari depan.',
+    'Sikat gigi terlebih dahulu dan buka mulut lebar agar gigi dan gusi terlihat jelas.',
+    'Pegang ponsel dengan stabil dan fokuskan kamera pada area yang dikeluhkan.',
+    'Periksakan diri ke dokter gigi bila ada nyeri, ngilu, atau gusi berdarah.',
+  ],
+  donts: [
+    'Jangan menganggap gigi pasti sehat hanya karena hasil belum dapat disimpulkan.',
+    'Jangan memakai foto yang buram, gelap, atau terlalu jauh.',
+    'Jangan menunda ke dokter gigi bila keluhan makin berat.',
+  ],
+};
+
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB
 export const MIN_IMAGE_DIMENSION = 32;
 export const MAX_CHAT_MESSAGES = 50;

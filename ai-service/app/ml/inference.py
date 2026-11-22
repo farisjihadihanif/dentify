@@ -17,12 +17,11 @@ from app.core.config import Settings, get_settings
 from app.core.state import runtime_state
 from app.ml.custom_model import DENTAL_LABELS, load_dentify_model
 from app.ml.preprocessing import ImageQualityError, decode_and_preprocess_bytes
-from app.ml.urgency import compute_urgency
+from app.ml.urgency import compute_unsure_urgency, compute_urgency
 from app.schemas import DentalCondition, DetectionItem, ImageQualityReport, PredictResponse
 
 logger = logging.getLogger(__name__)
 
-LOW_CONFIDENCE_THRESHOLD = 0.75
 OFFLINE_OOD_MIN_CONFIDENCE = 0.45
 OFFLINE_OOD_HEURISTIC_CONFIDENCE = 0.62
 VISION_GATE_TIMEOUT_S = 6.0
@@ -334,43 +333,47 @@ class DentalInferenceService:
                 message=NOT_DENTAL_ERROR_MESSAGE,
             )
 
-        is_low_confidence = confidence < LOW_CONFIDENCE_THRESHOLD
+        # Decision #4: below the threshold the label is not shown as a result; the backend turns it
+        # into an "unsure, please retake the photo" result and no focus area is reported.
+        is_low_confidence = confidence < self.settings.confidence_threshold
 
         probabilities: dict[DentalCondition, float] = {
             label: round(float(probs_vec[idx]), 4)
             for idx, label in enumerate(self.labels)
         }
 
-        urgency_level, trigger_clinic_finder = compute_urgency(
-            primary_condition=primary_condition,
-            confidence_score=confidence,
-            user_symptoms=user_symptoms,
-            emergency_confidence=self.settings.emergency_confidence,
-        )
-
-        bbox = (
-            None
-            if primary_condition == "healthy"
-            else self._compute_gradcam_bbox(
-                preprocessed.tensor,
-                top_idx,
-                preprocessed.original_width,
-                preprocessed.original_height,
+        if is_low_confidence:
+            urgency_level, trigger_clinic_finder = compute_unsure_urgency(user_symptoms)
+        else:
+            urgency_level, trigger_clinic_finder = compute_urgency(
+                primary_condition=primary_condition,
+                confidence_score=confidence,
+                user_symptoms=user_symptoms,
+                emergency_confidence=self.settings.emergency_confidence,
             )
-        )
+
+        detections: list[DetectionItem] = []
+        if not is_low_confidence:
+            bbox = (
+                None
+                if primary_condition == "healthy"
+                else self._compute_gradcam_bbox(
+                    preprocessed.tensor,
+                    top_idx,
+                    preprocessed.original_width,
+                    preprocessed.original_height,
+                )
+            )
+            detections.append(
+                DetectionItem(label=primary_condition, confidence=confidence, bbox=bbox)
+            )
 
         return PredictResponse(
             primary_condition=primary_condition,
             confidence_score=confidence,
             is_low_confidence=is_low_confidence,
             probabilities=probabilities,
-            detections=[
-                DetectionItem(
-                    label=primary_condition,
-                    confidence=confidence,
-                    bbox=bbox,
-                )
-            ],
+            detections=detections,
             urgency_level=urgency_level,
             trigger_clinic_finder=trigger_clinic_finder,
             quality=ImageQualityReport(

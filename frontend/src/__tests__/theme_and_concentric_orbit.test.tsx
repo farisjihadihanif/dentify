@@ -118,10 +118,10 @@ describe('Clinical Light Mode, 12-Instrument Orbit Hero, Profile Adjuster, Admin
           id: 'scan-calc-1',
           capture_source: 'upload',
           primary_condition: 'calculus',
-          condition_label: 'Indikasi Karang Gigi & Plak (Kalkulus Dental)',
+          condition_label: 'Hasil Belum Meyakinkan – Silakan Ambil Ulang Foto',
           confidence_score: 0.54,
           is_low_confidence: true,
-          detections: [{ label: 'calculus', confidence: 0.54, bbox: [12, 18, 90, 60] }],
+          detections: [],
           urgency_level: 'medium',
           trigger_clinic_finder: false,
           care_recommendations: {
@@ -135,11 +135,12 @@ describe('Clinical Light Mode, 12-Instrument Orbit Hero, Profile Adjuster, Admin
       />,
     );
 
-    expect(html).toContain('Indikasi Karang Gigi &amp; Plak (Kalkulus Dental)');
+    expect(html).toContain('Hasil Belum Meyakinkan');
+    expect(html).not.toContain('Kalkulus');
     expect(html).toContain('data-testid="low-confidence-warning"');
     expect(html).toContain(LOW_CONFIDENCE_WARNING_TEXT);
     expect(html).toContain('data-testid="low-confidence-cta-deni"');
-    expect(html).toContain('/chat?scan_id=scan-calc-1&amp;condition=calculus');
+    expect(html).toContain('href="/chat?scan_id=scan-calc-1"');
     expect(html).toContain('data-testid="low-confidence-cta-panduan"');
     expect(html).toContain('/panduan#panduan-hasil-kurang-meyakinkan');
   });
