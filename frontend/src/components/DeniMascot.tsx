@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -8,19 +8,82 @@ import { MessageCircle } from 'lucide-react';
 
 const HIDDEN_ROUTES = ['/chat', '/login', '/register'];
 
+const CONTENT_SELECTOR =
+  'a,button,input,select,textarea,img,video,canvas,iframe,svg,h1,h2,h3,h4,h5,h6,p,li,label,td,th,figure,[role="button"]';
+
+/** True when the element is something a reader looks at or taps, not an empty layout box. */
+export function isContentElement(el: Element): boolean {
+  if (el.matches(CONTENT_SELECTOR)) return true;
+  return Array.from(el.childNodes).some(
+    (node) => node.nodeType === 3 && Boolean(node.textContent?.trim()),
+  );
+}
+
+/**
+ * Samples a 3x3 grid over the mascot and reports whether any page content sits underneath it.
+ */
+export function mascotCollidesWithContent(widget: HTMLElement): boolean {
+  const rect = widget.getBoundingClientRect();
+  if (rect.width === 0 || rect.height === 0) return false;
+  for (let i = 1; i <= 3; i += 1) {
+    for (let j = 1; j <= 3; j += 1) {
+      const x = rect.left + (rect.width * i) / 4;
+      const y = rect.top + (rect.height * j) / 4;
+      const stack = document.elementsFromPoint(x, y);
+      if (stack.some((el) => !widget.contains(el) && isContentElement(el))) return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Floating Deni Mascot:
  * Energetic idle hop/bounce with springy hover jump + "Tanya Deni" tooltip positioned above Deni.
+ * Hidden below md (the bottom dock already has a Deni tab); from md up it fades out whenever
+ * page content scrolls underneath it, so it never covers text or controls.
  */
 export function DeniMascot() {
   const pathname = usePathname() || '/';
   const prefersReducedMotion = useReducedMotion();
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [collides, setCollides] = useState(false);
+  const widgetRef = useRef<HTMLDivElement | null>(null);
 
   const shouldHide = HIDDEN_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
   );
+
+  useEffect(() => {
+    if (shouldHide || typeof window === 'undefined') return undefined;
+    let frame = 0;
+    const check = () => {
+      frame = 0;
+      const widget = widgetRef.current;
+      if (widget) setCollides(mascotCollidesWithContent(widget));
+    };
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(check);
+    };
+    schedule();
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    const observer = new MutationObserver(schedule);
+    observer.observe(document.body, { childList: true, subtree: true });
+    // Images and fonts change layout without DOM mutations.
+    const resizeObserver =
+      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule);
+    resizeObserver?.observe(document.body);
+    window.addEventListener('load', schedule);
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener('load', schedule);
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+      observer.disconnect();
+    };
+  }, [shouldHide, pathname]);
 
   if (shouldHide) {
     return null;
@@ -28,8 +91,14 @@ export function DeniMascot() {
 
   return (
     <div
+      ref={widgetRef}
       data-testid="deni-mascot-widget"
-      className="fixed bottom-24 right-4 z-50 flex flex-col items-end sm:bottom-24 sm:right-6"
+      data-collides={collides ? 'true' : 'false'}
+      inert={collides}
+      className={[
+        'fixed bottom-24 right-6 z-50 hidden flex-col items-end transition-opacity duration-200 md:flex',
+        collides ? 'pointer-events-none opacity-0' : 'opacity-100',
+      ].join(' ')}
     >
       <Link
         href="/chat"

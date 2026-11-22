@@ -182,6 +182,10 @@ describe('AI transparency labels, honest confidence, fallback banner, and feedba
     expect(footerHtml).toContain('text-xs');
     expect(footerHtml).not.toContain('Disclaimer Medis');
     expect(mascotHtml).toContain('bottom-24');
+    // hidden on phones (the dock has a Deni tab) and starts visible from md until it collides
+    expect(mascotHtml).toContain('hidden');
+    expect(mascotHtml).toContain('md:flex');
+    expect(mascotHtml).toContain('data-collides="false"');
     expect(mascotHtml).toContain('bottom-full');
     expect(mascotHtml).toContain('mb-2');
     expect(mascotHtml).toContain('animate-deni-float');
