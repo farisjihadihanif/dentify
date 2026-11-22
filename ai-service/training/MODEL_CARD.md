@@ -58,7 +58,7 @@ The model can therefore partly learn *which dataset a photo looks like it came f
 - **Decision weights (new in 2.1.0):** per-class multipliers `[caries 2.5, calculus 2.5, gingivitis 1.75, healthy 1.0]`.
   - They were chosen by grid search on the **validation split only**. The objective was the best val macro-F1, subject to val caries recall ≥ 0.85, with a small penalty for moving away from 1.0. The test split was never used for training, checkpoint selection or tuning.
   - The weights only choose the class. The reported probabilities and confidence stay the model's raw TTA outputs, so the urgency (`caries` ≥ 0.85 → emergency) and low-confidence (< 0.75) thresholds keep their meaning.
-- **Serving rules outside the model** (`app/ml/inference.py`): if P(healthy) < 0.45, the top pathology class is chosen. Gemini Vision may cross-check and override the result when confidence < 0.88, when the prediction is `healthy`, or when the colour heuristic is unsure. An offline out-of-distribution guard handles the case where Gemini is unavailable. The metrics below cover the model plus the decision weights and the healthy rule, **without** Gemini.
+- **Serving rules outside the model** (`app/ml/inference.py`): the model's label and confidence are final. Before the model runs, Gemini Vision may be asked one question, "is this a clear photo of teeth?", and only when the OpenCV colour heuristic is unsure; it can reject the photo (`NOT_DENTAL_IMAGE`) but never changes the label. When Gemini is unavailable or not asked, an offline out-of-distribution guard rejects photos with very low top probability. The metrics below cover the model plus the decision weights.
 
 ## 4. Metrics (held-out test set, n = 255)
 
@@ -73,7 +73,7 @@ Evaluated with `python -m app.ml.evaluate`. Exact numbers are in `models/model_m
 | Single view + decision weights | 0.808 | 0.814 | 0.929 | 0.946 | 0.648 | 0.875 |
 | Single view, plain argmax | 0.765 | 0.744 | 0.571 | 0.662 | 0.819 | 0.917 |
 
-Per-class columns are recall. With the healthy < 0.45 rule added, the TTA plain-argmax variant scores 0.812 accuracy, 0.801 macro-F1 and 0.750 caries recall. The served variant is unchanged by that rule.
+Per-class columns are recall.
 
 Confusion matrices (rows = true, columns = predicted; order caries, calculus, gingivitis, healthy):
 
@@ -115,7 +115,7 @@ Notes:
 - **Image domain:** curated clinical/website photos, not the user's phone selfies. The quality gate only rejects blank frames, so blurry or dark photos still reach the model.
 - **Demographics:** age, skin tone, dental work (braces, fillings, crowns) and camera device were not recorded, so subgroup performance is unknown.
 - **Pretrained weights:** ImageNet weights may conflict with the capstone brief's no-pretrained default. Advisor confirmation is pending.
-- **Serving behaviour differs from the evaluated model:** Gemini cross-check and the out-of-distribution guard can change or reject results, and their effect has not been measured on the test set.
+- **Serving behaviour differs from the evaluated model:** the Gemini gate and the out-of-distribution guard can reject photos (never relabel them), and how often they reject real dental photos has not been measured on the test set.
 
 ## 6. Reproduce
 

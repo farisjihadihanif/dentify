@@ -158,78 +158,76 @@ def _make_green_foliage_image(width: int = 224, height: int = 224) -> bytes:
     return _encode_png(img)
 
 
-def test_predict_low_confidence_returns_200_with_flag_and_pathology_tiebreaker(
+def test_predict_low_confidence_returns_200_with_flag_and_model_argmax(
     client: TestClient,
 ) -> None:
-    # Split low-confidence dental prediction where healthy < 0.45 -> picks highest pathology with is_low_confidence
-    inference_service.model = _FakeModel([0.46, 0.18, 0.04, 0.32])  # type: ignore[assignment]
+    inference_service.model = _FakeModel([0.16, 0.52, 0.22, 0.10])  # type: ignore[assignment]
     img_bytes = _make_sharp_dental_image()
     resp = client.post(
         "/internal/predict",
         headers={"X-Internal-Key": "test-key-predict"},
-        files={"image": ("tooth.png", io.BytesIO(img_bytes), "image/png")},
+        files={"image": ("tartar.png", io.BytesIO(img_bytes), "image/png")},
     )
     assert resp.status_code == 200
     body = resp.json()
-    assert body["primary_condition"] == "caries"
+    assert body["primary_condition"] == "calculus"
+    assert body["confidence_score"] == pytest.approx(0.52, abs=1e-3)
+    assert body["urgency_level"] == "medium"
     assert body["is_low_confidence"] is True
     assert body["quality"]["passed"] is True
 
-    # Split low-confidence calculus prediction -> returns calculus 200 OK with is_low_confidence: True
-    inference_service.model = _FakeModel([0.16, 0.52, 0.22, 0.10])  # type: ignore[assignment]
-    resp_calc = client.post(
-        "/internal/predict",
-        headers={"X-Internal-Key": "test-key-predict"},
-        files={"image": ("tartar.png", io.BytesIO(img_bytes), "image/png")},
-    )
-    assert resp_calc.status_code == 200
-    calc_body = resp_calc.json()
-    assert calc_body["primary_condition"] == "calculus"
-    assert calc_body["urgency_level"] == "medium"
-    assert calc_body["is_low_confidence"] is True
+
+def _fail_if_called(*_args: object, **_kwargs: object) -> None:
+    raise AssertionError("Gemini vision gate must not run for this image")
 
 
-def test_predict_rejects_non_dental_via_gemini_gate_and_accepts_all_four_dental_classes(
+def test_gemini_gate_only_rejects_non_dental_and_never_changes_model_result(
     client: TestClient,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("GEMINI_API_KEY", "fake-gemini-key")
     get_settings.cache_clear()
     inference_service.settings = get_settings()
-
-    # Even when MobileNetV2 predicts healthy at 0.94, Gemini vision gate runs and rejects non-dental images
-    inference_service.model = _FakeModel([0.02, 0.02, 0.02, 0.94])  # type: ignore[assignment]
-    monkeypatch.setattr(
-        inference_service,
-        "_gemini_vision_cross_check",
-        lambda _raw, user_symptoms=None: ("not_dental", 0.95),
-    )
-
+    headers = {"X-Internal-Key": "test-key-predict"}
     plant_bytes = _make_green_foliage_image()
+
+    # Heuristic unsure + gate says not dental -> rejected before the model runs
+    inference_service.model = _FakeModel([0.02, 0.02, 0.02, 0.94])  # type: ignore[assignment]
+    monkeypatch.setattr(inference_service, "_gemini_vision_gate", lambda _raw: False)
     resp = client.post(
         "/internal/predict",
-        headers={"X-Internal-Key": "test-key-predict"},
+        headers=headers,
         files={"image": ("plant.png", io.BytesIO(plant_bytes), "image/png")},
     )
     assert resp.status_code == 422
     assert resp.json()["detail"]["code"] == "NOT_DENTAL_IMAGE"
 
-    # Real dental photos classified by Gemini into any of the 4 dental classes return 200 OK
-    tooth_bytes = _make_sharp_dental_image()
-    for cond in ("caries", "calculus", "gingivitis", "healthy"):
-        inference_service.model = _FakeModel([0.20, 0.20, 0.20, 0.40])  # type: ignore[assignment]
-        monkeypatch.setattr(
-            inference_service,
-            "_gemini_vision_cross_check",
-            lambda _raw, user_symptoms=None, c=cond: (c, 0.86),
-        )
-        ok_resp = client.post(
-            "/internal/predict",
-            headers={"X-Internal-Key": "test-key-predict"},
-            files={"image": (f"{cond}.png", io.BytesIO(tooth_bytes), "image/png")},
-        )
-        assert ok_resp.status_code == 200
-        assert ok_resp.json()["primary_condition"] == cond
+    # Heuristic unsure + gate confirms dental -> model's own argmax/confidence are returned unchanged,
+    # including healthy below 0.45 (no forced pathology rule) and the offline guard is skipped
+    inference_service.model = _FakeModel([0.25, 0.20, 0.15, 0.40])  # type: ignore[assignment]
+    monkeypatch.setattr(inference_service, "_gemini_vision_gate", lambda _raw: True)
+    ok = client.post(
+        "/internal/predict",
+        headers=headers,
+        files={"image": ("dark-mouth.png", io.BytesIO(plant_bytes), "image/png")},
+    )
+    assert ok.status_code == 200
+    body = ok.json()
+    assert body["primary_condition"] == "healthy"
+    assert body["confidence_score"] == pytest.approx(0.40, abs=1e-3)
+    assert body["probabilities"]["caries"] == pytest.approx(0.25, abs=1e-3)
+
+    # Plausible dental photo -> gate is not called at all; low-confidence healthy stays healthy
+    inference_service.model = _FakeModel([0.10, 0.03, 0.03, 0.84])  # type: ignore[assignment]
+    monkeypatch.setattr(inference_service, "_gemini_vision_gate", _fail_if_called)
+    plain = client.post(
+        "/internal/predict",
+        headers=headers,
+        files={"image": ("gigi.png", io.BytesIO(_make_sharp_dental_image()), "image/png")},
+    )
+    assert plain.status_code == 200
+    assert plain.json()["primary_condition"] == "healthy"
+    assert plain.json()["confidence_score"] == pytest.approx(0.84, abs=1e-3)
 
 
 def test_predict_offline_ood_guard_rejects_non_dental_foliage_and_extreme_low_confidence(
@@ -274,54 +272,6 @@ def test_predict_offline_ood_guard_rejects_non_dental_foliage_and_extreme_low_co
         )
         assert resp_ok.status_code == 200
         assert resp_ok.json()["primary_condition"] == expected
-
-
-def test_predict_vision_cross_check_corrects_ambiguous_healthy_caries_and_falls_back_silently(
-    client: TestClient,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("GEMINI_API_KEY", "fake-gemini-key")
-    get_settings.cache_clear()
-    inference_service.settings = get_settings()
-
-    # MobileNetV2 predicts healthy at 0.84 (< 0.90 threshold) -> triggers Gemini cross-check -> corrects to caries
-    inference_service.model = _FakeModel([0.10, 0.03, 0.03, 0.84])  # type: ignore[assignment]
-    monkeypatch.setattr(
-        inference_service,
-        "_gemini_vision_cross_check",
-        lambda _raw, user_symptoms=None: ("caries", 0.88),
-    )
-
-    img_bytes = _make_sharp_dental_image()
-    resp = client.post(
-        "/internal/predict",
-        headers={"X-Internal-Key": "test-key-predict"},
-        files={"image": ("gigi.jpg", io.BytesIO(img_bytes), "image/jpeg")},
-    )
-    assert resp.status_code == 200
-    body = resp.json()
-    assert body["primary_condition"] == "caries"
-    assert body["confidence_score"] == pytest.approx(0.88, abs=1e-3)
-    assert body["is_low_confidence"] is False
-    assert body["urgency_level"] == "emergency"
-
-    # When cross-check returns None (offline/timeout), silently falls back to MobileNetV2 with is_low_confidence < 0.75
-    inference_service.model = _FakeModel([0.20, 0.68, 0.08, 0.04])  # type: ignore[assignment]
-    monkeypatch.setattr(
-        inference_service,
-        "_gemini_vision_cross_check",
-        lambda _raw, user_symptoms=None: None,
-    )
-    resp_fb = client.post(
-        "/internal/predict",
-        headers={"X-Internal-Key": "test-key-predict"},
-        files={"image": ("occlusal.jpg", io.BytesIO(img_bytes), "image/jpeg")},
-    )
-    assert resp_fb.status_code == 200
-    fb_body = resp_fb.json()
-    assert fb_body["primary_condition"] == "calculus"
-    assert fb_body["confidence_score"] == pytest.approx(0.68, abs=1e-3)
-    assert fb_body["is_low_confidence"] is True
 
 
 def test_predict_returns_valid_schema_and_fast_latency(client: TestClient) -> None:

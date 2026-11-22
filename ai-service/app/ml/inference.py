@@ -23,29 +23,24 @@ from app.schemas import DentalCondition, DetectionItem, ImageQualityReport, Pred
 logger = logging.getLogger(__name__)
 
 LOW_CONFIDENCE_THRESHOLD = 0.75
-CROSS_CHECK_CONFIDENCE_THRESHOLD = 0.88
 OFFLINE_OOD_MIN_CONFIDENCE = 0.45
 OFFLINE_OOD_HEURISTIC_CONFIDENCE = 0.62
-CROSS_CHECK_TIMEOUT_S = 6.0
+VISION_GATE_TIMEOUT_S = 6.0
 
 NOT_DENTAL_ERROR_MESSAGE = (
     "Gambar yang diunggah bukan foto gigi atau rongga mulut. "
     "Silakan unggah foto area gigi dan gusi yang terlihat jelas."
 )
 
-VISION_CROSS_CHECK_PROMPT = (
-    "You are a dental visual screening classifier. First determine whether the attached image shows "
-    "human teeth, gums, or an intraoral view.\n"
-    '- Set "is_dental_image": false and "condition": "not_dental" ONLY if the image clearly does NOT '
-    "show human teeth, gums, or an intraoral view (for example: plants, foliage, food, everyday objects, "
-    "animals, landscapes/scenery, closed-mouth portraits, or text/UI screenshots).\n"
-    "- Any image showing teeth or gums — even if dark, blurry, extreme close-up, angled, or low-resolution — "
-    'MUST be treated as "is_dental_image": true and classified into ONE of these four canonical dental labels:\n'
-    '  * "caries": dark brown/black cavities, tooth decay holes, occlusal fissure decay, or front-tooth decay\n'
-    '  * "calculus": yellow, brown, or chalky hardened tartar/plaque deposits along the gumline or between teeth\n'
-    '  * "gingivitis": visibly red, swollen, puffy, or bleeding gums without primary dark cavities or heavy tartar\n'
-    '  * "healthy": clean white/ivory teeth and firm pink gums with no visible decay, tartar, or gum inflammation\n\n'
-    'Respond ONLY with compact JSON: {"is_dental_image": true|false, "condition": "caries|calculus|gingivitis|healthy|not_dental", "confidence": 0.0-1.0}'
+VISION_GATE_PROMPT = (
+    "You are an image gate for a dental screening app. Answer one question only: is the attached "
+    "image a clear photo of human teeth, gums, or an intraoral view?\n"
+    '- "is_dental_image": true if teeth or gums are visible, even when the photo is dark, angled, '
+    "a close-up, or low-resolution.\n"
+    '- "is_dental_image": false if it clearly shows something else (plants, food, objects, animals, '
+    "scenery, closed-mouth portraits, text or UI screenshots).\n"
+    "Do not judge any dental condition.\n"
+    'Respond ONLY with compact JSON: {"is_dental_image": true|false}'
 )
 
 
@@ -225,20 +220,13 @@ class DentalInferenceService:
             rgb.save(buf, format="JPEG", quality=85)
             return buf.getvalue()
 
-    def _invoke_gemini_vision_classifier(
-        self,
-        raw_bytes: bytes,
-        user_symptoms: str | None = None,
-    ) -> tuple[str, float] | None:
+    def _invoke_gemini_vision_gate(self, raw_bytes: bytes) -> bool | None:
         api_key = (self.settings.gemini_api_key or "").strip()
         if not api_key:
             return None
 
         jpeg_bytes = self._prepare_compact_jpeg(raw_bytes)
         model_name = (self.settings.gemini_model or "gemini-2.5-flash").strip()
-        prompt = VISION_CROSS_CHECK_PROMPT
-        if user_symptoms and user_symptoms.strip():
-            prompt += f"\nPatient note (context only): {user_symptoms.strip()[:200]}"
 
         from google import genai
         from google.genai import types
@@ -248,7 +236,7 @@ class DentalInferenceService:
             model=model_name,
             contents=[
                 types.Part.from_bytes(data=jpeg_bytes, mime_type="image/jpeg"),
-                prompt,
+                VISION_GATE_PROMPT,
             ],
             config=types.GenerateContentConfig(
                 temperature=0.0,
@@ -260,40 +248,25 @@ class DentalInferenceService:
             return None
 
         cleaned = raw_text.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-        parsed = json.loads(cleaned)
-        is_dental = parsed.get("is_dental_image")
-        cond = str(parsed.get("condition", "")).strip().lower()
-        conf_raw = float(parsed.get("confidence", 0.78))
-        conf_clamped = round(max(0.55, min(0.95, conf_raw)), 4)
+        is_dental = json.loads(cleaned).get("is_dental_image")
+        if isinstance(is_dental, str):
+            is_dental = {"true": True, "false": False}.get(is_dental.strip().lower())
+        return is_dental if isinstance(is_dental, bool) else None
 
-        if (
-            is_dental is False
-            or (isinstance(is_dental, str) and is_dental.strip().lower() == "false")
-            or cond == "not_dental"
-        ):
-            return "not_dental", conf_clamped
-
-        if cond not in self.labels:
-            return None
-        return cond, conf_clamped
-
-    def _gemini_vision_cross_check(
-        self,
-        raw_bytes: bytes,
-        user_symptoms: str | None = None,
-    ) -> tuple[str, float] | None:
+    def _gemini_vision_gate(self, raw_bytes: bytes) -> bool | None:
         """
-        Bounded 6.0s Gemini vision gate & cross-check across the 4 dental classes plus non-dental rejection.
-        Silently returns None on timeout, offline environment, or any error so fallback logic stays intact.
+        Bounded Gemini Vision gate: "is this a clear photo of teeth?". It never sees or changes the
+        model's label or confidence. Returns None on timeout, missing key, or any error so the
+        offline guard takes over.
         """
         if not (self.settings.gemini_api_key or "").strip():
             return None
         pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-        future = pool.submit(self._invoke_gemini_vision_classifier, raw_bytes, user_symptoms)
+        future = pool.submit(self._invoke_gemini_vision_gate, raw_bytes)
         try:
-            return future.result(timeout=CROSS_CHECK_TIMEOUT_S)
+            return future.result(timeout=VISION_GATE_TIMEOUT_S)
         except Exception as exc:
-            logger.debug("Gemini vision cross-check skipped/fallback: %s", exc)
+            logger.debug("Gemini vision gate skipped/fallback: %s", exc)
             return None
         finally:
             pool.shutdown(wait=False, cancel_futures=True)
@@ -309,6 +282,18 @@ class DentalInferenceService:
 
         preprocessed = decode_and_preprocess_bytes(raw_bytes)
         assert self.model is not None
+
+        # Gemini Vision gate (Decision #3): only when the OpenCV colour heuristic is unsure, and only
+        # to answer "is this a dental photo?". It runs before the model and cannot change its result.
+        is_plausible_dental = _is_plausible_dental_image(preprocessed.rgb)
+        gate_confirmed_dental: bool | None = None
+        if not is_plausible_dental:
+            gate_confirmed_dental = self._gemini_vision_gate(raw_bytes)
+            if gate_confirmed_dental is False:
+                raise ImageQualityError(
+                    code="NOT_DENTAL_IMAGE",
+                    message=NOT_DENTAL_ERROR_MESSAGE,
+                )
 
         # Batched 4-view TTA (original, horizontal flip, 90% center crop, cropped flip)
         base = preprocessed.tensor[0]
@@ -334,57 +319,13 @@ class DentalInferenceService:
         decision_vec = (
             probs_vec * self.decision_weights if self.decision_weights is not None else probs_vec
         )
-        # Dental-plausibility signal for the offline OOD guard: the model's strongest raw belief
-        ood_score = float(np.max(probs_vec))
-
-        healthy_idx = self.labels.index("healthy") if "healthy" in self.labels else -1
-        healthy_prob = float(probs_vec[healthy_idx]) if healthy_idx >= 0 else 0.0
-
-        # When healthy probability < 0.45 (pathology is visibly present), pick the highest
-        # pathology class (caries, calculus, or gingivitis) instead of rejecting or picking healthy.
-        if healthy_idx >= 0 and healthy_prob < 0.45:
-            pathology_indices = [i for i, lbl in enumerate(self.labels) if lbl != "healthy"]
-            top_idx = max(pathology_indices, key=lambda i: float(decision_vec[i]))
-        else:
-            top_idx = int(np.argmax(decision_vec))
-
+        top_idx = int(np.argmax(decision_vec))
         primary_condition: DentalCondition = self.labels[top_idx]
         confidence = round(float(probs_vec[top_idx]), 4)
 
-        is_plausible_dental = _is_plausible_dental_image(preprocessed.rgb)
-
-        # Primary Gemini vision gate & cross-check
-        needs_cross_check = (
-            confidence < CROSS_CHECK_CONFIDENCE_THRESHOLD
-            or primary_condition == "healthy"
-            or not is_plausible_dental
-        )
-        verified: tuple[str, float] | None = None
-        if needs_cross_check and (self.settings.gemini_api_key or "").strip():
-            verified = self._gemini_vision_cross_check(raw_bytes, user_symptoms=user_symptoms)
-            if verified is not None:
-                v_cond, v_conf = verified
-                if v_cond == "not_dental":
-                    raise ImageQualityError(
-                        code="NOT_DENTAL_IMAGE",
-                        message=NOT_DENTAL_ERROR_MESSAGE,
-                    )
-                v_idx = self.labels.index(v_cond)  # type: ignore[arg-type]
-                remaining_mass = max(0.0, 1.0 - v_conf)
-                other_indices = [i for i in range(len(self.labels)) if i != v_idx]
-                other_sum = float(sum(probs_vec[i] for i in other_indices))
-                new_probs = np.zeros_like(probs_vec)
-                new_probs[v_idx] = v_conf
-                for i in other_indices:
-                    share = (probs_vec[i] / other_sum) if other_sum > 1e-8 else (1.0 / len(other_indices))
-                    new_probs[i] = remaining_mass * share
-                probs_vec = new_probs
-                top_idx = v_idx
-                primary_condition = v_cond  # type: ignore[assignment]
-                confidence = round(v_conf, 4)
-
-        # Offline / fallback OOD guard when Gemini cross-check is unavailable
-        if verified is None and (
+        # Offline out-of-distribution guard, used unless Gemini already confirmed a dental photo
+        ood_score = float(np.max(probs_vec))
+        if gate_confirmed_dental is not True and (
             ood_score < OFFLINE_OOD_MIN_CONFIDENCE
             or (ood_score < OFFLINE_OOD_HEURISTIC_CONFIDENCE and not is_plausible_dental)
         ):
