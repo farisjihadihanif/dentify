@@ -30,6 +30,45 @@ export const NAV_DOCK_ITEMS: readonly NavDockItem[] = [
   { label: "Profil", href: "/profile", icon: UserCircle2 },
 ];
 
+/** Scroll distance (px) that must accumulate before the dock changes state, so small jitters are ignored. */
+export const DOCK_SCROLL_DELTA_PX = 8;
+/** The dock always shows within this distance (px) of the page top. */
+export const DOCK_TOP_ZONE_PX = 64;
+/** The dock always shows within this distance (px) of the page end (the footer area). */
+export const DOCK_END_ZONE_PX = 96;
+
+export interface DockScrollState {
+  scrollY: number;
+  lastScrollY: number;
+  viewportHeight: number;
+  documentHeight: number;
+  wasHidden: boolean;
+}
+
+/**
+ * Decides whether the bottom dock is hidden after a scroll event: hide on scroll down,
+ * show on scroll up and near the page top or end. Returns the new hidden state and the
+ * scroll position to compare the next event against.
+ */
+export function nextDockVisibility({
+  scrollY,
+  lastScrollY,
+  viewportHeight,
+  documentHeight,
+  wasHidden,
+}: DockScrollState): { hidden: boolean; anchorY: number } {
+  const nearTop = scrollY <= DOCK_TOP_ZONE_PX;
+  const nearEnd = scrollY + viewportHeight >= documentHeight - DOCK_END_ZONE_PX;
+  if (nearTop || nearEnd) {
+    return { hidden: false, anchorY: scrollY };
+  }
+  const delta = scrollY - lastScrollY;
+  if (Math.abs(delta) < DOCK_SCROLL_DELTA_PX) {
+    return { hidden: wasHidden, anchorY: lastScrollY };
+  }
+  return { hidden: delta > 0, anchorY: scrollY };
+}
+
 export function FloatingNavbar({
   pathnameOverride,
   initialAvatar,
@@ -38,6 +77,42 @@ export function FloatingNavbar({
   const pathname = pathnameOverride ?? hookPathname;
   const isHomeActive = pathname === "/";
   const isChatRoute = pathname === "/chat" || pathname.startsWith("/chat/");
+
+  const [isDockHidden, setIsDockHidden] = useState(false);
+
+  useEffect(() => {
+    setIsDockHidden(false);
+    if (isChatRoute) return;
+
+    let lastScrollY = window.scrollY;
+    let hidden = false;
+    let frame = 0;
+
+    const update = () => {
+      frame = 0;
+      const next = nextDockVisibility({
+        scrollY: window.scrollY,
+        lastScrollY,
+        viewportHeight: window.innerHeight,
+        documentHeight: document.documentElement.scrollHeight,
+        wasHidden: hidden,
+      });
+      lastScrollY = next.anchorY;
+      if (next.hidden !== hidden) {
+        hidden = next.hidden;
+        setIsDockHidden(hidden);
+      }
+    };
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [isChatRoute, pathname]);
 
   const [userAvatar, setUserAvatar] = useState<string>(
     initialAvatar?.trim() || "",
@@ -140,7 +215,14 @@ export function FloatingNavbar({
         aria-label="Navigasi Utama Dentify"
         data-testid="floating-navbar"
         data-orientation="horizontal-bottom"
-        className="pointer-events-auto flex max-w-full items-center gap-1 rounded-pill border border-border/90 bg-surface/95 px-1.5 py-1 shadow-md backdrop-blur-md sm:gap-1.5 sm:px-3 sm:py-1.5"
+        data-hidden={isDockHidden ? "true" : "false"}
+        className={[
+          "flex max-w-full items-center gap-1 rounded-pill border border-border/90 bg-surface/95 px-1.5 py-1 shadow-md backdrop-blur-md transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none sm:gap-1.5 sm:px-3 sm:py-1.5",
+          // Hidden while scrolling down, but still in the tab order: keyboard focus brings it back.
+          isDockHidden
+            ? "pointer-events-none translate-y-[calc(100%+1.5rem)] opacity-0 focus-within:pointer-events-auto focus-within:translate-y-0 focus-within:opacity-100"
+            : "pointer-events-auto",
+        ].join(" ")}
       >
         <Link
           href="/"
