@@ -5,7 +5,7 @@ import {
   listChatSessions,
   postChatMessage,
 } from '../controllers/chatController';
-import { authMiddleware, optionalAuthMiddleware } from '../middlewares/authMiddleware';
+import { authMiddleware } from '../middlewares/authMiddleware';
 import { scanAndChatRateLimiter } from '../middlewares/rateLimiter';
 import { validateBody, validateQuery } from '../middlewares/validate';
 import { chatMessageSchema } from '../validators/chatValidator';
@@ -15,7 +15,7 @@ const router = Router();
 
 router.post(
   '/',
-  optionalAuthMiddleware,
+  authMiddleware,
   scanAndChatRateLimiter,
   validateBody(chatMessageSchema),
   postChatMessage,

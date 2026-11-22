@@ -97,6 +97,9 @@ describe('AI transparency labels, honest confidence, fallback banner, and feedba
     expect(html).toContain('Membantu');
     expect(html).toContain('Tidak akurat');
     expect(html).not.toContain(FALLBACK_DENI_BANNER_TEXT);
+    // No token in tests -> guest: login notice shown because the API requires auth for /chat
+    expect(html).toContain('data-testid="deni-login-required"');
+    expect(html).toContain('/login?redirect=/chat');
   });
 
   it('labels static LLM fallback replies plainly with the required Indonesian notice', () => {

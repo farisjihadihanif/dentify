@@ -39,8 +39,8 @@ describe('Chat endpoints: Deni sessions, ownership, rollover at 50, guest & fall
     return { token: res.body.data.token as string, userId: res.body.data.user.id as string };
   }
 
-  it('supports guest mode without persistence and appends canonical DISCLAIMER_CHAT', async () => {
-    vi.spyOn(aiClient, 'requestAgentChat').mockResolvedValueOnce({
+  it('requires login for POST /chat (401) and appends canonical DISCLAIMER_CHAT for users', async () => {
+    const aiSpy = vi.spyOn(aiClient, 'requestAgentChat').mockResolvedValueOnce({
       reply: 'Sikat gigi dua kali sehari dengan pasta gigi berfluoride.',
       urgency_level: 'low',
       trigger_clinic_finder: false,
@@ -48,16 +48,25 @@ describe('Chat endpoints: Deni sessions, ownership, rollover at 50, guest & fall
     });
 
     const app = createApp();
-    const res = await request(app).post('/api/v1/chat').send({
+    const guestRes = await request(app).post('/api/v1/chat').send({
       message: 'Bagaimana cara merawat gigi sehari-hari?',
       history: [{ role: 'user', content: 'Halo Deni' }],
     });
+    expect(guestRes.status).toBe(401);
+    expect(guestRes.body.code).toBe('UNAUTHENTICATED');
+    expect(aiSpy).not.toHaveBeenCalled();
+    expect(await ChatSession.countDocuments()).toBe(0);
+
+    const { token } = await registerUser('chatuser@example.com');
+    const res = await request(app)
+      .post('/api/v1/chat')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ message: 'Bagaimana cara merawat gigi sehari-hari?' });
 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
-    expect(res.body.data.session_id).toBeNull();
+    expect(res.body.data.session_id).toBeTruthy();
     expect(res.body.data.medical_disclaimer).toBe(DISCLAIMER_CHAT);
-    expect(await ChatSession.countDocuments()).toBe(0);
   });
 
   it('enforces severe-symptom backstop even if AI says low, and returns 200 static fallback on AI failure', async () => {
@@ -71,9 +80,13 @@ describe('Chat endpoints: Deni sessions, ownership, rollover at 50, guest & fall
       .mockRejectedValueOnce(new ApiError(502, 'AI_SERVICE_UNAVAILABLE', 'Down'));
 
     const app = createApp();
+    const { token } = await registerUser('severe@example.com');
 
     // Severe keyword forces emergency + trigger_clinic_finder even when LLM returns low/false
-    const severeRes = await request(app).post('/api/v1/chat').send({
+    const severeRes = await request(app)
+      .post('/api/v1/chat')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
       message: 'Gigi saya berdenyut dan pipi bengkak sejak semalam.',
     });
     expect(severeRes.status).toBe(200);
@@ -82,7 +95,10 @@ describe('Chat endpoints: Deni sessions, ownership, rollover at 50, guest & fall
     expect(severeRes.body.data.medical_disclaimer).toBe(DISCLAIMER_CHAT);
 
     // AI failure still returns 200 with static Indonesian fallback + disclaimer
-    const fallbackRes = await request(app).post('/api/v1/chat').send({
+    const fallbackRes = await request(app)
+      .post('/api/v1/chat')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
       message: 'Ada bengkak dan demam di gusi saya.',
     });
     expect(fallbackRes.status).toBe(200);

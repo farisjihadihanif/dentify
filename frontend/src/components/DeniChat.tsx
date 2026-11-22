@@ -369,6 +369,11 @@ export function DeniChat({
       textToSend.trim() ||
       (currentPhoto ? 'Tolong periksa kondisi gigi pada foto yang saya lampirkan.' : '');
     if (!trimmed || isSending || cooldownLeft > 0) return;
+    // The API requires an account for Deni (Decision #9); guests see the login notice instead.
+    if (!isAuthenticated()) {
+      setLoggedIn(false);
+      return;
+    }
 
     lastAttemptRef.current = { text: trimmed, photo: currentPhoto };
     setUiError(null);
@@ -428,6 +433,10 @@ export function DeniChat({
         error && typeof error === 'object' && 'uiError' in error
           ? (error as { uiError: MappedUiError }).uiError
           : mapApiError(error);
+      if (mapped.code === 'UNAUTHENTICATED') {
+        setLoggedIn(false);
+        return;
+      }
       setUiError(mapped);
 
       if (mapped.action === 'cooldown_submit_10s') {
@@ -922,6 +931,33 @@ export function DeniChat({
               </label>
             </div>
 
+            {!loggedIn && (
+              <div
+                role="note"
+                data-testid="deni-login-required"
+                className="mb-2 flex flex-col gap-2 rounded-card border border-border bg-brand-soft p-3 text-xs text-text sm:flex-row sm:items-center sm:justify-between"
+              >
+                <p className="leading-relaxed">
+                  Masuk dulu untuk bertanya ke Deni. Percakapan bisa berisi informasi kesehatan
+                  gigi Anda, jadi kami simpan hanya di akun Anda sendiri.
+                </p>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Link
+                    href="/login?redirect=/chat"
+                    className="inline-flex h-9 min-h-touch items-center justify-center whitespace-nowrap rounded-lg bg-brand px-3.5 text-xs font-bold text-surface hover:bg-brand-dark"
+                  >
+                    Masuk
+                  </Link>
+                  <Link
+                    href="/register?redirect=/chat"
+                    className="inline-flex h-9 min-h-touch items-center justify-center whitespace-nowrap rounded-lg border border-border bg-surface px-3.5 text-xs font-bold text-brand-dark hover:bg-brand-soft"
+                  >
+                    Daftar
+                  </Link>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleFormSubmit} className="flex items-center gap-2">
               <label htmlFor="deni-message-input" className="sr-only">
                 Tulis pertanyaan konsultasi gigi Anda untuk Deni
@@ -943,7 +979,9 @@ export function DeniChat({
                 size="md"
                 loading={isSending}
                 loadingText="Mengirim..."
-                disabled={(!inputMessage.trim() && !attachedPhoto) || cooldownLeft > 0}
+                disabled={
+                  !loggedIn || (!inputMessage.trim() && !attachedPhoto) || cooldownLeft > 0
+                }
               >
                 <Send className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span>{cooldownLeft > 0 ? `Tunggu ${cooldownLeft}d` : 'Kirim'}</span>

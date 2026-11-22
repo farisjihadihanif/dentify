@@ -10,6 +10,7 @@ import {
 import { runSeed } from '../src/scripts/seed';
 import * as aiClient from '../src/services/aiServiceClient';
 import { ApiError } from '../src/utils/ApiError';
+import { signAccessToken } from '../src/utils/jwt';
 import { setupTestDb, clearTestDb, teardownTestDb } from './helpers/testDb';
 
 function makePngBuffer(width: number, height: number): Buffer {
@@ -38,10 +39,19 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
     await teardownTestDb();
   });
 
+  let scannerToken = '';
+
   beforeEach(async () => {
     await clearTestDb();
     await runSeed();
     vi.restoreAllMocks();
+    // Created directly (not via /auth/register) so the shared auth rate limiter is not exhausted
+    const scanner = await User.create({
+      full_name: 'Scanner User',
+      email: 'scanner@example.com',
+      password_hash: 'not-used-in-these-tests',
+    });
+    scannerToken = signAccessToken({ sub: scanner.id, email: scanner.email, role: 'user' });
   });
 
   async function registerUser(email: string) {
@@ -59,6 +69,7 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
     const oversized = Buffer.alloc(5 * 1024 * 1024 + 1024, 0x41);
     const res = await request(app)
       .post('/api/v1/scans')
+      .set('Authorization', `Bearer ${scannerToken}`)
       .field('capture_source', 'upload')
       .attach('image', oversized, { filename: 'huge.jpg', contentType: 'image/jpeg' });
 
@@ -71,6 +82,7 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
     const fakeImg = Buffer.from('not really an image file at all', 'utf-8');
     const res = await request(app)
       .post('/api/v1/scans')
+      .set('Authorization', `Bearer ${scannerToken}`)
       .field('capture_source', 'upload')
       .attach('image', fakeImg, { filename: 'fake.jpg', contentType: 'image/jpeg' });
 
@@ -95,6 +107,7 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
     const smallPng = makePngBuffer(24, 24);
     const res = await request(app)
       .post('/api/v1/scans')
+      .set('Authorization', `Bearer ${scannerToken}`)
       .field('capture_source', 'upload')
       .attach('image', smallPng, { filename: 'small-calculus.png', contentType: 'image/png' });
 
@@ -123,6 +136,7 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
     const pngBytes = makePngBuffer(180, 180);
     const res = await request(app)
       .post('/api/v1/scans')
+      .set('Authorization', `Bearer ${scannerToken}`)
       .field('capture_source', 'upload')
       .attach('image', pngBytes, {
         filename: 'gigi karies.webp',
@@ -142,6 +156,7 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
     const validPng = makePngBuffer(320, 320);
     const res = await request(app)
       .post('/api/v1/scans')
+      .set('Authorization', `Bearer ${scannerToken}`)
       .field('capture_source', 'camera')
       .attach('image', validPng, { filename: 'blurry.png', contentType: 'image/png' });
 
@@ -166,6 +181,7 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
     const validPng = makePngBuffer(320, 320);
     const res = await request(app)
       .post('/api/v1/scans')
+      .set('Authorization', `Bearer ${scannerToken}`)
       .field('capture_source', 'upload')
       .attach('image', validPng, { filename: 'plant.png', contentType: 'image/png' });
 
@@ -177,7 +193,7 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
     );
   });
 
-  it('supports guest quick mode (saved: false) and authenticated emergency scan (saved: true, trigger_clinic_finder: true)', async () => {
+  it('requires login for POST /scans (401) and saves authenticated emergency scans (saved: true, trigger_clinic_finder: true)', async () => {
     vi.spyOn(aiClient, 'requestDentalPrediction').mockResolvedValue({
       primary_condition: 'caries',
       confidence_score: 0.91,
@@ -192,18 +208,15 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
     const app = createApp();
     const validPng = makePngBuffer(512, 512);
 
-    // Guest quick mode
+    // Guests are rejected before the photo is read or sent to the AI service (Decision #9)
     const guestRes = await request(app)
       .post('/api/v1/scans')
       .field('capture_source', 'upload')
       .attach('image', validPng, { filename: 'tooth.png', contentType: 'image/png' });
 
-    expect(guestRes.status).toBe(201);
-    expect(guestRes.body.success).toBe(true);
-    expect(guestRes.body.data.saved).toBe(false);
-    expect(guestRes.body.data.trigger_clinic_finder).toBe(true);
-    expect(guestRes.body.data.medical_disclaimer).toBe(DISCLAIMER_SCAN);
-    expect(guestRes.body.data.care_recommendations.dos.length).toBeGreaterThan(0);
+    expect(guestRes.status).toBe(401);
+    expect(guestRes.body.code).toBe('UNAUTHENTICATED');
+    expect(aiClient.requestDentalPrediction).not.toHaveBeenCalled();
     expect(await ScanRecord.countDocuments()).toBe(0);
 
     // Authenticated mode
@@ -217,6 +230,8 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
 
     expect(authRes.status).toBe(201);
     expect(authRes.body.data.saved).toBe(true);
+    expect(authRes.body.data.medical_disclaimer).toBe(DISCLAIMER_SCAN);
+    expect(authRes.body.data.care_recommendations.dos.length).toBeGreaterThan(0);
     expect(authRes.body.data.id).toBeTruthy();
     expect(authRes.body.data.urgency_level).toBe('emergency');
     expect(authRes.body.data.trigger_clinic_finder).toBe(true);
