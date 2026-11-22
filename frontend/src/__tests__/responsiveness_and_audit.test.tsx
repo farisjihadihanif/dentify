@@ -63,6 +63,23 @@ describe('Audit Responsivitas Mobile (360px–1920px), Pembersihan Kamera, & Pen
     expect(footerHtml).toContain('Promo, Berita &amp; Artikel');
   });
 
+  it('AppFooter menampilkan ikon Instagram, LinkedIn, dan GitHub dengan aria-label yang membuka tab baru', () => {
+    const footerHtml = renderToStaticMarkup(<AppFooter />);
+    for (const href of [
+      'https://instagram.com/farisjihadihanif',
+      'https://www.linkedin.com/in/faris-jihadi-hanif-lubis-62337a286/',
+      'https://github.com/farisjihadihanif',
+    ]) {
+      const start = footerHtml.indexOf(`<a href="${href}"`);
+      expect(start, href).toBeGreaterThanOrEqual(0);
+      const tag = footerHtml.slice(start, footerHtml.indexOf('>', start) + 1);
+      expect(tag).toContain('target="_blank"');
+      expect(tag).toContain('rel="noopener noreferrer"');
+      expect(tag).toMatch(/aria-label="(Instagram|LinkedIn|GitHub) [^"]+ \(tab baru\)"/);
+      expect(tag).toContain('min-h-touch min-w-touch');
+    }
+  });
+
   it('seluruh tombol interaktif utama memenuhi standar touch target minimal 44x44px (min-h-touch / min-w-touch)', () => {
     const buttonHtml = renderToStaticMarkup(<AppButton>Tombol Uji</AppButton>);
     expect(buttonHtml).toContain('min-h-touch');

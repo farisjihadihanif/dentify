@@ -3,7 +3,25 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Newspaper } from "lucide-react";
+import { BookOpen, Github, Instagram, Linkedin, Newspaper } from "lucide-react";
+
+export const FOOTER_SOCIAL_LINKS = [
+  {
+    label: "Instagram Faris Jihadi Hanif Lubis",
+    href: "https://instagram.com/farisjihadihanif",
+    icon: Instagram,
+  },
+  {
+    label: "LinkedIn Faris Jihadi Hanif Lubis",
+    href: "https://www.linkedin.com/in/faris-jihadi-hanif-lubis-62337a286/",
+    icon: Linkedin,
+  },
+  {
+    label: "GitHub Faris Jihadi Hanif Lubis",
+    href: "https://github.com/farisjihadihanif",
+    icon: Github,
+  },
+] as const;
 
 export interface AppFooterProps {
   pathnameOverride?: string;
@@ -65,15 +83,41 @@ export function AppFooter({ pathnameOverride }: AppFooterProps = {}) {
               </strong>
             </a>
           </p>
-          <p
-            className={
-              isPanduan
-                ? "font-semibold text-slate-200"
-                : "font-semibold text-text-muted"
-            }
-          >
-            Dentify &copy; 2026
-          </p>
+          <div className="flex items-center gap-2">
+            <p
+              className={
+                isPanduan
+                  ? "font-semibold text-slate-200"
+                  : "font-semibold text-text-muted"
+              }
+            >
+              Dentify &copy; 2026
+            </p>
+            <ul
+              data-testid="footer-social-links"
+              className="flex items-center"
+            >
+              {FOOTER_SOCIAL_LINKS.map(({ label, href, icon: Icon }) => (
+                <li key={href}>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${label} (tab baru)`}
+                    title={label}
+                    className={[
+                      "inline-flex min-h-touch min-w-touch items-center justify-center rounded-pill transition-colors",
+                      isPanduan
+                        ? "text-slate-200 hover:bg-white/10 hover:text-white"
+                        : "text-text-muted hover:bg-brand-soft hover:text-brand-dark",
+                    ].join(" ")}
+                  >
+                    <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         <div
