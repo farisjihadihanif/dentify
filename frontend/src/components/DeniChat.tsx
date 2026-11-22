@@ -856,13 +856,13 @@ export function DeniChat({
                   <p className="max-w-[180px] truncate text-xs font-bold text-text">
                     {attachedPhoto.name}
                   </p>
-                  <p className="text-[11px] text-brand-dark">Foto siap diperiksa Deni</p>
+                  <p className="text-xs text-brand-dark">Foto siap diperiksa Deni</p>
                 </div>
                 <button
                   type="button"
                   onClick={clearAttachedPhoto}
                   aria-label="Hapus lampiran foto"
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-pill border border-border bg-surface text-text opacity-100 shadow-sm hover:bg-bg"
+                  className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-pill border border-border bg-surface text-text opacity-100 shadow-sm hover:bg-bg"
                 >
                   <X className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
@@ -899,7 +899,7 @@ export function DeniChat({
                     data-testid="deni-template-popover"
                     className="absolute bottom-full left-0 z-30 mb-2 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-surface p-1.5 shadow-xl"
                   >
-                    <p className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-text-muted">
+                    <p className="px-3 py-1.5 text-xs font-bold text-text-muted">
                       Pilih Contoh Pertanyaan
                     </p>
                     <div className="space-y-1">
@@ -909,7 +909,7 @@ export function DeniChat({
                           type="button"
                           role="menuitem"
                           onClick={() => void handleSendQuestion(question)}
-                          className="block w-full rounded-xl px-3 py-2 text-left text-xs font-medium text-text transition-colors hover:bg-brand-soft hover:text-brand-dark"
+                          className="block min-h-touch w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-text transition-colors hover:bg-brand-soft hover:text-brand-dark"
                         >
                           {question}
                         </button>
@@ -941,7 +941,7 @@ export function DeniChat({
               <div
                 role="note"
                 data-testid="deni-login-required"
-                className="mb-2 flex flex-col gap-2 rounded-card border border-border bg-brand-soft p-3 text-xs text-text sm:flex-row sm:items-center sm:justify-between"
+                className="mb-2 flex flex-col gap-2 rounded-card border border-border bg-brand-soft p-3 text-sm text-text sm:flex-row sm:items-center sm:justify-between"
               >
                 <p className="leading-relaxed">
                   Masuk dulu untuk bertanya ke Deni. Percakapan bisa berisi informasi kesehatan
@@ -977,7 +977,7 @@ export function DeniChat({
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder="Ketik pertanyaan atau lampirkan foto gigi untuk Deni..."
-                className="h-11 min-h-touch flex-1 rounded-xl border border-border bg-bg px-4 text-base text-text placeholder:text-text-muted focus:border-brand focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand-ring"
+                className="h-11 min-h-touch min-w-0 flex-1 rounded-xl border border-border bg-bg px-4 text-base text-text placeholder:text-text-muted focus:border-brand focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand-ring"
               />
               <AppButton
                 type="submit"
@@ -990,7 +990,9 @@ export function DeniChat({
                 }
               >
                 <Send className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <span>{cooldownLeft > 0 ? `Tunggu ${cooldownLeft}d` : 'Kirim'}</span>
+                <span className={cooldownLeft > 0 ? '' : 'sr-only sm:not-sr-only'}>
+                  {cooldownLeft > 0 ? `Tunggu ${cooldownLeft}d` : 'Kirim'}
+                </span>
               </AppButton>
             </form>
           </div>
