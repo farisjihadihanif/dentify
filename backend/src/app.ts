@@ -1,7 +1,7 @@
 import express, { type Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { getEnv } from './config/env';
+import { getEnv, isOriginAllowed } from './config/env';
 import apiRoutes from './routes/index';
 import { getHealth } from './controllers/healthController';
 import { notFound } from './middlewares/notFound';
@@ -26,7 +26,7 @@ export function createApp(): Express {
           callback(null, true);
           return;
         }
-        if (env.corsOrigins.includes(origin)) {
+        if (isOriginAllowed(origin, env.corsOrigins)) {
           callback(null, true);
           return;
         }
@@ -39,6 +39,11 @@ export function createApp(): Express {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+  // Liveness probe for the hosting platform (Render healthCheckPath). It touches neither MongoDB
+  // nor the ai-service, so frequent probes never keep the free ai-service instance awake.
+  app.get('/healthz', (_req, res) => {
+    res.status(200).json({ status: 'alive' });
+  });
   app.get('/health', getHealth);
   app.use('/api/v1', apiRoutes);
 

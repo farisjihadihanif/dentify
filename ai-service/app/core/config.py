@@ -9,6 +9,8 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        # Blank lines copied from .env.example (e.g. `CONFIDENCE_THRESHOLD=`) keep the defaults
+        env_ignore_empty=True,
     )
 
     app_env: str = "development"
@@ -33,6 +35,18 @@ class Settings(BaseSettings):
     confidence_threshold: float = 0.60
     emergency_confidence: float = 0.85
     llm_timeout_s: float = 35.0
+
+    def production_problems(self) -> list[str]:
+        """Unsafe settings that must stop a production start (APP_ENV=production)."""
+        if self.app_env.strip().lower() != "production":
+            return []
+        problems: list[str] = []
+        key = self.ai_service_api_key.strip()
+        if not key or key == "dev-internal-key":
+            problems.append("AI_SERVICE_API_KEY must be set to a random value, not the dev key")
+        elif len(key) < 24:
+            problems.append("AI_SERVICE_API_KEY must be at least 24 characters")
+        return problems
 
     def normalized_model_runtime(self) -> str:
         runtime = self.model_runtime.strip().lower()

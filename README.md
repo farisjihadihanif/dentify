@@ -73,22 +73,24 @@ Served per-class recall: caries 0.89, calculus 0.85, gingivitis 0.80, healthy 0.
 
 ## Deployment Targets
 
-- **Frontend:** Vercel (`frontend/vercel.json`) — set `NEXT_PUBLIC_API_URL`
-- **Backend & AI Service:** Railway (`backend/railway.json`, `ai-service/railway.json`) or Render (`render.yaml`) — set all `sync: false` secrets and `CORS_ORIGINS`
+Step-by-step guide (Indonesian): [`DEPLOY.md`](DEPLOY.md). Everything fits free tiers:
+
+- **Frontend:** Vercel (root directory `frontend/`, `frontend/vercel.json`). The build fails unless `NEXT_PUBLIC_API_URL` is an `https://…/api/v1` URL.
+- **Backend & AI Service:** Render Free plan via the `render.yaml` Blueprint (health checks on `/healthz`). Both services sleep after 15 minutes idle; the frontend shows a "Server sedang dinyalakan" state with retry while they wake (~1 minute). `backend/railway.json` and `ai-service/railway.json` remain as an alternative.
+- **Database:** MongoDB Atlas (M0 free cluster).
 - **Analytics Dashboard:** Streamlit Cloud (`data-science/app.py`) — *Public URL: pending Streamlit Cloud account deployment (T-402)*
+
+Every URL, CORS origin and key comes from environment variables. The `.env.example` files in `frontend/`, `backend/` and `ai-service/` list each variable by name only.
 
 ### Getting the model file onto the server
 
-`ai-service/models/dentify_model.keras` is **not in git** (`*.keras` is ignored), so a Render/Railway build from the repo has no model. Only `model_meta.json` (labels, version, metrics) is tracked. Pick one:
+Production serves `ai-service/models/dentify_model.tflite` through LiteRT, without TensorFlow (peak ~185 MB RAM, fits Render's 512 MB instance; parity with the `.keras` model is in the model card). Model binaries are **not in git** (`*.keras` and `*.tflite` are ignored), so the build downloads the file:
 
-1. **Download at build time (recommended).** Upload the `.keras` file to private object storage or a GitHub Release asset, store its URL as a secret env var `MODEL_URL`, and extend the ai-service build command:
-   ```bash
-   pip install -r requirements.txt && curl -fL "$MODEL_URL" -o models/dentify_model.keras
-   ```
-   (Render: `buildCommand` in `render.yaml`; Railway: `build.buildCommand` in `ai-service/railway.json`.)
-2. **Persistent disk.** Attach a Render Disk / Railway Volume, copy the file there once, and set `MODEL_PATH` to its absolute path.
+1. `cd ai-service && python -m training.convert_tflite` (needs `requirements-train.txt`) creates the `.tflite` and checks it against the `.keras` model on the validation split.
+2. Upload `dentify_model.tflite` as a GitHub Release asset (or any direct-download URL) and set `MODEL_URL` (plus optionally `MODEL_SHA256`) on the ai-service.
+3. The build command runs `python scripts/fetch_model.py`, which downloads the file and fails the build if it is missing or the checksum does not match.
 
-Re-train locally with `python -m app.ml.train` and re-upload both the `.keras` file and the updated `model_meta.json`. Without the model, `/healthz` still responds but predictions fail and the backend returns `AI_SERVICE_UNAVAILABLE`. TensorBoard logs (`ai-service/logs/`) are local-only and not needed for deployment.
+`MODEL_RUNTIME=keras` serves the `.keras` file with full TensorFlow instead (needs `requirements-train.txt` and more than 1 GB RAM). After re-training, convert again and re-upload both the model file and the updated `model_meta.json`.
 
 ## Capstone Compliance
 

@@ -67,3 +67,26 @@ def test_pydantic_predict_and_chat_schemas() -> None:
         suggested_questions=["Apa penyebab gigi sensitif?"],
     )
     assert chat_res.urgency_level == "medium"
+
+
+def test_production_refuses_dev_internal_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.core.config import Settings
+
+    assert Settings(app_env="development").production_problems() == []
+    assert Settings(app_env="production", ai_service_api_key="dev-internal-key").production_problems()
+    assert Settings(app_env="production", ai_service_api_key="short").production_problems()
+    assert Settings(app_env="production", ai_service_api_key="k" * 40).production_problems() == []
+
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("AI_SERVICE_API_KEY", "dev-internal-key")
+    get_settings.cache_clear()
+    with pytest.raises(RuntimeError, match="AI_SERVICE_API_KEY"):
+        with TestClient(create_app()):
+            pass
+    get_settings.cache_clear()
+
+
+def test_healthz_is_public_and_light(client: TestClient) -> None:
+    resp = client.get("/healthz")
+    assert resp.status_code == 200
+    assert resp.json() == {"status": "alive"}

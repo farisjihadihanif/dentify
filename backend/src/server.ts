@@ -1,9 +1,10 @@
 import { createApp } from './app';
 import { connectDb } from './config/db';
-import { getEnv } from './config/env';
+import { assertProductionEnv, getEnv } from './config/env';
 import { logger } from './utils/logger';
 
 async function start(): Promise<void> {
+  assertProductionEnv();
   const env = getEnv();
   await connectDb(env.mongodbUri);
   const app = createApp();

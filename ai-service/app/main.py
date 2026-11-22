@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 import numpy as np
 from fastapi import FastAPI
 
+from app.core.config import get_settings
 from app.ml.inference import inference_service
 from app.routers.agent import router as agent_router
 from app.routers.health import router as health_router
@@ -16,6 +17,10 @@ from app.routers.predict import router as predict_router
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    problems = get_settings().production_problems()
+    if problems:
+        # Fail the deploy instead of serving with a guessable internal key
+        raise RuntimeError("Invalid production configuration: " + "; ".join(problems))
     try:
         if inference_service.load() and inference_service.model is not None:
             # Warm up once at startup with the 4-view TTA batch shape used by /internal/predict, so
