@@ -238,6 +238,41 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
     expect(await ScanRecord.countDocuments()).toBe(1);
   });
 
+  it('never stores the uploaded photo: no bytes in ScanRecord, no GridFS or upload collections', async () => {
+    vi.spyOn(aiClient, 'requestDentalPrediction').mockResolvedValue({
+      primary_condition: 'calculus',
+      confidence_score: 0.82,
+      probabilities: { caries: 0.05, calculus: 0.82, gingivitis: 0.1, healthy: 0.03 },
+      detections: [{ label: 'calculus', confidence: 0.82, bbox: [10, 20, 30, 40] }],
+      urgency_level: 'medium',
+      trigger_clinic_finder: false,
+      quality: { blur_score: 150, mean_luminance: 120, passed: true },
+      model_version: 'dentify-cnn-1.0.0',
+    });
+
+    const app = createApp();
+    const res = await request(app)
+      .post('/api/v1/scans')
+      .set('Authorization', `Bearer ${scannerToken}`)
+      .field('capture_source', 'upload')
+      .attach('image', makePngBuffer(512, 512), { filename: 'tooth.png', contentType: 'image/png' });
+    expect(res.status).toBe(201);
+
+    // Photos are health data: processed in memory and discarded (business rule #5). Render's disk
+    // is wiped on restart, so nothing may depend on a stored copy either.
+    const stored = await ScanRecord.collection.findOne({});
+    expect(stored).not.toBeNull();
+    const binaryFields = Object.entries(stored ?? {}).filter(
+      ([, value]) => Buffer.isBuffer(value) || value?._bsontype === 'Binary',
+    );
+    expect(binaryFields).toEqual([]);
+    expect(Object.keys(stored?.image_metadata ?? {}).sort()).toEqual(['height', 'mime_type', 'width']);
+    expect(JSON.stringify(stored)).not.toMatch(/data:image|base64/i);
+
+    const collections = (await ScanRecord.db.db!.listCollections().toArray()).map((c) => c.name);
+    expect(collections.filter((name) => /^fs\.|upload|image/i.test(name))).toEqual([]);
+  });
+
   it('enforces ownership isolation (404 for other user), pagination, and delete cascade to ChatSession', async () => {
     vi.spyOn(aiClient, 'requestDentalPrediction').mockResolvedValue({
       primary_condition: 'healthy',
