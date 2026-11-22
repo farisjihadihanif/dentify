@@ -181,7 +181,7 @@ export default function PanduanPage() {
               transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
               className="mx-auto max-w-3xl text-center"
             >
-              <span className="inline-block rounded-pill border border-white/20 bg-white/10 px-4 py-1 text-xs font-bold uppercase tracking-wider text-zinc-200">
+              <span className="inline-block max-w-full rounded-pill border border-white/20 bg-white/10 px-4 py-1 text-xs font-bold text-zinc-200 [text-wrap:balance]">
                 Pusat Bantuan • Panduan Pengguna Dentify
               </span>
               <h1
@@ -248,7 +248,7 @@ export default function PanduanPage() {
                         </span>
                         <span
                           className={[
-                            "inline-flex items-center gap-1.5 rounded-pill px-4 py-1.5 text-xs font-bold",
+                            "inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill px-4 py-1.5 text-xs font-bold",
                             theme.badge,
                           ].join(" ")}
                         >
@@ -284,14 +284,14 @@ export default function PanduanPage() {
                           <div className="flex flex-wrap items-center gap-2.5 pt-2">
                             <Link
                               href="/chat"
-                              className="inline-flex h-9 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg bg-brand px-4 text-xs font-bold text-[var(--color-on-brand)] shadow-sm transition-colors hover:bg-[var(--color-brand-hover)]"
+                              className="inline-flex h-11 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg bg-brand px-4 text-sm font-bold text-[var(--color-on-brand)] shadow-sm transition-colors hover:bg-[var(--color-brand-hover)]"
                             >
                               <MessageCircleHeart className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                               <span>Konsultasi Foto ke Deni AI →</span>
                             </Link>
                             <Link
                               href="/scan"
-                              className="inline-flex h-9 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg border border-white/25 bg-white/15 px-4 text-xs font-bold text-white transition-colors hover:bg-white/25"
+                              className="inline-flex h-11 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg border border-white/25 bg-white/15 px-4 text-sm font-bold text-white transition-colors hover:bg-white/25"
                             >
                               <Camera className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                               <span>Ambil Ulang Foto di AI Scan</span>
@@ -338,7 +338,7 @@ export default function PanduanPage() {
               transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
               className="mx-auto max-w-3xl text-center"
             >
-              <span className="inline-block rounded-pill border border-white/20 bg-white/10 px-4 py-1 text-xs font-bold uppercase tracking-wider text-zinc-200">
+              <span className="inline-block max-w-full rounded-pill border border-white/20 bg-white/10 px-4 py-1 text-xs font-bold text-zinc-200 [text-wrap:balance]">
                 Edukasi Kesehatan Gigi • Dunia Dentist
               </span>
               <h2
@@ -401,7 +401,7 @@ export default function PanduanPage() {
                         </span>
                         <span
                           className={[
-                            "inline-flex items-center gap-1.5 rounded-pill px-4 py-1.5 text-xs font-bold",
+                            "inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill px-4 py-1.5 text-xs font-bold",
                             theme.badge,
                           ].join(" ")}
                         >
