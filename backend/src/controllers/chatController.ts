@@ -124,17 +124,20 @@ export async function postChatMessage(
         }))
       : input.history.slice(-10);
 
+    // An unsure scan (below CONFIDENCE_THRESHOLD) has no trusted label, so Deni gets no condition
+    // context from it (Decision #4).
+    const trustedScan = linkedScan && !linkedScan.is_low_confidence ? linkedScan : null;
     const knowledgeContext = await loadKnowledgeContext(
-      linkedScan?.primary_condition,
+      trustedScan?.primary_condition,
       effectiveMessage,
     );
 
-    const scanContext = linkedScan
+    const scanContext = trustedScan
       ? {
-          primary_condition: linkedScan.primary_condition,
-          confidence_score: linkedScan.confidence_score,
-          urgency_level: linkedScan.urgency_level,
-          user_symptoms: linkedScan.user_symptoms ?? '',
+          primary_condition: trustedScan.primary_condition,
+          confidence_score: trustedScan.confidence_score,
+          urgency_level: trustedScan.urgency_level,
+          user_symptoms: trustedScan.user_symptoms ?? '',
         }
       : undefined;
 

@@ -205,4 +205,40 @@ describe('Chat endpoints: Deni sessions, ownership, rollover at 50, guest & fall
       }),
     );
   });
+
+  it('does not pass the hidden label of an unsure (low-confidence) scan to Deni', async () => {
+    const aiSpy = vi.spyOn(aiClient, 'requestAgentChat').mockResolvedValue({
+      reply: 'Silakan ambil ulang foto agar lebih jelas.',
+      urgency_level: 'medium',
+      trigger_clinic_finder: false,
+      suggested_questions: [],
+    });
+
+    const app = createApp();
+    const user = await registerUser('unsurechat@example.com');
+    const scan = await ScanRecord.create({
+      user_id: user.userId,
+      capture_source: 'upload',
+      primary_condition: 'calculus',
+      condition_label: 'Hasil Belum Meyakinkan – Silakan Ambil Ulang Foto',
+      confidence_score: 0.52,
+      detections: [],
+      urgency_level: 'medium',
+      trigger_clinic_finder: false,
+      is_low_confidence: true,
+      care_recommendations: { summary: 'Ambil ulang foto.', dos: [], donts: [] },
+      medical_disclaimer: 'Bukan diagnosis.',
+      model_version: 'test',
+    });
+
+    const res = await request(app)
+      .post('/api/v1/chat')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ message: 'Apa arti hasil skrining saya?', scan_id: scan.id });
+
+    expect(res.status).toBe(200);
+    const sent = aiSpy.mock.calls[0][0];
+    expect(sent.scan_context).toBeUndefined();
+    expect(JSON.stringify(sent.knowledge_context)).not.toMatch(/karang gigi|kalkulus/i);
+  });
 });

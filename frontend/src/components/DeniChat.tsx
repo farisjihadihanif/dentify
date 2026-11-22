@@ -668,9 +668,11 @@ export function DeniChat({
                   </p>
                   <h2 className="text-sm font-bold text-text">
                     {scanReport
-                      ? `${scanReport.condition_label} (${Math.round(
-                          scanReport.confidence_score * 100,
-                        )}%)`
+                      ? scanReport.is_low_confidence
+                        ? scanReport.condition_label
+                        : `${scanReport.condition_label} (${Math.round(
+                            scanReport.confidence_score * 100,
+                          )}%)`
                       : `ID Pemindaian: ${scanId}${
                           initialCondition ? ` • Kondisi: ${initialCondition}` : ''
                         }`}

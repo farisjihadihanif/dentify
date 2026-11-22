@@ -347,7 +347,8 @@ export function ScanWorkspace({
                       >
                         <p className="text-badge font-bold text-text">{item.condition_label}</p>
                         <p className="mt-0.5 text-[12px] text-text-muted">
-                          {formatJakartaDateTime(item.created_at)} • Keyakinan {confPct}%
+                          {formatJakartaDateTime(item.created_at)}
+                          {item.is_low_confidence ? '' : ` • Keyakinan ${confPct}%`}
                         </p>
                       </button>
 
