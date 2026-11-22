@@ -54,6 +54,7 @@ ai-service/models/saved_model/
 !ai-service/models/.gitkeep
 
 # Temporary uploads and logs
+ai-service/logs/
 uploads/
 tmp/
 *.log

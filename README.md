@@ -11,10 +11,10 @@ dentify/
 ├── ai-service/     FastAPI + TensorFlow/Keras (.keras) + OpenCV + LangChain/Gemini (:8000)
 ├── data-science/   Data wrangling, feature engineering, EDA notebooks, A/B test, Streamlit dashboard (:8501)
 ├── scripts/        End-to-end smoke verification (`e2e-smoke.js`)
-├── docs/           Specifications (`PRD.md`, `ARCHITECTURE.md`, `DATABASE.md`, `API_SPECS.md`, `DESIGN.md`, `TASK.md`), `COMPLIANCE_AUDIT.md`, `Dentify_Technical_Report.pdf`
-├── AGENTS.md       Shared agent rules & domain invariants
-└── CLAUDE.md       One-line import of `AGENTS.md`
+└── render.yaml     Render Blueprint (backend + ai-service)
 ```
+
+Specs (`docs/`) and agent instructions (`AGENTS.md`, `CLAUDE.md`) are kept local and are not part of this repository.
 
 ## Quick Start (Local Development)
 
@@ -70,6 +70,19 @@ Per-class F1 (TTA): caries 0.70, calculus 0.81, gingivitis 0.82, healthy 0.84. C
 - **Backend & AI Service:** Railway (`backend/railway.json`, `ai-service/railway.json`) or Render (`render.yaml`) — set all `sync: false` secrets and `CORS_ORIGINS`
 - **Analytics Dashboard:** Streamlit Cloud (`data-science/app.py`) — *Public URL: pending Streamlit Cloud account deployment (T-402)*
 
+### Getting the model file onto the server
+
+`ai-service/models/dentify_model.keras` is **not in git** (`*.keras` is ignored), so a Render/Railway build from the repo has no model. Only `model_meta.json` (labels, version, metrics) is tracked. Pick one:
+
+1. **Download at build time (recommended).** Upload the `.keras` file to private object storage or a GitHub Release asset, store its URL as a secret env var `MODEL_URL`, and extend the ai-service build command:
+   ```bash
+   pip install -r requirements.txt && curl -fL "$MODEL_URL" -o models/dentify_model.keras
+   ```
+   (Render: `buildCommand` in `render.yaml`; Railway: `build.buildCommand` in `ai-service/railway.json`.)
+2. **Persistent disk.** Attach a Render Disk / Railway Volume, copy the file there once, and set `MODEL_PATH` to its absolute path.
+
+Re-train locally with `python -m app.ml.train` and re-upload both the `.keras` file and the updated `model_meta.json`. Without the model, `/healthz` still responds but predictions fail and the backend returns `AI_SERVICE_UNAVAILABLE`. TensorBoard logs (`ai-service/logs/`) are local-only and not needed for deployment.
+
 ## Capstone Compliance
 
-See `docs/PRD.md §16` and `docs/COMPLIANCE_AUDIT.md` for full verification against Project Brief `CC26-PSU285`.
+Built for Project Brief `CC26-PSU285`. The compliance audit is maintained outside this repository.
