@@ -102,7 +102,7 @@ describe('POST /api/v1/feedback: validation, guest mode, and ownership isolation
       trigger_clinic_finder: false,
       care_recommendations: { summary: 'Periksa ke dokter gigi.', dos: ['Sikat'], donts: ['Korek'] },
       medical_disclaimer: DISCLAIMER_SCAN,
-      model_version: 'denthub-cnn-1.0.0',
+      model_version: 'dentify-cnn-1.0.0',
     });
 
     const chatA = await ChatSession.create({

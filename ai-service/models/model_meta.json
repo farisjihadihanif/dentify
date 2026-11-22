@@ -1,5 +1,5 @@
 {
-  "model_version": "denthub-mobilenetv2-2.0.0",
+  "model_version": "dentify-mobilenetv2-2.0.0",
   "labels": [
     "caries",
     "calculus",
@@ -205,7 +205,7 @@
     },
     "num_samples": 255
   },
-  "tensorboard_log_dir": "D:/project/denthub/ai-service/logs/denthub_mobilenetv2_20261120_233518",
+  "tensorboard_log_dir": "D:/project/dentify/ai-service/logs/dentify_mobilenetv2_20261120_233518",
   "history": [
     {
       "epoch": 1.0,

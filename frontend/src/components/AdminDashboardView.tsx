@@ -86,7 +86,7 @@ const EMPTY_ARTICLE_FORM: ArticleFormState = {
   coverZoom: 1,
   summary: '',
   content: '',
-  authorName: 'Tim Redaksi DentHub',
+  authorName: 'Tim Redaksi Dentify',
   isPublished: true,
 };
 
@@ -244,7 +244,7 @@ export function AdminDashboardView({
         coverZoom: formState.coverZoom,
         summary: formState.summary.trim(),
         content: formState.content.trim(),
-        authorName: formState.authorName.trim() || 'Admin DentHub',
+        authorName: formState.authorName.trim() || 'Admin Dentify',
         isPublished: formState.isPublished,
       };
 
@@ -358,7 +358,7 @@ export function AdminDashboardView({
   if (isCheckingRole) {
     return (
       <main className="mx-auto max-w-6xl px-4 py-16 text-center text-sm text-text-muted">
-        Memverifikasi hak akses Admin DentHub...
+        Memverifikasi hak akses Admin Dentify...
       </main>
     );
   }
@@ -379,13 +379,13 @@ export function AdminDashboardView({
         <div>
           <span className="inline-flex items-center gap-1.5 rounded-pill bg-brand-soft px-3.5 py-1 text-xs font-bold text-brand-dark">
             <ShieldCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-            <span>Panel Administrasi • Khusus Admin DentHub</span>
+            <span>Panel Administrasi • Khusus Admin Dentify</span>
           </span>
           <h1 className="mt-2 font-display text-2xl font-extrabold text-text sm:text-3xl">
             Admin CMS &amp; Manajemen Pengguna
           </h1>
           <p className="mt-1 text-sm text-text-muted">
-            Kelola berita, promo, artikel kesehatan gigi, serta hak akses akun pengguna DentHub.
+            Kelola berita, promo, artikel kesehatan gigi, serta hak akses akun pengguna Dentify.
           </p>
         </div>
 

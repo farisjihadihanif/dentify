@@ -1,5 +1,5 @@
 """
-DentHub Analytics & Model Evaluation Dashboard (Streamlit).
+Dentify Analytics & Model Evaluation Dashboard (Streamlit).
 
 Displays dataset cleaning & class distribution, engineered image-quality stats,
 model evaluation metrics (accuracy, macro F1, per-class recall, confusion matrix, MAE),
@@ -41,12 +41,12 @@ def load_json(path: Path) -> dict[str, Any] | None:
 
 def main() -> None:
     st.set_page_config(
-        page_title="DentHub – Data Science & Model Analytics Dashboard",
+        page_title="Dentify – Data Science & Model Analytics Dashboard",
         page_icon="🦷",
         layout="wide",
     )
 
-    st.title("🦷 DentHub – Data Science, Image Quality & CV Model Analytics")
+    st.title("🦷 Dentify – Data Science, Image Quality & CV Model Analytics")
     st.caption(
         "Capstone CC26-PSU285 | Non-diagnostic preventive dental screening dataset EDA, "
         "engineered quality features, custom Keras model evaluation, and CLAHE A/B test."

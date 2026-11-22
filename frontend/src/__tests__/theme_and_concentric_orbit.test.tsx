@@ -149,8 +149,8 @@ describe('Clinical Light Mode, 12-Instrument Orbit Hero, Profile Adjuster, Admin
       <AdminDashboardView
         initialUser={{
           id: 'admin-1',
-          full_name: 'Admin DentHub',
-          email: 'admin@denthub.id',
+          full_name: 'Admin Dentify',
+          email: 'admin@dentify.id',
           role: 'admin',
         }}
         initialArticles={[]}
@@ -181,7 +181,7 @@ describe('Clinical Light Mode, 12-Instrument Orbit Hero, Profile Adjuster, Admin
           coverPosition: '50% 50%',
           coverZoom: 1,
           isPublished: true,
-          authorName: 'Tim Promo DentHub',
+          authorName: 'Tim Promo Dentify',
           publishedAt: '2026-11-20T08:00:00.000Z',
         }}
         initialRelatedArticles={[
@@ -194,7 +194,7 @@ describe('Clinical Light Mode, 12-Instrument Orbit Hero, Profile Adjuster, Admin
             content: 'Gunakan sikat gigi berbulu lembut.',
             coverImageUrl: '/images/covers/artikel-default.svg',
             isPublished: true,
-            authorName: 'Tim Redaksi DentHub',
+            authorName: 'Tim Redaksi Dentify',
             publishedAt: '2026-11-19T08:00:00.000Z',
           },
         ]}
@@ -212,7 +212,7 @@ describe('Clinical Light Mode, 12-Instrument Orbit Hero, Profile Adjuster, Admin
     expect(html).toContain('data-testid="berita-detail-sidebar"');
     expect(html).toContain('Berita, Artikel &amp; Promo Lainnya');
     expect(html).toContain('Cara Memilih Sikat Gigi yang Tepat');
-    expect(html).toContain('Skrining &amp; Konsultasi DentHub');
+    expect(html).toContain('Skrining &amp; Konsultasi Dentify');
   });
 
   it('HomePage, PanduanPage, and KineticMarqueeRibbons preserve clean contrast and Step 07 guide', () => {
@@ -286,7 +286,7 @@ describe('Clinical Light Mode, 12-Instrument Orbit Hero, Profile Adjuster, Admin
       coverPosition: '50% 50%',
       coverZoom: 1,
       isPublished: true,
-      authorName: 'Tim Promo DentHub',
+      authorName: 'Tim Promo Dentify',
       publishedAt: '2026-11-21T08:00:00.000Z',
     };
 

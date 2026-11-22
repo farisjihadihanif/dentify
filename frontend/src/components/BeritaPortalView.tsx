@@ -31,9 +31,9 @@ const DEFAULT_COVER_IMAGE = '/images/covers/artikel-default.svg';
 
 const CATEGORY_DESCRIPTIONS: Record<ArticleCategory, string> = {
   Berita:
-    'Kabar terbaru seputar inovasi teknologi skrining gigi, kesehatan masyarakat, dan pembaruan DentHub.',
+    'Kabar terbaru seputar inovasi teknologi skrining gigi, kesehatan masyarakat, dan pembaruan Dentify.',
   Promo:
-    'Penawaran pemeriksaan rutin, voucher scaling mitra RSGM, dan program edukasi preventif DentHub.',
+    'Penawaran pemeriksaan rutin, voucher scaling mitra RSGM, dan program edukasi preventif Dentify.',
   Artikel:
     'Panduan edukasi perawatan gigi harian dan kesehatan rongga mulut berbasis referensi klinis.',
 };

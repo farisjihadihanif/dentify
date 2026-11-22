@@ -33,7 +33,7 @@ export function getEnv(): AppEnv {
     nodeEnv: process.env.NODE_ENV ?? 'development',
     port: Number(process.env.PORT ?? 5000),
     trustProxy: Number(process.env.TRUST_PROXY ?? 0),
-    mongodbUri: process.env.MONGODB_URI ?? 'mongodb://127.0.0.1:27017/denthub',
+    mongodbUri: process.env.MONGODB_URI ?? 'mongodb://127.0.0.1:27017/dentify',
     jwtSecret: process.env.JWT_SECRET ?? 'dev-only-insecure-secret-change-me-32chars',
     jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
     bcryptSaltRounds: Math.max(10, Number(process.env.BCRYPT_SALT_ROUNDS ?? 10)),
@@ -44,8 +44,8 @@ export function getEnv(): AppEnv {
     overpassUrl: process.env.OVERPASS_URL ?? 'https://overpass-api.de/api/interpreter',
     nominatimUrl: process.env.NOMINATIM_URL ?? 'https://nominatim.openstreetmap.org/search',
     osmUserAgent:
-      process.env.OSM_USER_AGENT ?? 'DentHub/1.0 (capstone-cc26-psu285@denthub.local)',
-    adminName: process.env.ADMIN_NAME ?? 'Administrator DentHub',
+      process.env.OSM_USER_AGENT ?? 'Dentify/1.0 (capstone-cc26-psu285@dentify.local)',
+    adminName: process.env.ADMIN_NAME ?? 'Administrator Dentify',
     adminEmail: process.env.ADMIN_EMAIL ?? '',
     adminPassword: process.env.ADMIN_PASSWORD ?? '',
   };

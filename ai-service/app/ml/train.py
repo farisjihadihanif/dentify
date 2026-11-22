@@ -1,5 +1,5 @@
 """
-2-Stage Transfer-Learning tf.GradientTape training and evaluation pipeline for DentHub.
+2-Stage Transfer-Learning tf.GradientTape training and evaluation pipeline for Dentify.
 
 Features:
 - ImageNet-pretrained MobileNetV2 backbone + ChannelAttention + DualPool head.
@@ -7,7 +7,7 @@ Features:
 - Stage 1: Frozen backbone warmup (head calibration).
 - Stage 2: Fine-tuning upper MobileNetV2 blocks (BatchNorm kept frozen for stability) with CosineDecay.
 - Custom tf.GradientTape loop with TensorBoard logs under ai-service/logs/.
-- Exports models/denthub_model.keras and models/model_meta.json.
+- Exports models/dentify_model.keras and models/model_meta.json.
 """
 
 from __future__ import annotations
@@ -27,13 +27,13 @@ from app.ml.custom_model import (
     DENTAL_LABELS,
     ClassWeightedFocalLoss,
     MacroF1Checkpoint,
-    build_denthub_model,
+    build_dentify_model,
     compute_macro_f1,
-    load_denthub_model,
+    load_dentify_model,
 )
 from app.ml.preprocessing import INPUT_SIZE, preprocess_rgb_for_model
 
-MODEL_VERSION = "denthub-mobilenetv2-2.0.0"
+MODEL_VERSION = "dentify-mobilenetv2-2.0.0"
 
 _SCALAR_SUMMARY_META = tf.compat.v1.SummaryMetadata(
     plugin_data=tf.compat.v1.SummaryMetadata.PluginData(plugin_name="scalars")
@@ -345,7 +345,7 @@ def train_model(
     )
     val_ds = tf.data.Dataset.from_tensor_slices((val_x, val_y)).batch(batch_size)
 
-    model = build_denthub_model(
+    model = build_dentify_model(
         input_shape=(INPUT_SIZE, INPUT_SIZE, 3),
         num_classes=len(DENTAL_LABELS),
         dropout_rate=0.35,
@@ -353,7 +353,7 @@ def train_model(
         trainable_backbone=False,
     )
 
-    run_name = f"denthub_mobilenetv2_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+    run_name = f"dentify_mobilenetv2_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
     tb_train_writer = tf.summary.create_file_writer(str(logs_dir / run_name / "train"))
     tb_val_writer = tf.summary.create_file_writer(str(logs_dir / run_name / "val"))
 
@@ -439,7 +439,7 @@ def train_model(
     tb_train_writer.flush()
     tb_val_writer.flush()
 
-    best_model = load_denthub_model(model_output_path)
+    best_model = load_dentify_model(model_output_path)
     test_probs_single = best_model.predict(test_x, batch_size=batch_size, verbose=0)
     test_metrics_single = evaluate_predictions(test_y, test_probs_single)
     test_probs = predict_with_tta(best_model, test_x, batch_size=batch_size)
@@ -483,7 +483,7 @@ def train_model(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Train DentHub MobileNetV2 transfer-learning CV model.")
+    parser = argparse.ArgumentParser(description="Train Dentify MobileNetV2 transfer-learning CV model.")
     parser.add_argument(
         "--processed-dir",
         type=Path,
@@ -492,7 +492,7 @@ def main() -> None:
     parser.add_argument(
         "--model-out",
         type=Path,
-        default=Path(__file__).resolve().parents[2] / "models" / "denthub_model.keras",
+        default=Path(__file__).resolve().parents[2] / "models" / "dentify_model.keras",
     )
     parser.add_argument(
         "--meta-out",

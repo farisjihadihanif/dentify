@@ -1,5 +1,5 @@
 """
-Custom TensorFlow/Keras Computer Vision architecture for DentHub (CC26-PSU285).
+Custom TensorFlow/Keras Computer Vision architecture for Dentify (CC26-PSU285).
 
 Uses an ImageNet-pretrained MobileNetV2 transfer-learning backbone wrapped in a Keras
 Functional API model with three registered custom components so `.keras` reloads cleanly:
@@ -21,7 +21,7 @@ from keras import layers
 DENTAL_LABELS: tuple[str, ...] = ("caries", "calculus", "gingivitis", "healthy")
 
 
-@keras.saving.register_keras_serializable(package="DentHub", name="ChannelAttention")
+@keras.saving.register_keras_serializable(package="Dentify", name="ChannelAttention")
 class ChannelAttention(layers.Layer):
     """Squeeze-and-Excitation style channel attention layer for dental texture features."""
 
@@ -51,7 +51,7 @@ class ChannelAttention(layers.Layer):
         return config
 
 
-@keras.saving.register_keras_serializable(package="DentHub", name="ClassWeightedFocalLoss")
+@keras.saving.register_keras_serializable(package="Dentify", name="ClassWeightedFocalLoss")
 class ClassWeightedFocalLoss(keras.losses.Loss):
     """Multi-class focal loss with per-class weighting for imbalanced dental datasets."""
 
@@ -133,7 +133,7 @@ class MacroF1Checkpoint(keras.callbacks.Callback):
             self.model.save(self.filepath)
 
 
-def build_denthub_model(
+def build_dentify_model(
     input_shape: tuple[int, int, int] = (224, 224, 3),
     num_classes: int = 4,
     dropout_rate: float = 0.35,
@@ -141,7 +141,7 @@ def build_denthub_model(
     trainable_backbone: bool = False,
 ) -> keras.Model:
     """
-    Build the DentHub MobileNetV2 transfer-learning Functional API model with
+    Build the Dentify MobileNetV2 transfer-learning Functional API model with
     ChannelAttention, DualPool head, and named final conv layer (`gradcam_conv`) for Grad-CAM.
     Inputs are expected in [0, 1] float32 and rescaled internally to [-1, 1] for MobileNetV2.
     """
@@ -185,10 +185,10 @@ def build_denthub_model(
     x = layers.Dropout(dropout_rate * 0.7, name="head_dense_dropout")(x)
     outputs = layers.Dense(num_classes, activation="softmax", name="condition_probs")(x)
 
-    return keras.Model(inputs=inputs, outputs=outputs, name="denthub_mobilenetv2_attention")
+    return keras.Model(inputs=inputs, outputs=outputs, name="dentify_mobilenetv2_attention")
 
 
-def load_denthub_model(model_path: str | Path) -> keras.Model:
+def load_dentify_model(model_path: str | Path) -> keras.Model:
     return keras.models.load_model(
         model_path,
         custom_objects={

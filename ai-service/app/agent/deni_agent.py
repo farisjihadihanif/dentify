@@ -5,7 +5,7 @@ Rules:
 - Provides two LangChain tools: `lookup_knowledge` and `trigger_clinic_finder`.
 - Uses Pydantic structured output matching `AgentChatResponse`.
 - Supports personalized greeting (`user_name`) and optional tooth photo attachment
-  (runs the preloaded DentHub CV screening model AND passes the normalized photo data URI
+  (runs the preloaded Dentify CV screening model AND passes the normalized photo data URI
   plus screening summary directly to `gemini-2.5-flash` multimodal).
 - If Gemini fails or is unavailable while a photo was screened by CV, composes a specific,
   personalized Indonesian response directly from the CV findings and knowledge base.
@@ -52,7 +52,7 @@ CONDITION_LABELS_ID: dict[str, str] = {
 
 DEFAULT_PHOTO_PROMPT = "Tolong periksa kondisi gigi pada foto yang saya lampirkan."
 
-SYSTEM_PROMPT = """Anda adalah Deni, asisten AI kesehatan gigi preventif dari DentHub.
+SYSTEM_PROMPT = """Anda adalah Deni, asisten AI kesehatan gigi preventif dari Dentify.
 Aturan wajib yang TIDAK BOLEH dilanggar:
 1. Selalu menjawab dalam Bahasa Indonesia yang empatik, hangat, sopan (sapa pengguna dengan "Anda", dan jika nama pengguna tersedia di `[Nama Pengguna]`, sapa secara personal dengan namanya secara natural), dan mudah dipahami masyarakat umum.
 2. DILARANG memberikan diagnosis medis klinis pasti. Gunakan bahasa edukatif/indikatif ("indikasi", "kemungkinan", "perlu diperiksa dokter gigi").
@@ -264,7 +264,7 @@ def build_static_fallback(
         reply = (
             f"{greeting}Berdasarkan keluhan yang Anda sampaikan, terdapat tanda yang memerlukan pemeriksaan "
             "segera oleh dokter gigi. Hindari mengorek atau menekan area yang nyeri, berkumur perlahan "
-            "dengan air hangat, dan segera kunjungi klinik dokter gigi terdekat melalui Clinic Finder DentHub."
+            "dengan air hangat, dan segera kunjungi klinik dokter gigi terdekat melalui Clinic Finder Dentify."
         )
         suggestions = [
             "Apa pertolongan pertama yang aman sambil menuju dokter gigi?",

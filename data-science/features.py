@@ -74,7 +74,7 @@ def generate_eda_charts(df: pd.DataFrame, charts_dir: Path) -> list[str]:
     fig, ax = plt.subplots(figsize=(8, 4.8))
     ct = pd.crosstab(df["label"], df["split"]).reindex(columns=["train", "val", "test"], fill_value=0)
     ct.plot(kind="bar", stacked=True, ax=ax, color=["#0369A1", "#075985", "#0F766E"])
-    ax.set_title("DentHub Clean Dataset: Class Distribution by Leak-Free Split")
+    ax.set_title("Dentify Clean Dataset: Class Distribution by Leak-Free Split")
     ax.set_xlabel("Dental Condition")
     ax.set_ylabel("Image Count")
     ax.tick_params(axis="x", rotation=0)
@@ -151,8 +151,8 @@ def build_wrangling_eda_notebook(
     nb = nbf.v4.new_notebook()
     nb.cells = [
         nbf.v4.new_markdown_cell(
-            "# DentHub (CC26-PSU285) – Data Wrangling, Cleaning, Feature Engineering & EDA\n\n"
-            "This notebook documents the complete DentHub data science workflow: "
+            "# Dentify (CC26-PSU285) – Data Wrangling, Cleaning, Feature Engineering & EDA\n\n"
+            "This notebook documents the complete Dentify data science workflow: "
             "multi-source dental image gathering, quality assessment, manual cleaning, "
             "perceptual-hash deduplication, stratified group splitting **before** augmentation, engineered "
             "image-quality features, and explanatory charts backing every conclusion."

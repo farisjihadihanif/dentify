@@ -55,7 +55,7 @@ export function AuthGuard({
           </h1>
           <p className="mt-2 text-sm text-text-muted sm:text-base">
             Untuk menjaga keamanan riwayat pemeriksaan gigi dan profil kesehatan Anda, halaman ini
-            hanya dapat digunakan setelah Anda masuk ke akun DentHub.
+            hanya dapat digunakan setelah Anda masuk ke akun Dentify.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">

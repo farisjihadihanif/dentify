@@ -12,7 +12,7 @@ import {
   ArrowRight,
   CheckCircle2,
 } from 'lucide-react';
-import { DentHubLogo } from '../components/DentHubLogo';
+import { DentifyLogo } from '../components/DentifyLogo';
 import { ConcentricDentalOrbit } from '../components/ConcentricDentalOrbit';
 import { KineticMarqueeRibbons } from '../components/KineticMarqueeRibbons';
 
@@ -58,7 +58,7 @@ const TIMELINE_FLOW_STEPS = [
     title: '01 Unggah Foto / Kamera Langsung',
     subtitle: 'Ambil Foto Gigi dengan Panduan Pencahayaan',
     description:
-      'Masuk ke akun DentHub Anda lalu ambil foto area gigi menggunakan kamera langsung atau sertakan file foto dari perangkat.',
+      'Masuk ke akun Dentify Anda lalu ambil foto area gigi menggunakan kamera langsung atau sertakan file foto dari perangkat.',
     icon: Camera,
   },
   {
@@ -91,8 +91,8 @@ const TIMELINE_FLOW_STEPS = [
 ] as const;
 
 /**
- * Home Page DentHub — 3 Sections:
- * 1. Section 1: Top-left DentHub logo + centered Hero copy surrounded by orbiting 3D dental icon badges.
+ * Home Page Dentify — 3 Sections:
+ * 1. Section 1: Top-left Dentify logo + centered Hero copy surrounded by orbiting 3D dental icon badges.
  * 2. Double Crossed Bold Kinetic Marquee Ribbons + Full-Bleed Dark-Navy Multi-Tone Stacked Step Cards.
  * 3. Section 3: AI Scan & Tanya Deni feature preview cards.
  */
@@ -109,14 +109,14 @@ export default function HomePage() {
         data-testid="home-section-1-hero"
         className="bg-dental-grid relative flex min-h-[calc(100svh-4rem)] w-full items-center justify-center overflow-hidden bg-bg"
       >
-        {/* Top-Left Official DentHub Logo + Wordmark */}
+        {/* Top-Left Official Dentify Logo + Wordmark */}
         <Link
           href="/"
-          aria-label="DentHub Beranda"
+          aria-label="Dentify Beranda"
           data-testid="hero-top-left-logo"
           className="absolute left-5 top-5 z-20 inline-flex items-center rounded-pill bg-surface/90 px-3 py-1.5 shadow-sm ring-1 ring-border transition-colors hover:bg-surface sm:left-8 sm:top-7"
         >
-          <DentHubLogo size={30} showText />
+          <DentifyLogo size={30} showText />
         </Link>
 
         {/* Full-Section Interactive Concentric Dental Instrument Orbit */}
@@ -173,7 +173,7 @@ export default function HomePage() {
               id="heading-alur-aplikasi"
               className="text-3xl font-extrabold text-white sm:text-4xl lg:text-5xl"
             >
-              Cara Kerja DentHub dari Awal hingga Solusi
+              Cara Kerja Dentify dari Awal hingga Solusi
             </h2>
           </motion.div>
 
@@ -265,7 +265,7 @@ export default function HomePage() {
       >
         <div className="text-center">
           <span className="inline-block rounded-pill bg-brand-soft px-3.5 py-1 text-xs font-bold text-brand-dark">
-            Fitur Unggulan DentHub
+            Fitur Unggulan Dentify
           </span>
           <h2 id="heading-preview-fitur" className="mt-2.5 text-2xl font-bold text-text sm:text-3xl">
             Preview Fitur AI Scan &amp; Tanyakan ke Deni

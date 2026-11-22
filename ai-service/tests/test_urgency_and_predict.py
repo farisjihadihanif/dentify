@@ -92,7 +92,7 @@ def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
     inference_service.settings = get_settings()
     inference_service.model = _FakeModel([0.91, 0.04, 0.03, 0.02])  # type: ignore[assignment]
     inference_service.grad_model = None
-    inference_service.model_version = "denthub-cnn-1.0.0"
+    inference_service.model_version = "dentify-cnn-1.0.0"
 
     app = create_app()
     yield TestClient(app)
@@ -341,7 +341,7 @@ def test_predict_returns_valid_schema_and_fast_latency(client: TestClient) -> No
     assert body["urgency_level"] == "emergency"
     assert body["trigger_clinic_finder"] is True
     assert body["quality"]["passed"] is True
-    assert body["model_version"] == "denthub-cnn-1.0.0"
+    assert body["model_version"] == "dentify-cnn-1.0.0"
     assert len(body["detections"]) == 1
 
 
@@ -420,20 +420,20 @@ def test_predict_accepts_mismatched_webp_extension_with_jpeg_bytes_and_octet_str
 def test_custom_keras_model_roundtrip_reload(tmp_path: Path) -> None:
     from app.ml.custom_model import (
         ClassWeightedFocalLoss,
-        build_denthub_model,
-        load_denthub_model,
+        build_dentify_model,
+        load_dentify_model,
     )
 
-    model = build_denthub_model(
+    model = build_dentify_model(
         input_shape=(224, 224, 3),
         num_classes=4,
         backbone_weights=None,
     )
     model.compile(optimizer="adam", loss=ClassWeightedFocalLoss())
-    out_file = tmp_path / "test_denthub.keras"
+    out_file = tmp_path / "test_dentify.keras"
     model.save(out_file)
 
-    reloaded = load_denthub_model(out_file)
+    reloaded = load_dentify_model(out_file)
     sample = np.zeros((1, 224, 224, 3), dtype=np.float32)
     preds = reloaded(sample, training=False).numpy()
     assert preds.shape == (1, 4)

@@ -1,10 +1,10 @@
-# Render.com Blueprint for DentHub (Backend Express TS & AI Service FastAPI)
-# DentHub multi-service deployment blueprint
+# Render.com Blueprint for Dentify (Backend Express TS & AI Service FastAPI)
+# Dentify multi-service deployment blueprint
 # All secrets and deployment-specific URLs use `sync: false` so nothing sensitive is hardcoded.
 
 services:
   - type: web
-    name: denthub-ai-service
+    name: dentify-ai-service
     runtime: python
     rootDir: ai-service
     plan: starter
@@ -17,7 +17,7 @@ services:
       - key: LOG_LEVEL
         value: INFO
       - key: MODEL_PATH
-        value: models/denthub_model.keras
+        value: models/dentify_model.keras
       - key: MIN_CONFIDENCE
         value: "0.60"
       - key: EMERGENCY_CONFIDENCE
@@ -32,7 +32,7 @@ services:
         sync: false
 
   - type: web
-    name: denthub-backend
+    name: dentify-backend
     runtime: node
     rootDir: backend
     plan: starter
@@ -55,7 +55,7 @@ services:
       - key: NOMINATIM_URL
         value: https://nominatim.openstreetmap.org/search
       - key: OSM_USER_AGENT
-        value: DentHub/1.0 (capstone-cc26-psu285@denthub.local)
+        value: Dentify/1.0 (capstone-cc26-psu285@dentify.local)
       - key: CORS_ORIGINS
         sync: false
       - key: MONGODB_URI
@@ -67,7 +67,7 @@ services:
       - key: AI_SERVICE_API_KEY
         sync: false
       - key: ADMIN_NAME
-        value: Administrator DentHub
+        value: Administrator Dentify
       - key: ADMIN_EMAIL
         sync: false
       - key: ADMIN_PASSWORD

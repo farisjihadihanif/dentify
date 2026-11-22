@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /**
- * Centralized Clinical Light Mode design tokens for DentHub.
+ * Centralized Clinical Light Mode design tokens for Dentify.
  * Palette: #F8FAFC canvas, #FFFFFF cards, #0B192C deep ink typography, #0E7490 clinical teal accent.
  */
 :root {

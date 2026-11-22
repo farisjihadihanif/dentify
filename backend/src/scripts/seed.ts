@@ -56,7 +56,7 @@ export async function runSeed(options?: {
 
   const adminEmail = (options?.adminEmail ?? env.adminEmail).trim().toLowerCase();
   const adminPassword = options?.adminPassword ?? env.adminPassword;
-  const adminName = (options?.adminName ?? env.adminName).trim() || 'Administrator DentHub';
+  const adminName = (options?.adminName ?? env.adminName).trim() || 'Administrator Dentify';
 
   let adminSeeded = false;
   if (adminEmail && adminPassword) {

@@ -137,7 +137,7 @@ export function WebcamCapture({
     canvas.toBlob(
       (blob) => {
         if (!blob) return;
-        const file = new File([blob], `denthub-capture-${Date.now()}.jpg`, {
+        const file = new File([blob], `dentify-capture-${Date.now()}.jpg`, {
           type: 'image/jpeg',
         });
         onCapture(file, dataUrl);

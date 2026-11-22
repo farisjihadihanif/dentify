@@ -1,5 +1,5 @@
 export const DISCLAIMER_SCAN =
-  'Penting: DentHub adalah alat skrining awal berbasis AI untuk pencegahan dan bukan pengganti diagnosis dokter gigi. Hasil ini bukan diagnosis medis. Segera kunjungi dokter gigi jika Anda merasakan nyeri hebat atau pembengkakan.';
+  'Penting: Dentify adalah alat skrining awal berbasis AI untuk pencegahan dan bukan pengganti diagnosis dokter gigi. Hasil ini bukan diagnosis medis. Segera kunjungi dokter gigi jika Anda merasakan nyeri hebat atau pembengkakan.';
 
 export const DISCLAIMER_CHAT =
   'Saran Deni bersifat edukatif dan tidak menggantikan pemeriksaan langsung oleh dokter gigi.';

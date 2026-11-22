@@ -53,7 +53,7 @@ def test_pydantic_predict_and_chat_schemas() -> None:
         urgency_level="emergency",
         trigger_clinic_finder=True,
         quality=ImageQualityReport(blur_score=180.0, mean_luminance=120.0, passed=True),
-        model_version="denthub-cnn-1.0.0",
+        model_version="dentify-cnn-1.0.0",
     )
     assert pred.primary_condition == "caries"
 

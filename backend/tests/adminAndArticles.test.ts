@@ -24,12 +24,12 @@ describe('Public Articles API & Admin CMS + User Management API', () => {
 
   async function seedAdminAndGetToken(): Promise<{ token: string; adminId: string }> {
     await runSeed({
-      adminEmail: 'admin@denthub.local',
+      adminEmail: 'admin@dentify.local',
       adminPassword: 'AdminPassword123!',
-      adminName: 'Admin DentHub',
+      adminName: 'Admin Dentify',
     });
     const loginRes = await request(app).post('/api/v1/auth/login').send({
-      email: 'admin@denthub.local',
+      email: 'admin@dentify.local',
       password: 'AdminPassword123!',
     });
     expect(loginRes.status).toBe(200);
@@ -54,9 +54,9 @@ describe('Public Articles API & Admin CMS + User Management API', () => {
 
   it('serves published articles sorted newest first and filters out drafts on public endpoints', async () => {
     await runSeed({
-      adminEmail: 'admin@denthub.local',
+      adminEmail: 'admin@dentify.local',
       adminPassword: 'AdminPassword123!',
-      adminName: 'Admin DentHub',
+      adminName: 'Admin Dentify',
     });
 
     await Article.create({
@@ -67,7 +67,7 @@ describe('Public Articles API & Admin CMS + User Management API', () => {
       content: 'Konten draf yang belum dipublikasikan untuk pengujian endpoint publik.',
       coverImageUrl: '/images/covers/promo-scaling.svg',
       isPublished: false,
-      authorName: 'Admin DentHub',
+      authorName: 'Admin Dentify',
       publishedAt: null,
     });
 
@@ -90,7 +90,7 @@ describe('Public Articles API & Admin CMS + User Management API', () => {
   });
 
   it('blocks non-admin users with 403 FORBIDDEN on /api/v1/admin/* endpoints', async () => {
-    const { token } = await registerUserAndGetToken('pasien@denthub.local', 'Pasien Biasa');
+    const { token } = await registerUserAndGetToken('pasien@dentify.local', 'Pasien Biasa');
 
     const articlesRes = await request(app)
       .get('/api/v1/admin/articles')
@@ -150,14 +150,14 @@ describe('Public Articles API & Admin CMS + User Management API', () => {
 
   it('allows admin to search users, update roles, delete another user, and blocks self-deletion', async () => {
     const { token, adminId } = await seedAdminAndGetToken();
-    const { userId } = await registerUserAndGetToken('nadia@denthub.local', 'Nadia Putri');
+    const { userId } = await registerUserAndGetToken('nadia@dentify.local', 'Nadia Putri');
 
     const listRes = await request(app)
       .get('/api/v1/admin/users?q=nadia')
       .set('Authorization', `Bearer ${token}`);
     expect(listRes.status).toBe(200);
     expect(listRes.body.data).toHaveLength(1);
-    expect(listRes.body.data[0].email).toBe('nadia@denthub.local');
+    expect(listRes.body.data[0].email).toBe('nadia@dentify.local');
 
     const roleRes = await request(app)
       .patch(`/api/v1/admin/users/${userId}`)

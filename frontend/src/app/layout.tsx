@@ -22,7 +22,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'DentHub – Skrining Kesehatan Gigi & Konsultasi Deni',
+  title: 'Dentify – Skrining Kesehatan Gigi & Konsultasi Deni',
   description:
     'Aplikasi web skrining dini kesehatan gigi berbasis Computer Vision, asisten interaktif Deni, dan pencari klinik gigi terdekat OpenStreetMap.',
 };

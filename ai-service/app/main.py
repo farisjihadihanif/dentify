@@ -29,9 +29,9 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
 def create_app() -> FastAPI:
     app = FastAPI(
-        title="DentHub AI Service",
+        title="Dentify AI Service",
         version="1.0.0",
-        description="Internal FastAPI service for DentHub CV inference and Deni LangChain agent.",
+        description="Internal FastAPI service for Dentify CV inference and Deni LangChain agent.",
         lifespan=lifespan,
     )
     app.include_router(health_router)

@@ -1,8 +1,8 @@
 {
-  "name": "denthub-frontend",
+  "name": "dentify-frontend",
   "version": "0.1.0",
   "private": true,
-  "description": "DentHub – Web Application for Early Dental Screening, Deni AI Assistant, and Clinic Finder (Next.js App Router)",
+  "description": "Dentify – Web Application for Early Dental Screening, Deni AI Assistant, and Clinic Finder (Next.js App Router)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

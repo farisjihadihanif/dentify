@@ -1,7 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 /**
- * Centralized DentHub design tokens.
+ * Centralized Dentify design tokens.
  * Components must use these semantic tokens rather than raw hex values.
  */
 const config: Config = {

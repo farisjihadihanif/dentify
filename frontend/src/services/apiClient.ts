@@ -1,5 +1,5 @@
 /**
- * Centralized Axios HTTP client for DentHub frontend.
+ * Centralized Axios HTTP client for Dentify frontend.
  */
 
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';

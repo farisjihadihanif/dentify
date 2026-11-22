@@ -29,7 +29,7 @@ const SIZE_CLASSES: Record<AppButtonSize, string> = {
 };
 
 /**
- * Tombol aksi reusable DentHub yang ramping, modern, dan proporsional:
+ * Tombol aksi reusable Dentify yang ramping, modern, dan proporsional:
  * - Varian: `primary`, `secondary`, `danger`, `ghost`
  * - Ukuran:
  *   * `sm` (`h-9 px-3 text-xs`)

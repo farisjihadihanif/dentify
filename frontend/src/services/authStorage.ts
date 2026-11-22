@@ -3,7 +3,7 @@
  *.
  */
 
-export const AUTH_TOKEN_STORAGE_KEY = 'denthub_auth_token';
+export const AUTH_TOKEN_STORAGE_KEY = 'dentify_auth_token';
 
 let inMemoryAuthToken: string | null = null;
 

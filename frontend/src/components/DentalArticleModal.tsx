@@ -93,9 +93,9 @@ export const DENTIST_WORLD_ARTICLES: readonly DentalEducationArticle[] = [
       'Sambil menuju fasilitas layanan gigi terdekat, hindari menusuk gusi yang bengkak, hindari kompres hangat di area pipi bengkak, dan jangan menempelkan obat atau bahan kimia langsung pada gigi yang berlubang.',
     ],
     takeaways: [
-      'Gunakan fitur Cari Klinik Terdekat di DentHub segera bila muncul bengkak, nanah, demam, atau nyeri berdenyut hebat.',
+      'Gunakan fitur Cari Klinik Terdekat di Dentify segera bila muncul bengkak, nanah, demam, atau nyeri berdenyut hebat.',
       'Gunakan kompres dingin di bagian luar pipi selama 10–15 menit untuk membantu mengurangi rasa tidak nyaman sementara.',
-      'Bawa ringkasan hasil skrining DentHub dan daftar keluhan untuk mempercepat pemeriksaan awal oleh dokter gigi.',
+      'Bawa ringkasan hasil skrining Dentify dan daftar keluhan untuk mempercepat pemeriksaan awal oleh dokter gigi.',
     ],
     sources: [
       {
@@ -115,10 +115,10 @@ export const DENTIST_WORLD_ARTICLES: readonly DentalEducationArticle[] = [
     title: 'Persiapan Praktis Sebelum Berkunjung ke Dokter Gigi',
     readTime: '3 menit baca',
     summary:
-      'Unduh hasil laporan skrining DentHub Anda untuk ditunjukkan kepada dokter gigi, sikat gigi secara lembut sebelum berangkat, dan catat riwayat alergi obat atau keluhan yang Anda rasakan.',
+      'Unduh hasil laporan skrining Dentify Anda untuk ditunjukkan kepada dokter gigi, sikat gigi secara lembut sebelum berangkat, dan catat riwayat alergi obat atau keluhan yang Anda rasakan.',
     paragraphs: [
       'Komunikasi yang jelas antara pasien dan dokter gigi berperan penting dalam menentukan rencana perawatan yang tepat. Sebelum berkunjung ke klinik, catat sejak kapan keluhan muncul, pemicu ngilu (dingin, panas, manis, atau saat mengunyah), serta lokasi gigi yang terasa mengganggu.',
-      'Bila Anda sudah melakukan skrining mandiri menggunakan DentHub, unduh kartu laporan hasil skrining (PNG) di perangkat Anda. Meskipun hasil AI bersifat skrining awal non-diagnostik, catatan gejala dan dokumentasi visual yang terstruktur membantu dokter gigi menggali riwayat keluhan lebih cepat.',
+      'Bila Anda sudah melakukan skrining mandiri menggunakan Dentify, unduh kartu laporan hasil skrining (PNG) di perangkat Anda. Meskipun hasil AI bersifat skrining awal non-diagnostik, catatan gejala dan dokumentasi visual yang terstruktur membantu dokter gigi menggali riwayat keluhan lebih cepat.',
       'Sesuai standar keselamatan pasien Kemenkes RI dan ADA, pastikan Anda menyampaikan riwayat penyakit sistemik (seperti diabetes atau hipertensi), obat-obatan rutin yang sedang dikonsumsi, status kehamilan, serta riwayat alergi obat sebelum prosedur dimulai.',
     ],
     takeaways: [

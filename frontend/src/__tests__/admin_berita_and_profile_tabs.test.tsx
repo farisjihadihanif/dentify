@@ -44,23 +44,23 @@ const SAMPLE_ARTICLES: ArticleItem[] = [
     title: 'Promo Scaling Gigi 25% RSGM',
     slug: 'promo-scaling-gigi-25',
     category: 'Promo',
-    summary: 'Potongan biaya scaling ultrasonik di mitra RSGM bagi pengguna DentHub.',
+    summary: 'Potongan biaya scaling ultrasonik di mitra RSGM bagi pengguna Dentify.',
     content: 'Paragraf satu promo.\n\nParagraf dua syarat dan ketentuan.',
     coverImageUrl: '/images/covers/promo-scaling.svg',
     isPublished: true,
-    authorName: 'Tim Kemitraan DentHub',
+    authorName: 'Tim Kemitraan Dentify',
     publishedAt: '2026-11-20T08:00:00.000Z',
   },
   {
     id: 'art-2',
-    title: 'DentHub Luncurkan Model AI CLAHE',
-    slug: 'denthub-model-ai-clahe',
+    title: 'Dentify Luncurkan Model AI CLAHE',
+    slug: 'dentify-model-ai-clahe',
     category: 'Berita',
     summary: 'Peningkatan akurasi skrining gigi menggunakan OpenCV LAB CLAHE.',
     content: 'Paragraf berita satu.\n\nParagraf berita dua.',
     coverImageUrl: '/images/covers/berita-ai.svg',
     isPublished: true,
-    authorName: 'Redaksi Teknologi DentHub',
+    authorName: 'Redaksi Teknologi Dentify',
     publishedAt: '2026-11-19T07:30:00.000Z',
   },
   {
@@ -72,16 +72,16 @@ const SAMPLE_ARTICLES: ArticleItem[] = [
     content: 'Paragraf artikel satu.\n\nParagraf artikel dua.',
     coverImageUrl: '/images/covers/artikel-scaling.svg',
     isPublished: true,
-    authorName: 'Tim Edukasi DentHub',
+    authorName: 'Tim Edukasi Dentify',
     publishedAt: '2026-11-17T06:00:00.000Z',
   },
 ];
 
 const SAMPLE_ADMIN: AuthUser = {
   id: 'admin-1',
-  full_name: 'Admin DentHub',
-  username: 'admindenthub',
-  email: 'admin@denthub.local',
+  full_name: 'Admin Dentify',
+  username: 'admindentify',
+  email: 'admin@dentify.local',
   avatar: '',
   role: 'admin',
 };
@@ -90,7 +90,7 @@ const SAMPLE_USER: AuthUser = {
   id: 'user-2',
   full_name: 'Nadia Putri',
   username: 'nadiaputri',
-  email: 'nadia@denthub.id',
+  email: 'nadia@dentify.id',
   avatar: '',
   role: 'user',
 };
@@ -100,7 +100,7 @@ describe('Footer Vertical Link Stack & Admin Role Pill', () => {
     const html = renderToStaticMarkup(<AppFooter />);
     expect(html).toContain('data-testid="footer-left-credits"');
     expect(html).toContain('created by');
-    expect(html).toContain('Denthub © 2026');
+    expect(html).toContain('Dentify © 2026');
     expect(html).toContain('data-testid="footer-right-links"');
     expect(html).toContain('pb-24');
     expect(html).toContain('md:pb-4');
@@ -201,7 +201,7 @@ describe('/berita Digital Library Portal & Two-Step Reader (/berita/[slug])', ()
     );
 
     expect(html).toContain('data-testid="berita-section-1-search"');
-    expect(html).not.toContain('Portal Informasi &amp; Pustaka Digital DentHub');
+    expect(html).not.toContain('Portal Informasi &amp; Pustaka Digital Dentify');
     expect(html).toContain('data-testid="berita-category-select"');
     expect(html).toContain('data-testid="berita-category-menu"');
     expect(html).toContain('data-testid="berita-category-option-promo"');
@@ -224,7 +224,7 @@ describe('/berita Digital Library Portal & Two-Step Reader (/berita/[slug])', ()
     );
     expect(html).toContain('data-testid="berita-detail-page"');
     expect(html).toContain('Promo Scaling Gigi 25% RSGM');
-    expect(html).toContain('Tim Kemitraan DentHub');
+    expect(html).toContain('Tim Kemitraan Dentify');
     expect(html).toContain('Paragraf satu promo.');
     expect(html).toContain('Paragraf dua syarat dan ketentuan.');
     expect(html).toContain('href="/berita"');
@@ -276,7 +276,7 @@ describe('/admin CMS & User Management Dashboard', () => {
     );
     expect(usersTabHtml).toContain('data-testid="admin-panel-users"');
     expect(usersTabHtml).toContain('Nadia Putri');
-    expect(usersTabHtml).toContain('nadia@denthub.id');
+    expect(usersTabHtml).toContain('nadia@dentify.id');
 
     const nonAdminHtml = renderToStaticMarkup(
       <AdminDashboardView initialUser={SAMPLE_USER} />,
@@ -322,7 +322,7 @@ describe('/admin CMS & User Management Dashboard', () => {
 });
 
 describe('Edge-to-Edge Home Section 2 & /panduan + Tabbed /profile', () => {
-  it('renders Home Section 2 without eyebrow/subtitle and /panduan with interactive DENTHUB. display wordmark', () => {
+  it('renders Home Section 2 without eyebrow/subtitle and /panduan with interactive DENTIFY. display wordmark', () => {
     const homeHtml = renderToStaticMarkup(<HomePage />);
     expect(homeHtml).toContain('data-testid="home-section-2-flow"');
     expect(homeHtml).toContain('w-full bg-surface-navy');
@@ -337,7 +337,7 @@ describe('Edge-to-Edge Home Section 2 & /panduan + Tabbed /profile', () => {
     expect(panduanHtml).toContain('data-testid="panduan-section-2-dentist-world"');
     expect(panduanHtml).toContain('data-testid="panduan-bottom-wordmark"');
     expect(panduanHtml).toContain('data-testid="panduan-bottom-kinetic-ribbon"');
-    expect(panduanHtml).toContain('aria-label="DENTHUB."');
+    expect(panduanHtml).toContain('aria-label="DENTIFY."');
     expect(panduanHtml).not.toContain('hover:text-surface-mint');
     expect(panduanHtml).toContain('max-w-[1380px]');
     expect(panduanHtml).toContain('min-h-[250px]');

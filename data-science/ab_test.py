@@ -1,7 +1,7 @@
 """
 A/B Test: Baseline Preprocessing (A) vs CLAHE Preprocessing (B) on Held-Out Test Set.
 
-Evaluates the trained DentHub custom Keras model on the exact same held-out test images
+Evaluates the trained Dentify custom Keras model on the exact same held-out test images
 under two preprocessing pipelines and runs McNemar's test (exact binomial + chi-square),
 saving JSON results, an explanatory comparison chart, and a Jupyter notebook.
 """
@@ -26,7 +26,7 @@ AI_SERVICE_DIR = BASE_DIR.parent / "ai-service"
 if str(AI_SERVICE_DIR) not in sys.path:
     sys.path.insert(0, str(AI_SERVICE_DIR))
 
-from app.ml.custom_model import DENTAL_LABELS, compute_macro_f1, load_denthub_model  # noqa: E402
+from app.ml.custom_model import DENTAL_LABELS, compute_macro_f1, load_dentify_model  # noqa: E402
 from app.ml.train import load_split_arrays  # noqa: E402
 
 
@@ -36,7 +36,7 @@ def run_mcnemar_ab_test(
     outputs_dir: Path,
     notebooks_dir: Path,
 ) -> dict[str, Any]:
-    model = load_denthub_model(model_path)
+    model = load_dentify_model(model_path)
 
     # Same held-out test images: A = without CLAHE, B = with CLAHE
     x_base, y_true = load_split_arrays(processed_dir / "test", use_clahe=False)
@@ -137,7 +137,7 @@ def run_mcnemar_ab_test(
     nb = nbf.v4.new_notebook()
     nb.cells = [
         nbf.v4.new_markdown_cell(
-            "# DentHub – A/B Test: Baseline (A) vs CLAHE Preprocessing (B)\n\n"
+            "# Dentify – A/B Test: Baseline (A) vs CLAHE Preprocessing (B)\n\n"
             "Paired evaluation on identical held-out dental test images using exact McNemar's test."
         ),
         nbf.v4.new_code_cell(
@@ -161,7 +161,7 @@ def run_mcnemar_ab_test(
 def main() -> None:
     run_mcnemar_ab_test(
         processed_dir=BASE_DIR / "data" / "processed",
-        model_path=AI_SERVICE_DIR / "models" / "denthub_model.keras",
+        model_path=AI_SERVICE_DIR / "models" / "dentify_model.keras",
         outputs_dir=BASE_DIR / "outputs",
         notebooks_dir=BASE_DIR / "notebooks",
     )

@@ -10,7 +10,7 @@ import {
   UserCircle2,
 } from "lucide-react";
 import { getStoredUser, USER_UPDATED_EVENT } from "../services/authService";
-import { DentHubLogo } from "./DentHubLogo";
+import { DentifyLogo } from "./DentifyLogo";
 
 export interface NavDockItem {
   label: string;
@@ -81,15 +81,15 @@ export function FloatingNavbar({
   if (isChatRoute) {
     return (
       <nav
-        aria-label="Navigasi Utama DentHub"
+        aria-label="Navigasi Utama Dentify"
         data-testid="floating-navbar"
         data-orientation="vertical-right"
         className="fixed right-2.5 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-1.5 rounded-2xl border border-border/90 bg-surface/95 p-1.5 shadow-xl backdrop-blur-md sm:right-4 sm:gap-2 sm:rounded-3xl sm:p-2"
       >
         <Link
           href="/"
-          aria-label="Beranda DentHub"
-          title="Beranda DentHub"
+          aria-label="Beranda Dentify"
+          title="Beranda Dentify"
           aria-current={isHomeActive ? "page" : undefined}
           data-testid="navbar-logo-home-link"
           className={[
@@ -99,7 +99,7 @@ export function FloatingNavbar({
               : "hover:bg-brand-soft/80",
           ].join(" ")}
         >
-          <DentHubLogo size={22} showText={false} />
+          <DentifyLogo size={22} showText={false} />
         </Link>
 
         <span className="h-px w-6 bg-border sm:w-7" aria-hidden="true" />
@@ -137,14 +137,14 @@ export function FloatingNavbar({
   return (
     <header className="pointer-events-none fixed inset-x-0 bottom-3 z-50 flex justify-center px-2 sm:bottom-6 sm:px-3">
       <nav
-        aria-label="Navigasi Utama DentHub"
+        aria-label="Navigasi Utama Dentify"
         data-testid="floating-navbar"
         data-orientation="horizontal-bottom"
         className="pointer-events-auto flex max-w-full items-center gap-0.5 rounded-pill border border-border/90 bg-surface/95 px-1.5 py-1 shadow-md backdrop-blur-md sm:gap-1.5 sm:px-3 sm:py-1.5"
       >
         <Link
           href="/"
-          aria-label="Beranda DentHub"
+          aria-label="Beranda Dentify"
           aria-current={isHomeActive ? "page" : undefined}
           data-testid="navbar-logo-home-link"
           className={[
@@ -154,7 +154,7 @@ export function FloatingNavbar({
               : "hover:bg-brand-soft/80",
           ].join(" ")}
         >
-          <DentHubLogo
+          <DentifyLogo
             size={20}
             showText
             className="gap-1 text-xs sm:gap-1.5 sm:text-sm"

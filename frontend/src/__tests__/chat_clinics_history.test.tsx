@@ -14,7 +14,7 @@ import {
   DENTIST_WORLD_ARTICLES,
   DentalArticleModal,
 } from '../components/DentalArticleModal';
-import { DentHubLogo } from '../components/DentHubLogo';
+import { DentifyLogo } from '../components/DentifyLogo';
 import { DEFAULT_HISTORY_EMPTY_TEXT, EmptyState } from '../components/EmptyState';
 import { FloatingNavbar, NAV_DOCK_ITEMS } from '../components/FloatingNavbar';
 import { OsmMapView } from '../components/OsmMapView';
@@ -102,7 +102,7 @@ const SAMPLE_SCAN_REPORT: ScanReportData = {
     donts: ['Jangan mengorek lubang gigi dengan benda tajam'],
   },
   medical_disclaimer:
-    'Penting: DentHub adalah alat skrining awal berbasis AI untuk pencegahan dan bukan pengganti diagnosis dokter gigi. Hasil ini bukan diagnosis medis. Segera kunjungi dokter gigi jika Anda merasakan nyeri hebat atau pembengkakan.',
+    'Penting: Dentify adalah alat skrining awal berbasis AI untuk pencegahan dan bukan pengganti diagnosis dokter gigi. Hasil ini bukan diagnosis medis. Segera kunjungi dokter gigi jika Anda merasakan nyeri hebat atau pembengkakan.',
   created_at: '2026-11-18T09:30:00.000Z',
 };
 
@@ -111,22 +111,22 @@ describe('Global layout, identity, /profile, and /panduan', () => {
     vi.restoreAllMocks();
   });
 
-  it('FloatingNavbar has clickable DentHubLogo to / plus 4 nav items (Scan, Deni, Klinik, Profil) without Beranda', () => {
+  it('FloatingNavbar has clickable DentifyLogo to / plus 4 nav items (Scan, Deni, Klinik, Profil) without Beranda', () => {
     expect(NAV_DOCK_ITEMS.map((item) => item.label)).toEqual([
       'Scan',
       'Deni',
       'Klinik',
       'Profil',
     ]);
-    const logoHtml = renderToStaticMarkup(<DentHubLogo />);
-    expect(logoHtml).toContain('/images/denthub-logo.png');
-    expect(logoHtml).toContain('DentHub');
+    const logoHtml = renderToStaticMarkup(<DentifyLogo />);
+    expect(logoHtml).toContain('/images/dentify-logo.png');
+    expect(logoHtml).toContain('Dentify');
 
     const navHtml = renderToStaticMarkup(<FloatingNavbar />);
     expect(navHtml).toContain('data-testid="navbar-logo-home-link"');
     expect(navHtml).toContain('href="/"');
     expect(navHtml).toContain('aria-current="page"');
-    expect(navHtml).toContain('data-testid="denthub-logo"');
+    expect(navHtml).toContain('data-testid="dentify-logo"');
     expect(navHtml).not.toContain('>Beranda<');
     expect(navHtml).not.toContain('>DH<');
   });
@@ -134,7 +134,7 @@ describe('Global layout, identity, /profile, and /panduan', () => {
   it('AppFooter renders credits + stacked links and DeniMascot renders floating widget to /chat', () => {
     const footerHtml = renderToStaticMarkup(<AppFooter />);
     const left = footerHtml.indexOf('created by');
-    const brand = footerHtml.indexOf('Denthub © 2026');
+    const brand = footerHtml.indexOf('Dentify © 2026');
     const right = footerHtml.indexOf('Panduan Aplikasi');
     const berita = footerHtml.indexOf('Promo, Berita &amp; Artikel');
     expect(left).toBeGreaterThan(-1);
@@ -184,7 +184,7 @@ describe('Global layout, identity, /profile, and /panduan', () => {
           id: 'u1',
           full_name: 'Faris Jihadi Hanif Lubis',
           username: 'farislubis',
-          email: 'faris@denthub.id',
+          email: 'faris@dentify.id',
           avatar: '',
           role: 'user',
         }}
@@ -208,7 +208,7 @@ describe('Global layout, identity, /profile, and /panduan', () => {
           id: 'u1',
           full_name: 'Faris Jihadi Hanif Lubis',
           username: 'farislubis',
-          email: 'faris@denthub.id',
+          email: 'faris@dentify.id',
           avatar: '',
           role: 'user',
         }}
@@ -230,7 +230,7 @@ describe('Global layout, identity, /profile, and /panduan', () => {
             id: 'u1',
             full_name: 'Faris Lubis',
             username: 'faris2026',
-            email: 'faris@denthub.id',
+            email: 'faris@dentify.id',
             avatar: 'data:image/png;base64,abc',
             role: 'user',
           },

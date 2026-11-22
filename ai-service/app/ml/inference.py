@@ -15,7 +15,7 @@ from PIL import Image
 
 from app.core.config import Settings, get_settings
 from app.core.state import runtime_state
-from app.ml.custom_model import DENTAL_LABELS, load_denthub_model
+from app.ml.custom_model import DENTAL_LABELS, load_dentify_model
 from app.ml.preprocessing import ImageQualityError, decode_and_preprocess_bytes
 from app.ml.urgency import compute_urgency
 from app.schemas import DentalCondition, DetectionItem, ImageQualityReport, PredictResponse
@@ -120,7 +120,7 @@ class DentalInferenceService:
         self.model: keras.Model | None = None
         self.grad_model: keras.Model | None = None
         self.labels: tuple[DentalCondition, ...] = DENTAL_LABELS  # type: ignore[assignment]
-        self.model_version: str = "denthub-cnn-1.0.0"
+        self.model_version: str = "dentify-cnn-1.0.0"
 
     def load(self) -> bool:
         model_path: Path = self.settings.resolved_model_path()
@@ -143,7 +143,7 @@ class DentalInferenceService:
             runtime_state.model_version = None
             return False
 
-        self.model = load_denthub_model(model_path)
+        self.model = load_dentify_model(model_path)
         self._init_grad_model()
         runtime_state.model_loaded = True
         runtime_state.model_version = self.model_version
@@ -300,7 +300,7 @@ class DentalInferenceService:
     ) -> PredictResponse:
         if self.model is None:
             if not self.load():
-                raise RuntimeError("Model DentHub belum dimuat.")
+                raise RuntimeError("Model Dentify belum dimuat.")
 
         preprocessed = decode_and_preprocess_bytes(raw_bytes)
         assert self.model is not None

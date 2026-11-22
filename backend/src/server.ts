@@ -8,7 +8,7 @@ async function start(): Promise<void> {
   await connectDb(env.mongodbUri);
   const app = createApp();
   app.listen(env.port, () => {
-    logger.info('DentHub backend listening', { port: env.port, env: env.nodeEnv });
+    logger.info('Dentify backend listening', { port: env.port, env: env.nodeEnv });
   });
 }
 

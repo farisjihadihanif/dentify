@@ -1,7 +1,7 @@
 [project]
-name = "denthub-data-science"
+name = "dentify-data-science"
 version = "1.0.0"
-description = "DentHub Data Wrangling, EDA, Feature Engineering, A/B Testing & Streamlit Dashboard"
+description = "Dentify Data Wrangling, EDA, Feature Engineering, A/B Testing & Streamlit Dashboard"
 requires-python = ">=3.11"
 
 [tool.ruff]

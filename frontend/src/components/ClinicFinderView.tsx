@@ -206,7 +206,7 @@ export function ClinicFinderView({
           className="rounded-card border border-brand/25 bg-brand-soft p-4 text-badge text-text"
         >
           <p className="font-semibold text-brand-dark">
-            Menampilkan direktori klinik gigi &amp; RSGM terkurasi DentHub.
+            Menampilkan direktori klinik gigi &amp; RSGM terkurasi Dentify.
           </p>
           <p className="mt-1 text-text-muted">
             Server Overpass OpenStreetMap sedang sibuk; Anda juga dapat membuka rute langsung di{' '}

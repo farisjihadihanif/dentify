@@ -91,7 +91,7 @@ export function DeniMascot() {
           {!imageError ? (
             <img
               src="/images/deni-mascot.png"
-              alt="Maskot Deni — Asisten Kesehatan Gigi DentHub"
+              alt="Maskot Deni — Asisten Kesehatan Gigi Dentify"
               onError={() => setImageError(true)}
               className="relative z-10 h-full w-full select-none object-contain drop-shadow-md"
             />

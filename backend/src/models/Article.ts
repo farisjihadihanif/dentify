@@ -87,7 +87,7 @@ const articleSchema = new Schema<IArticleDocument>(
     authorName: {
       type: String,
       trim: true,
-      default: 'Tim Redaksi DentHub',
+      default: 'Tim Redaksi Dentify',
       maxlength: 120,
     },
     publishedAt: {
@@ -135,7 +135,7 @@ export function serializeArticle(doc: IArticleDocument): SerializedArticle {
     coverPosition: doc.coverPosition || '50% 50%',
     coverZoom: typeof doc.coverZoom === 'number' && Number.isFinite(doc.coverZoom) ? doc.coverZoom : 1,
     isPublished: Boolean(doc.isPublished),
-    authorName: doc.authorName || 'Tim Redaksi DentHub',
+    authorName: doc.authorName || 'Tim Redaksi Dentify',
     publishedAt: doc.publishedAt ? doc.publishedAt.toISOString() : null,
     created_at: doc.created_at ? doc.created_at.toISOString() : new Date().toISOString(),
     updated_at: doc.updated_at ? doc.updated_at.toISOString() : new Date().toISOString(),

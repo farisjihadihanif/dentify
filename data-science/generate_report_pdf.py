@@ -1,10 +1,10 @@
 """
-Generate DentHub Capstone Technical Report PDF.
+Generate Dentify Capstone Technical Report PDF.
 
 Compiles problem discovery, data wrangling & cleaning, EDA & feature engineering,
 custom TensorFlow/Keras architecture & training results, Deni LangChain agent & OSM
 Clinic Finder system architecture, A/B test findings, and deployment notes into
-`docs/DentHub_Technical_Report.pdf`.
+`docs/Dentify_Technical_Report.pdf`.
 """
 
 from __future__ import annotations
@@ -45,7 +45,7 @@ def build_pdf(out_path: Path) -> None:
         rightMargin=2.0 * cm,
         topMargin=2.0 * cm,
         bottomMargin=2.0 * cm,
-        title="DentHub Capstone Technical Report (CC26-PSU285)",
+        title="Dentify Capstone Technical Report (CC26-PSU285)",
     )
 
     styles = getSampleStyleSheet()
@@ -58,7 +58,7 @@ def build_pdf(out_path: Path) -> None:
     body = ParagraphStyle("DentBody", parent=styles["BodyText"], leading=15, spaceAfter=8)
 
     story: list[Any] = []
-    story.append(Paragraph("DentHub (CC26-PSU285) – Technical Report", h1))
+    story.append(Paragraph("Dentify (CC26-PSU285) – Technical Report", h1))
     story.append(
         Paragraph(
             f"Coding Camp 2026 x DBS Foundation | Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
@@ -73,7 +73,7 @@ def build_pdf(out_path: Path) -> None:
         Paragraph(
             "Dental caries, calculus, and gingivitis frequently progress without early symptoms, causing "
             "roughly 7 in 10 individuals to visit a dentist only at the curative stage when acute pain occurs. "
-            "DentHub is a mobile-responsive, non-diagnostic preventive screening web platform combining a "
+            "Dentify is a mobile-responsive, non-diagnostic preventive screening web platform combining a "
             "custom TensorFlow/Keras Computer Vision model, an interactive LangChain + Gemini dental assistant (Deni), "
             "and an OpenStreetMap-based Clinic Finder with automatic emergency escalation.",
             body,
@@ -100,7 +100,7 @@ def build_pdf(out_path: Path) -> None:
         Paragraph(
             f"Engineered per-image quality statistics (median luminance={quality.get('median_luminance', 'N/A')}, "
             f"median Laplacian sharpness={quality.get('median_sharpness', 'N/A')}, mean CLAHE contrast gain="
-            f"{quality.get('mean_clahe_gain', 'N/A')}) directly calibrate DentHub's serving quality gate "
+            f"{quality.get('mean_clahe_gain', 'N/A')}) directly calibrate Dentify's serving quality gate "
             "(min 224x224 px, luminance 35-235, Laplacian variance >= 30, confidence >= 0.60).",
             body,
         )
@@ -162,7 +162,7 @@ def build_pdf(out_path: Path) -> None:
     story.append(Paragraph("6. System Architecture, Safety Guardrails & Deployment", h2))
     story.append(
         Paragraph(
-            "DentHub separates concerns across three production services: Next.js App Router frontend (Vercel), "
+            "Dentify separates concerns across three production services: Next.js App Router frontend (Vercel), "
             "Express + TypeScript + MongoDB gateway (Railway/Render), and internal FastAPI CV + Deni LangChain "
             "service protected by X-Internal-Key. User dental photos are processed strictly in memory and never "
             "persisted. Every scan and Deni reply attaches canonical Indonesian medical disclaimers, deterministic "
@@ -176,4 +176,4 @@ def build_pdf(out_path: Path) -> None:
 
 
 if __name__ == "__main__":
-    build_pdf(REPO_ROOT / "docs" / "DentHub_Technical_Report.pdf")
+    build_pdf(REPO_ROOT / "docs" / "Dentify_Technical_Report.pdf")

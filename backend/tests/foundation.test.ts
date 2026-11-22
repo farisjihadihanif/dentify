@@ -14,7 +14,7 @@ describe('Foundation: health, error shape, validation, rate limiter', () => {
     const res = await request(app).get('/api/v1/health');
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
-    expect(res.body.data.service).toBe('denthub-backend');
+    expect(res.body.data.service).toBe('dentify-backend');
     expect(res.body.data).toHaveProperty('database');
     expect(res.body.data).toHaveProperty('ai_service');
     expect(res.body.data).toHaveProperty('timestamp');

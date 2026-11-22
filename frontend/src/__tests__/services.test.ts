@@ -108,8 +108,8 @@ describe('apiClient and authStorage', () => {
   });
 
   it('resolves NEXT_PUBLIC_API_URL and trims trailing slashes', () => {
-    expect(resolveApiBaseUrl({ NEXT_PUBLIC_API_URL: 'https://api.denthub.id/api/v1///' })).toBe(
-      'https://api.denthub.id/api/v1',
+    expect(resolveApiBaseUrl({ NEXT_PUBLIC_API_URL: 'https://api.dentify.id/api/v1///' })).toBe(
+      'https://api.dentify.id/api/v1',
     );
     expect(resolveApiBaseUrl({})).toBe('http://localhost:5000/api/v1');
   });

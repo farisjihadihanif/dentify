@@ -1,6 +1,6 @@
-# DentHub Data Dictionary
+# Dentify Data Dictionary
 
-Cleaned, deduplicated, leak-free dental image dataset for Capstone `CC26-PSU285` (DentHub).
+Cleaned, deduplicated, leak-free dental image dataset for Capstone `CC26-PSU285` (Dentify).
 
 ## 1. Unified Canonical Target Classes
 

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-export interface DentHubLogoProps {
+export interface DentifyLogoProps {
   size?: number;
   showText?: boolean;
   textClassName?: string;
@@ -10,27 +10,27 @@ export interface DentHubLogoProps {
 }
 
 /**
- * Logo resmi DentHub (`DentHubLogo.tsx`):
- * - Memakai aset `/images/denthub-logo.png` (ikon garis gigi biru dengan cincin orbit miring di bawah).
+ * Logo resmi Dentify (`DentifyLogo.tsx`):
+ * - Memakai aset `/images/dentify-logo.png` (ikon garis gigi biru dengan cincin orbit miring di bawah).
  * - Bila aset gagal dimuat, otomatis memakai SVG vektor dengan identitas yang sama (`#0284C7` / `#0369A1`).
  */
-export function DentHubLogo({
+export function DentifyLogo({
   size = 34,
   showText = true,
   textClassName = 'text-base font-extrabold tracking-tight text-brand-dark',
   className = '',
-}: DentHubLogoProps) {
+}: DentifyLogoProps) {
   const [useFallback, setUseFallback] = useState(false);
 
   return (
     <span
-      data-testid="denthub-logo"
+      data-testid="dentify-logo"
       className={['inline-flex items-center gap-2 select-none', className].filter(Boolean).join(' ')}
     >
       {!useFallback ? (
         <img
-          src="/images/denthub-logo.png"
-          alt="Logo DentHub"
+          src="/images/dentify-logo.png"
+          alt="Logo Dentify"
           width={size}
           height={size}
           onError={() => setUseFallback(true)}
@@ -63,9 +63,9 @@ export function DentHubLogo({
         </svg>
       )}
 
-      {showText && <span className={textClassName}>DentHub</span>}
+      {showText && <span className={textClassName}>Dentify</span>}
     </span>
   );
 }
 
-export default DentHubLogo;
+export default DentifyLogo;

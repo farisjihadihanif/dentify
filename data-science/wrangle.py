@@ -1,5 +1,5 @@
 """
-DentHub Data Wrangling & Manual Cleaning Pipeline.
+Dentify Data Wrangling & Manual Cleaning Pipeline.
 
 Steps:
 1. Gather dental datasets from Kaggle cache/API + local curated intraoral photos.
@@ -303,9 +303,9 @@ def audit_excluded_yolo_dataset(yolo_root: Path) -> dict[str, Any]:
 def write_data_dictionary(out_path: Path, report: dict[str, Any]) -> None:
     split_class = report["class_counts_per_split"]
     lines = [
-        "# DentHub Data Dictionary",
+        "# Dentify Data Dictionary",
         "",
-        "Cleaned, deduplicated, leak-free dental image dataset for Capstone `CC26-PSU285` (DentHub).",
+        "Cleaned, deduplicated, leak-free dental image dataset for Capstone `CC26-PSU285` (Dentify).",
         "",
         "## 1. Unified Canonical Target Classes",
         "",
@@ -385,8 +385,8 @@ def write_wrangling_notebook(notebook_path: Path, report: dict[str, Any]) -> Non
     nb = nbf.v4.new_notebook()
     nb.cells = [
         nbf.v4.new_markdown_cell(
-            "# DentHub – Data Gathering, Assessment, Manual Cleaning & Leak-Free Splitting\n\n"
-            "DentHub Computer Vision dataset curation and split verification.\n\n"
+            "# Dentify – Data Gathering, Assessment, Manual Cleaning & Leak-Free Splitting\n\n"
+            "Dentify Computer Vision dataset curation and split verification.\n\n"
             "## 1. Dataset Sources & Licenses\n\n"
             "| # | Dataset | Origin / Path | License | Usage Decision |\n"
             "|---|---|---|---|---|\n"
@@ -404,7 +404,7 @@ def write_wrangling_notebook(notebook_path: Path, report: dict[str, Any]) -> Non
             "2. **Dropped out-of-scope oral conditions in `oral-diseases`** "
             f"(`{report['dropped_off_target_class']}` files removed):\n"
             "   - Removed `hypodontia`, `Mouth Ulcer`, and `Tooth Discoloration`.\n"
-            "   - *Why:* DentHub MVP focuses strictly on `caries`, `calculus`, `gingivitis`, and `healthy`.\n"
+            "   - *Why:* Dentify MVP focuses strictly on `caries`, `calculus`, `gingivitis`, and `healthy`.\n"
             "3. **Excluded `shahjahanabdullatif/dental-cavity-detection-dataset` after manual visual inspection** "
             f"(`{yolo_audit['total_images']}` files audited):\n"
             "   - Inspected sample images & YOLO label files (`-13-_jpg`, `00000_png_jpg`, `-23-_jpg`, `-1-_jpg`, `-10-_jpg`, `-100-_jpg`).\n"
@@ -666,7 +666,7 @@ def run_wrangling(
 def main() -> None:
     base = Path(__file__).resolve().parent
     kaggle_cache = Path.home() / ".cache" / "kagglehub" / "datasets"
-    parser = argparse.ArgumentParser(description="DentHub data wrangling & manual cleaning.")
+    parser = argparse.ArgumentParser(description="Dentify data wrangling & manual cleaning.")
     parser.add_argument("--processed-dir", type=Path, default=base / "data" / "processed")
     parser.add_argument("--notebooks-dir", type=Path, default=base / "notebooks")
     parser.add_argument(

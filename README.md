@@ -1,17 +1,17 @@
-# DentHub (CC26-PSU285)
+# Dentify (CC26-PSU285)
 
-**DentHub** (Capstone `CC26-PSU285`, Coding Camp 2026 × DBS Foundation) is a mobile-responsive web application for **early, non-diagnostic dental screening**. Users capture or upload a dental photo; a custom TensorFlow/Keras Computer Vision model detects `caries`, `calculus`, `gingivitis`, or `healthy`; **Deni** (LangChain + Gemini) explains the screening result and builds an Indonesian self-care plan; and **Clinic Finder** (OpenStreetMap Overpass + Nominatim + Leaflet) locates nearby dentists, automatically on emergency triggers.
+**Dentify** (Capstone `CC26-PSU285`, Coding Camp 2026 × DBS Foundation) is a mobile-responsive web application for **early, non-diagnostic dental screening**. Users capture or upload a dental photo; a custom TensorFlow/Keras Computer Vision model detects `caries`, `calculus`, `gingivitis`, or `healthy`; **Deni** (LangChain + Gemini) explains the screening result and builds an Indonesian self-care plan; and **Clinic Finder** (OpenStreetMap Overpass + Nominatim + Leaflet) locates nearby dentists, automatically on emergency triggers.
 
 ## Monorepo Structure
 
 ```
-denthub/
+dentify/
 ├── frontend/       Next.js (App Router) + TypeScript + Tailwind + Framer Motion + Three.js + Leaflet (:3000)
 ├── backend/        Express + TypeScript + Mongoose + Zod + Multer + Vitest (:5000)
 ├── ai-service/     FastAPI + TensorFlow/Keras (.keras) + OpenCV + LangChain/Gemini (:8000)
 ├── data-science/   Data wrangling, feature engineering, EDA notebooks, A/B test, Streamlit dashboard (:8501)
 ├── scripts/        End-to-end smoke verification (`e2e-smoke.js`)
-├── docs/           Specifications (`PRD.md`, `ARCHITECTURE.md`, `DATABASE.md`, `API_SPECS.md`, `DESIGN.md`, `TASK.md`), `COMPLIANCE_AUDIT.md`, `DentHub_Technical_Report.pdf`
+├── docs/           Specifications (`PRD.md`, `ARCHITECTURE.md`, `DATABASE.md`, `API_SPECS.md`, `DESIGN.md`, `TASK.md`), `COMPLIANCE_AUDIT.md`, `Dentify_Technical_Report.pdf`
 ├── AGENTS.md       Shared agent rules & domain invariants
 └── CLAUDE.md       One-line import of `AGENTS.md`
 ```

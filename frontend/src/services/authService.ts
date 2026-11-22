@@ -5,8 +5,8 @@
 import apiClient from './apiClient';
 import { clearAuthToken, getAuthToken, setAuthToken } from './authStorage';
 
-export const AUTH_USER_STORAGE_KEY = 'denthub_auth_user';
-export const USER_UPDATED_EVENT = 'denthub:user-updated';
+export const AUTH_USER_STORAGE_KEY = 'dentify_auth_user';
+export const USER_UPDATED_EVENT = 'dentify:user-updated';
 
 export function notifyUserUpdated(): void {
   if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {

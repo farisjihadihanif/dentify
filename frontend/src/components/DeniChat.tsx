@@ -67,7 +67,7 @@ export interface DeniChatProps {
 export const FALLBACK_DENI_BANNER_TEXT = 'Deni sedang tidak tersedia. Berikut panduan umum.';
 
 const WELCOME_DENI_MESSAGE =
-  'Halo! Saya Deni, asisten AI kesehatan gigi preventif Anda di DentHub. Anda dapat memilih template pertanyaan, melampirkan foto gigi, atau menuliskan keluhan gigi dan gusi yang ingin Anda tanyakan.';
+  'Halo! Saya Deni, asisten AI kesehatan gigi preventif Anda di Dentify. Anda dapat memilih template pertanyaan, melampirkan foto gigi, atau menuliskan keluhan gigi dan gusi yang ingin Anda tanyakan.';
 
 interface AttachedPhotoState {
   dataUrl: string;
@@ -500,7 +500,7 @@ export function DeniChat({
             />
             <div>
               <h1 className="text-base font-bold leading-tight text-text">Deni</h1>
-              <p className="text-xs text-text-muted">Asisten Gigi DentHub</p>
+              <p className="text-xs text-text-muted">Asisten Gigi Dentify</p>
             </div>
           </div>
 

@@ -1,1 +1,1 @@
-"""Konfigurasi inti untuk layanan AI DentHub."""
+"""Konfigurasi inti untuk layanan AI Dentify."""

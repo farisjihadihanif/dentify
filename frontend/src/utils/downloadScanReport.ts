@@ -20,7 +20,7 @@ export function downloadScanReportAsPng(report: ScanReportData): boolean {
   // Fallback unduh berkas teks ringkasan apabila context 2D tidak tersedia
   if (!ctx) {
     const textSummary = [
-      '=== LAPORAN HASIL SKRINING GIGI DENTHUB ===',
+      '=== LAPORAN HASIL SKRINING GIGI DENTIFY ===',
       `ID Pemindaian  : ${report.id ?? 'quick'}`,
       `Waktu          : ${formatJakartaDateTime(report.created_at)}`,
       `Kondisi Utama  : ${report.condition_label}`,
@@ -42,7 +42,7 @@ export function downloadScanReportAsPng(report: ScanReportData): boolean {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `DentHub-Laporan-${safeId}.txt`;
+    link.download = `Dentify-Laporan-${safeId}.txt`;
     link.click();
     URL.revokeObjectURL(url);
     return true;
@@ -74,7 +74,7 @@ export function downloadScanReportAsPng(report: ScanReportData): boolean {
 
   ctx.fillStyle = colorSurface;
   ctx.font = 'bold 30px sans-serif';
-  ctx.fillText('DentHub — Laporan Skrining Kesehatan Gigi', 44, 58);
+  ctx.fillText('Dentify — Laporan Skrining Kesehatan Gigi', 44, 58);
 
   ctx.font = '18px sans-serif';
   ctx.fillText(
@@ -161,7 +161,7 @@ export function downloadScanReportAsPng(report: ScanReportData): boolean {
   ctx.fillStyle = colorText;
   ctx.font = '15px sans-serif';
   ctx.fillText(
-    'DentHub adalah alat skrining awal berbasis AI untuk pencegahan dan bukan pengganti diagnosis dokter gigi.',
+    'Dentify adalah alat skrining awal berbasis AI untuk pencegahan dan bukan pengganti diagnosis dokter gigi.',
     68,
     1006,
   );
@@ -174,7 +174,7 @@ export function downloadScanReportAsPng(report: ScanReportData): boolean {
   const dataUrl = canvas.toDataURL('image/png');
   const link = document.createElement('a');
   link.href = dataUrl;
-  link.download = `DentHub-Hasil-Scan-${safeId}.png`;
+  link.download = `Dentify-Hasil-Scan-${safeId}.png`;
   link.click();
   return true;
 }

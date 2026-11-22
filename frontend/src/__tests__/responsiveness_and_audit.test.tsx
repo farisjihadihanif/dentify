@@ -60,7 +60,7 @@ describe('Audit Responsivitas Mobile (360px–1920px), Pembersihan Kamera, & Pen
     expect(footerHtml).not.toContain('Disclaimer Medis');
     expect(footerHtml).toContain('pb-24');
     expect(footerHtml).toContain('md:pb-4');
-    expect(footerHtml).toContain('Denthub © 2026');
+    expect(footerHtml).toContain('Dentify © 2026');
     expect(footerHtml).toContain('Promo, Berita &amp; Artikel');
   });
 

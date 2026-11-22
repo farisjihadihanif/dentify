@@ -77,9 +77,9 @@ const GUIDE_SECTIONS = [
   {
     step: "01",
     badge: "Tahap 1 • Akun",
-    title: "Daftar & Masuk ke Akun DentHub",
+    title: "Daftar & Masuk ke Akun Dentify",
     description:
-      "Untuk menggunakan fitur AI Dental Scan dan mengelola Profil Anda, masuklah ke akun DentHub melalui menu Profil atau halaman Login. Halaman Beranda, Tanya Deni, Klinik, dan Panduan tetap dapat dibaca kapan saja.",
+      "Untuk menggunakan fitur AI Dental Scan dan mengelola Profil Anda, masuklah ke akun Dentify melalui menu Profil atau halaman Login. Halaman Beranda, Tanya Deni, Klinik, dan Panduan tetap dapat dibaca kapan saja.",
     icon: UserCheck,
   },
   {
@@ -182,13 +182,13 @@ export default function PanduanPage() {
               className="mx-auto max-w-3xl text-center"
             >
               <span className="inline-block rounded-pill border border-white/20 bg-white/10 px-4 py-1 text-xs font-bold uppercase tracking-wider text-zinc-200">
-                Pusat Bantuan • Panduan Pengguna DentHub
+                Pusat Bantuan • Panduan Pengguna Dentify
               </span>
               <h1
                 id="heading-panduan-aplikasi"
                 className="mt-3 text-3xl font-extrabold text-white sm:text-4xl lg:text-5xl"
               >
-                Panduan Lengkap Penggunaan Aplikasi DentHub AI
+                Panduan Lengkap Penggunaan Aplikasi Dentify AI
               </h1>
               <p className="mt-3 text-sm text-slate-200 sm:text-base">
                 Pelajari cara melakukan screening kesehatan gigi mandiri,
@@ -471,10 +471,10 @@ export default function PanduanPage() {
         </section>
 
         {/* =====================================================================
-            SECTION 3: Duplicate Crossed Kinetic Marquee (Swapped) & Smooth DENTHUB. Wordmark
+            SECTION 3: Duplicate Crossed Kinetic Marquee (Swapped) & Smooth DENTIFY. Wordmark
            ===================================================================== */}
         <section
-          aria-label="Penutup Interaktif DentHub"
+          aria-label="Penutup Interaktif Dentify"
           data-testid="panduan-bottom-wordmark"
           className="w-full overflow-hidden border-t border-white/15 bg-surface-navy pb-16 pt-6 text-white md:pb-20"
         >
@@ -496,16 +496,16 @@ export default function PanduanPage() {
             ]}
           />
 
-          {/* Oversized Full-Width Interactive DENTHUB. Display Wordmark */}
+          {/* Oversized Full-Width Interactive DENTIFY. Display Wordmark */}
           <div className="mx-auto flex w-full max-w-[1380px] flex-col items-center justify-center px-4 pt-12 text-center sm:px-8 sm:pt-16">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
               Kesehatan Gigi Preventif Untuk Semua
             </p>
             <div
-              aria-label="DENTHUB."
+              aria-label="DENTIFY."
               className="flex select-none flex-wrap items-baseline justify-center font-display text-[4.5rem] font-black leading-none tracking-tighter sm:text-[8rem] lg:text-[11rem]"
             >
-              {Array.from('DENTHUB').map((char, idx) => (
+              {Array.from('DENTIFY').map((char, idx) => (
                 <motion.span
                   key={`${char}-${idx}`}
                   initial="rest"

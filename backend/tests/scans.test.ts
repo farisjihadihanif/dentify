@@ -84,7 +84,7 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
       urgency_level: 'medium',
       trigger_clinic_finder: false,
       quality: { blur_score: 42.0, mean_luminance: 108.0, passed: true },
-      model_version: 'denthub-mobilenetv2-2.0.0',
+      model_version: 'dentify-mobilenetv2-2.0.0',
     });
 
     const app = createApp();
@@ -110,7 +110,7 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
       urgency_level: 'emergency',
       trigger_clinic_finder: true,
       quality: { blur_score: 95.0, mean_luminance: 100.0, passed: true },
-      model_version: 'denthub-mobilenetv2-2.0.0',
+      model_version: 'dentify-mobilenetv2-2.0.0',
     });
 
     const app = createApp();
@@ -180,7 +180,7 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
       urgency_level: 'emergency',
       trigger_clinic_finder: true,
       quality: { blur_score: 190.5, mean_luminance: 128.0, passed: true },
-      model_version: 'denthub-cnn-1.0.0',
+      model_version: 'dentify-cnn-1.0.0',
     });
 
     const app = createApp();
@@ -226,7 +226,7 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
       urgency_level: 'low',
       trigger_clinic_finder: false,
       quality: { blur_score: 210.0, mean_luminance: 135.0, passed: true },
-      model_version: 'denthub-cnn-1.0.0',
+      model_version: 'dentify-cnn-1.0.0',
     });
 
     const app = createApp();

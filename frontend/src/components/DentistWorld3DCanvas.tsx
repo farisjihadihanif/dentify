@@ -526,7 +526,7 @@ export function DentistWorld3DCanvas({ className = '' }: DentistWorld3DCanvasPro
     <div
       data-testid="dentist-3d-canvas"
       role="img"
-      aria-label="Orbit 3D Ikon Kesehatan Gigi DentHub yang merespons gerakan kursor"
+      aria-label="Orbit 3D Ikon Kesehatan Gigi Dentify yang merespons gerakan kursor"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}

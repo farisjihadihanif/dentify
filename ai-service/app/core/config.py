@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     def normalized_internal_key(self) -> str:
         return self.ai_service_api_key.strip() or "dev-internal-key"
 
-    model_path: str = "models/denthub_model.keras"
+    model_path: str = "models/dentify_model.keras"
     model_meta_path: str = "models/model_meta.json"
     min_confidence: float = 0.60
     emergency_confidence: float = 0.85

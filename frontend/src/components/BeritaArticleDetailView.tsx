@@ -272,7 +272,7 @@ export function BeritaArticleDetailView({
         <div className="flex flex-wrap items-center gap-4 pt-1 text-xs font-semibold text-text-muted sm:text-sm">
           <span className="inline-flex items-center gap-1.5">
             <User2 className="h-4 w-4 text-brand-dark" aria-hidden="true" />
-            <span className="text-text">{article.authorName || 'Tim Redaksi DentHub'}</span>
+            <span className="text-text">{article.authorName || 'Tim Redaksi Dentify'}</span>
           </span>
           <span aria-hidden="true">•</span>
           <span className="inline-flex items-center gap-1.5">
@@ -363,7 +363,7 @@ export function BeritaArticleDetailView({
               </div>
               <p className="text-sm leading-relaxed text-text-muted">
                 Ingin memanfaatkan penawaran ini atau menanyakan syarat dan lokasi klinik mitra
-                terdekat? Gunakan Clinic Finder DentHub atau tanyakan langsung kepada asisten AI
+                terdekat? Gunakan Clinic Finder Dentify atau tanyakan langsung kepada asisten AI
                 Deni.
               </p>
               <div className="flex flex-wrap gap-2.5">
@@ -387,7 +387,7 @@ export function BeritaArticleDetailView({
 
           {/* Editorial Attribution & Footer */}
           <div className="rounded-2xl border border-border bg-bg p-4 text-xs leading-relaxed text-text-muted">
-            <strong className="font-bold text-text">Catatan Redaksi DentHub: </strong>
+            <strong className="font-bold text-text">Catatan Redaksi Dentify: </strong>
             Konten ini disusun untuk tujuan informasi dan edukasi kesehatan gigi preventif. Untuk
             diagnosis medis maupun tindakan klinis, selalu konsultasikan langsung dengan dokter
             gigi berizin.
@@ -413,7 +413,7 @@ export function BeritaArticleDetailView({
 
         {/* Sticky Right Sidebar (4 cols) */}
         <aside
-          aria-label="Konten Terkait dan Akses Cepat DentHub"
+          aria-label="Konten Terkait dan Akses Cepat Dentify"
           data-testid="berita-detail-sidebar"
           className="space-y-6 lg:sticky lg:top-8 lg:col-span-4"
         >
@@ -463,7 +463,7 @@ export function BeritaArticleDetailView({
               </ul>
             ) : (
               <p className="text-xs text-text-muted">
-                Jelajahi berbagai artikel dan promo terbaru lainnya di Portal Berita DentHub.
+                Jelajahi berbagai artikel dan promo terbaru lainnya di Portal Berita Dentify.
               </p>
             )}
 
@@ -480,7 +480,7 @@ export function BeritaArticleDetailView({
           {/* Quick Action Screening & Consultation Card */}
           <section className="space-y-4 rounded-[1.5rem] border border-brand/25 bg-brand-soft p-5 shadow-sm">
             <h2 className="font-display text-lg font-extrabold text-text">
-              Skrining &amp; Konsultasi DentHub
+              Skrining &amp; Konsultasi Dentify
             </h2>
             <p className="text-xs leading-relaxed text-text-muted">
               Periksa kondisi gigi Anda secara mandiri lewat AI Dental Scan atau konsultasikan

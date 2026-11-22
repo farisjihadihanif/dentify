@@ -31,7 +31,7 @@ export {
   type EmptyStateProps,
 } from './EmptyState';
 export { FloatingNavbar, NAV_DOCK_ITEMS, type NavDockItem } from './FloatingNavbar';
-export { DentHubLogo, type DentHubLogoProps } from './DentHubLogo';
+export { DentifyLogo, type DentifyLogoProps } from './DentifyLogo';
 export { AppFooter } from './AppFooter';
 export { DeniMascot } from './DeniMascot';
 export { AuthGuard, type AuthGuardProps } from './AuthGuard';

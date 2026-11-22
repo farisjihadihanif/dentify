@@ -4,7 +4,7 @@ import React, { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppButton } from "../../components/AppButton";
-import { DentHubLogo } from "../../components/DentHubLogo";
+import { DentifyLogo } from "../../components/DentifyLogo";
 import { ErrorBanner } from "../../components/ErrorBanner";
 import { registerUser } from "../../services/authService";
 import { mapApiError, type MappedUiError } from "../../services/errorMapper";
@@ -66,14 +66,14 @@ export default function RegisterPage() {
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-12 sm:px-6">
       <div className="mb-6 text-center">
         <Link href="/" className="inline-flex items-center justify-center">
-          <DentHubLogo
+          <DentifyLogo
             size={38}
             showText
             textClassName="text-xl font-extrabold text-brand-dark"
           />
         </Link>
         <h1 className="mt-4 text-screen-title text-text">
-          Buat Akun DentHub Baru
+          Buat Akun Dentify Baru
         </h1>
         <p className="mt-1 text-badge text-text-muted">
           Simpan riwayat hasil pemindaian gigi dan rencana perawatan preventif

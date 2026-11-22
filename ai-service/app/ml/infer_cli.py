@@ -1,4 +1,4 @@
-"""Standalone CLI inference script for DentHub CV model."""
+"""Standalone CLI inference script for Dentify CV model."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from app.ml.inference import DentalInferenceService
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run DentHub dental screening inference on an image.")
+    parser = argparse.ArgumentParser(description="Run Dentify dental screening inference on an image.")
     parser.add_argument("image", type=Path, help="Path to dental photo (JPEG/PNG/WEBP)")
     parser.add_argument("--symptoms", type=str, default="", help="Optional user symptoms text")
     args = parser.parse_args()

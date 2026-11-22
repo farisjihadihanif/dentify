@@ -51,7 +51,7 @@ export async function getHealth(_req: Request, res: Response): Promise<void> {
   res.status(200).json({
     success: true,
     data: {
-      service: 'denthub-backend',
+      service: 'dentify-backend',
       status: dbStatus === 'connected' ? 'ok' : 'degraded',
       database: dbStatus,
       ai_service: aiStatus,

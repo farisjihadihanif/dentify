@@ -14,7 +14,7 @@ export interface CrawledDentalArticle {
   publishedAt: Date;
 }
 
-const CRAWLER_USER_AGENT = 'DentHub-DentalNewsCrawler/1.0 (+https://denthub.id)';
+const CRAWLER_USER_AGENT = 'Dentify-DentalNewsCrawler/1.0 (+https://dentify.id)';
 const REQUEST_TIMEOUT_MS = 8000;
 
 interface PubMedTopic {
@@ -139,10 +139,10 @@ export function parsePubMedArticlesXml(
     const sourceUrl = `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`;
     const introParagraph =
       `Publikasi ilmiah dari ${journal} (${yearStr || 'Terbaru'}) mengulas temuan klinis terkini terkait ${topic.topicLabelId.toLowerCase()}. ` +
-      `Informasi ini dirangkum secara otomatis oleh crawler edukasi DentHub dari basis data biomedis terbuka PubMed (NIH/NLM) sebagai referensi tambahan kesehatan gigi preventif.`;
+      `Informasi ini dirangkum secara otomatis oleh crawler edukasi Dentify dari basis data biomedis terbuka PubMed (NIH/NLM) sebagai referensi tambahan kesehatan gigi preventif.`;
     const attributionParagraph =
       `Sumber asli (PubMed PMID ${pmid}): ${sourceUrl}\n\n` +
-      `Catatan DentHub: Ringkasan publikasi ilmiah ini bersifat edukatif. Untuk rencana perawatan sesuai kondisi gigi Anda, selalu konsultasikan langsung dengan dokter gigi.`;
+      `Catatan Dentify: Ringkasan publikasi ilmiah ini bersifat edukatif. Untuk rencana perawatan sesuai kondisi gigi Anda, selalu konsultasikan langsung dengan dokter gigi.`;
 
     const content = [introParagraph, ...abstractParts, attributionParagraph]
       .join('\n\n')

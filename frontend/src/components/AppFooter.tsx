@@ -13,7 +13,7 @@ export interface AppFooterProps {
  * Flush bottom responsive global footer (`AppFooter.tsx`):
  * - Hidden on `/chat` so the consultation workspace fills 100dvh cleanly
  * - Uses high-contrast dark-navy (`bg-surface-navy`) styling on `/panduan` only
- * - Desktop (`md:` and up): left credits stacked above `Denthub © 2026`, right `Panduan Aplikasi`
+ * - Desktop (`md:` and up): left credits stacked above `Dentify © 2026`, right `Panduan Aplikasi`
  *   stacked above `Promo, Berita & Artikel`
  * - Mobile (`< md`): generous bottom clearance (`pb-24 sm:pb-28 md:pb-4`) above the floating dock.
  */
@@ -71,7 +71,7 @@ export function AppFooter({ pathnameOverride }: AppFooterProps = {}) {
                 : "font-semibold text-text-muted"
             }
           >
-            Denthub &copy; 2026
+            Dentify &copy; 2026
           </p>
         </div>
 

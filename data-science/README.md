@@ -1,4 +1,4 @@
-# DentHub Data Science Workspace
+# Dentify Data Science Workspace
 
 Data wrangling, perceptual-hash deduplication, leak-free splitting, feature engineering, EDA notebooks, CLAHE A/B testing, technical PDF generation, and the Streamlit analytics dashboard (`CC26-PSU285`).
 

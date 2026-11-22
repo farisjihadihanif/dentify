@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * DentHub End-to-End Smoke Test.
+ * Dentify End-to-End Smoke Test.
  *
  * Usage:
  *   BACKEND_URL=http://localhost:5000/api/v1 \
@@ -59,7 +59,7 @@ async function runLiveSmokeTest() {
   );
   console.log('      OK');
 
-  const uniqueEmail = `smoke.${Date.now()}@denthub.local`;
+  const uniqueEmail = `smoke.${Date.now()}@dentify.local`;
   const password = 'SmokeTestPassword123!';
 
   console.log('[3/6] Checking Auth (/auth/register, /auth/me)...');
@@ -67,7 +67,7 @@ async function runLiveSmokeTest() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      full_name: 'DentHub Smoke Tester',
+      full_name: 'Dentify Smoke Tester',
       email: uniqueEmail,
       password,
       role: 'admin',

@@ -49,7 +49,7 @@ export interface SubmitScanInput {
   userSymptoms?: string;
 }
 
-export const LAST_SCAN_STORAGE_KEY = 'denthub_last_scan_report';
+export const LAST_SCAN_STORAGE_KEY = 'dentify_last_scan_report';
 
 export function saveLastScanToStorage(report: ScanReportData): void {
   if (typeof window === 'undefined' || !window.sessionStorage) return;

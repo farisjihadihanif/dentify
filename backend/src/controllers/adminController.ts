@@ -73,7 +73,7 @@ export async function adminCreateArticle(
       coverPosition: body.coverPosition?.trim() || '50% 50%',
       coverZoom: body.coverZoom ?? 1,
       isPublished,
-      authorName: body.authorName?.trim() || 'Admin DentHub',
+      authorName: body.authorName?.trim() || 'Admin Dentify',
       publishedAt: isPublished ? new Date() : null,
     });
 

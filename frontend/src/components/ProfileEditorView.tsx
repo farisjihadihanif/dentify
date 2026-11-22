@@ -326,7 +326,7 @@ export function ProfileEditorView({
           Edit Profil Pengguna
         </h1>
         <p className="mt-1 text-sm text-text-muted sm:text-base">
-          Kelola identitas akun, keamanan kata sandi, dan sesi aktif DentHub
+          Kelola identitas akun, keamanan kata sandi, dan sesi aktif Dentify
           Anda dalam satu tempat.
         </p>
       </div>
@@ -368,7 +368,7 @@ export function ProfileEditorView({
               </div>
 
               <h2 className="mt-3.5 text-lg font-bold text-text">
-                {fullName || "Pengguna DentHub"}
+                {fullName || "Pengguna Dentify"}
               </h2>
               {username && (
                 <p className="text-xs font-semibold text-brand-dark">
@@ -455,7 +455,7 @@ export function ProfileEditorView({
                   </h2>
                   <p className="mt-0.5 text-xs text-text-muted sm:text-sm">
                     Informasi ini ditampilkan pada akun dan riwayat pemindaian
-                    DentHub Anda.
+                    Dentify Anda.
                   </p>
                 </div>
 
@@ -907,7 +907,7 @@ export function ProfileEditorView({
                   Sesi &amp; Akun
                 </h2>
                 <p className="text-xs leading-relaxed text-text-muted sm:text-sm">
-                  Keluar dari sesi DentHub pada perangkat ini. Riwayat
+                  Keluar dari sesi Dentify pada perangkat ini. Riwayat
                   pemindaian dan percakapan Anda tetap aman tersimpan di akun
                   Anda.
                 </p>

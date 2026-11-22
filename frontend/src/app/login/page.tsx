@@ -4,7 +4,7 @@ import React, { useEffect, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AppButton } from '../../components/AppButton';
-import { DentHubLogo } from '../../components/DentHubLogo';
+import { DentifyLogo } from '../../components/DentifyLogo';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { loginUser } from '../../services/authService';
 import { mapApiError, type MappedUiError } from '../../services/errorMapper';
@@ -64,7 +64,7 @@ export default function LoginPage() {
           href="/"
           className="inline-flex items-center justify-center"
         >
-          <DentHubLogo size={38} showText textClassName="text-xl font-extrabold text-brand-dark" />
+          <DentifyLogo size={38} showText textClassName="text-xl font-extrabold text-brand-dark" />
         </Link>
         <h1 className="mt-4 text-screen-title text-text">Masuk ke Akun Anda</h1>
         <p className="mt-1 text-badge text-text-muted">
@@ -128,7 +128,7 @@ export default function LoginPage() {
 
         <div className="mt-6 border-t border-border pt-4 text-center text-badge text-text-muted">
           <p>
-            Belum memiliki akun DentHub?{' '}
+            Belum memiliki akun Dentify?{' '}
             <Link href="/register" className="font-semibold text-brand-dark hover:underline">
               Daftar Akun Baru
             </Link>

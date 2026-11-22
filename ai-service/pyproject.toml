@@ -1,7 +1,7 @@
 [project]
-name = "denthub-ai-service"
+name = "dentify-ai-service"
 version = "1.0.0"
-description = "DentHub AI Service - Custom Keras Computer Vision Inference & Deni LangChain Agent"
+description = "Dentify AI Service - Custom Keras Computer Vision Inference & Deni LangChain Agent"
 requires-python = ">=3.11"
 
 [tool.pytest.ini_options]

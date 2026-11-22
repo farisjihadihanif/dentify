@@ -86,7 +86,7 @@ describe('Models and Idempotent Seeder', () => {
         urgency_level: 'low',
         care_recommendations: { summary: 'Ok', dos: [], donts: [] },
         medical_disclaimer: DISCLAIMER_SCAN,
-        model_version: 'denthub-cnn-1.0.0',
+        model_version: 'dentify-cnn-1.0.0',
       }),
     ).rejects.toThrow();
 
@@ -101,7 +101,7 @@ describe('Models and Idempotent Seeder', () => {
       trigger_clinic_finder: true,
       care_recommendations: { summary: 'Segera ke dokter gigi.', dos: ['Sikat lembut'], donts: ['Jangan dikorek'] },
       medical_disclaimer: DISCLAIMER_SCAN,
-      model_version: 'denthub-cnn-1.0.0',
+      model_version: 'dentify-cnn-1.0.0',
     });
 
     expect(valid.primary_condition).toBe('caries');
@@ -127,14 +127,14 @@ describe('Models and Idempotent Seeder', () => {
 
   it('runSeed is idempotent and seeds 13 dental_knowledge docs + 1 admin without duplicates', async () => {
     const first = await runSeed({
-      adminEmail: 'admin@denthub.local',
+      adminEmail: 'admin@dentify.local',
       adminPassword: 'AdminPassword123!',
-      adminName: 'Admin DentHub',
+      adminName: 'Admin Dentify',
     });
     const second = await runSeed({
-      adminEmail: 'admin@denthub.local',
+      adminEmail: 'admin@dentify.local',
       adminPassword: 'AdminPassword123!',
-      adminName: 'Admin DentHub',
+      adminName: 'Admin Dentify',
     });
 
     expect(first.knowledgeUpserted).toBe(13);

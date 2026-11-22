@@ -144,7 +144,7 @@ def test_agent_chat_endpoint_auth_and_schema(monkeypatch: pytest.MonkeyPatch) ->
             urgency_level="emergency",
             trigger_clinic_finder=True,
             quality=ImageQualityReport(blur_score=100.0, mean_luminance=110.0, passed=True),
-            model_version="denthub-mobilenetv2-2.0.0",
+            model_version="dentify-mobilenetv2-2.0.0",
         )
 
     monkeypatch.setattr(inference_service, "model", object())
