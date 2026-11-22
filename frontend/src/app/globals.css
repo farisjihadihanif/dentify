@@ -222,3 +222,12 @@
     animation: none;
   }
 }
+
+/* Leaflet zoom buttons default to 30 px; keep them at the 44 px touch target. */
+.leaflet-container .leaflet-bar .leaflet-control-zoom-in,
+.leaflet-container .leaflet-bar .leaflet-control-zoom-out {
+  width: 2.75rem;
+  height: 2.75rem;
+  line-height: 2.75rem;
+  font-size: 1.25rem;
+}

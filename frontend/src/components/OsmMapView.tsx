@@ -60,7 +60,7 @@ export function OsmMapView({
         .join(' ')}
     >
       <div className="mb-3 flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
-        <div>
+        <div className="min-w-0">
           <p className="text-badge font-semibold text-brand-dark">
             Peta Fasilitas Kesehatan Gigi • OpenStreetMap
           </p>
@@ -75,7 +75,7 @@ export function OsmMapView({
           href={directMapsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex min-h-touch items-center rounded-card border border-border bg-bg px-3 py-1.5 text-badge font-semibold text-brand-dark hover:bg-brand-soft"
+          className="inline-flex min-h-touch w-fit shrink-0 items-center whitespace-nowrap rounded-card border border-border bg-bg px-3 py-1.5 text-badge font-semibold text-brand-dark hover:bg-brand-soft"
         >
           Buka di Google Maps ↗
         </a>
