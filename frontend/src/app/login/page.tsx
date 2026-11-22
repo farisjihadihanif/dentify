@@ -62,7 +62,8 @@ export default function LoginPage() {
       <div className="mb-6 text-center">
         <Link
           href="/"
-          className="inline-flex items-center justify-center"
+          aria-label="Beranda Dentify"
+          className="inline-flex min-h-touch items-center justify-center rounded-pill px-2"
         >
           <DentifyLogo size={38} showText textClassName="text-xl font-extrabold text-brand-dark" />
         </Link>
@@ -129,13 +130,19 @@ export default function LoginPage() {
         <div className="mt-6 border-t border-border pt-4 text-center text-badge text-text-muted">
           <p>
             Belum memiliki akun Dentify?{' '}
-            <Link href="/register" className="font-semibold text-brand-dark hover:underline">
+            <Link
+              href="/register"
+              className="whitespace-nowrap font-semibold text-brand-dark hover:underline"
+            >
               Daftar Akun Baru
             </Link>
           </p>
           <p className="mt-2">
             Atau baca{' '}
-            <Link href="/panduan" className="font-semibold text-brand-dark hover:underline">
+            <Link
+              href="/panduan"
+              className="whitespace-nowrap font-semibold text-brand-dark hover:underline"
+            >
               Panduan Penggunaan Aplikasi →
             </Link>
           </p>

@@ -65,7 +65,11 @@ export default function RegisterPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-12 sm:px-6">
       <div className="mb-6 text-center">
-        <Link href="/" className="inline-flex items-center justify-center">
+        <Link
+          href="/"
+          aria-label="Beranda Dentify"
+          className="inline-flex min-h-touch items-center justify-center rounded-pill px-2"
+        >
           <DentifyLogo
             size={38}
             showText
