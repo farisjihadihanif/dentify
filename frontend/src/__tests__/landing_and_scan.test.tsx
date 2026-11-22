@@ -114,6 +114,26 @@ describe('Landing Page 3 Section & Layar Pemindaian Gigi dengan Sidebar', () => 
     expect(pageHtml).toContain('Pemindaian Kesehatan Gigi Mandiri');
   });
 
+  it('ScanWorkspace history shows a neutral "Belum meyakinkan" chip, never an urgency badge, for unsure scans', () => {
+    const unsure = {
+      ...SAMPLE_EMERGENCY_REPORT,
+      id: 'scan-unsure-1',
+      is_low_confidence: true,
+      urgency_level: 'medium' as const,
+      condition_label: 'Hasil Belum Meyakinkan – Silakan Ambil Ulang Foto',
+    };
+    const html = renderToStaticMarkup(<ScanWorkspace initialHistory={[unsure]} />);
+    expect(html).toContain('data-testid="unsure-badge"');
+    expect(html).toContain('Belum meyakinkan');
+    expect(html).not.toContain('data-urgency');
+
+    const sureHtml = renderToStaticMarkup(
+      <ScanWorkspace initialHistory={[SAMPLE_EMERGENCY_REPORT]} />,
+    );
+    expect(sureHtml).toContain('data-urgency="emergency"');
+    expect(sureHtml).not.toContain('data-testid="unsure-badge"');
+  });
+
   it('validateClientImageFile memvalidasi format JPG/PNG/WEBP dan batas ukuran 5 MB', () => {
     expect(
       validateClientImageFile({

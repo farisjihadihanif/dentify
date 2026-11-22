@@ -78,6 +78,9 @@ describe('AI transparency labels, honest confidence, fallback banner, and feedba
     expect(html).not.toContain('52%');
     expect(html).not.toContain('Indikasi Karies');
     expect(html).not.toContain('condition=caries');
+    // no urgency badge for an unsure scan, only the neutral chip
+    expect(html).toContain('data-testid="unsure-badge"');
+    expect(html).not.toContain('data-urgency');
   });
 
   it('shows "Dibuat oleh AI" and feedback controls on Deni messages', () => {

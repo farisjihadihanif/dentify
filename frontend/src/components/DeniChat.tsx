@@ -29,7 +29,7 @@ import { AppButton } from './AppButton';
 import { ClinicEscalationCard } from './ClinicEscalationCard';
 import { ErrorBanner } from './ErrorBanner';
 import { RichMessageContent } from './RichMessageContent';
-import { StatusBadge, type UrgencyLevel } from './StatusBadge';
+import { StatusBadge, UnsureBadge, type UrgencyLevel } from './StatusBadge';
 import { isAuthenticated } from '../services/authService';
 import {
   INITIAL_SUGGESTED_QUESTIONS,
@@ -679,7 +679,11 @@ export function DeniChat({
                   </h2>
                 </div>
 
-                <StatusBadge urgency={scanReport?.urgency_level ?? currentUrgency} />
+                {scanReport?.is_low_confidence ? (
+                  <UnsureBadge size="sm" />
+                ) : (
+                  <StatusBadge urgency={scanReport?.urgency_level ?? currentUrgency} size="sm" />
+                )}
               </section>
             )}
 

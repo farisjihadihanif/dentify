@@ -7,7 +7,12 @@ import {
   MedicalDisclaimerBanner,
   STANDARD_MEDICAL_DISCLAIMER,
 } from '../components/MedicalDisclaimerBanner';
-import { StatusBadge, URGENCY_METADATA } from '../components/StatusBadge';
+import {
+  StatusBadge,
+  UNSURE_CHIP_LABEL,
+  UnsureBadge,
+  URGENCY_METADATA,
+} from '../components/StatusBadge';
 import {
   PHOTO_LIGHTING_GUIDE_TEXT,
   WebcamCapture,
@@ -51,6 +56,24 @@ describe('Komponen UI Bersama', () => {
     const emgHtml = renderToStaticMarkup(<StatusBadge urgency="emergency" />);
     expect(emgHtml).toContain('bg-status-red');
     expect(emgHtml).toContain(URGENCY_METADATA.emergency.label);
+  });
+
+  it('StatusBadge is a compact chip sized to its content and shows the short label at size sm', () => {
+    const html = renderToStaticMarkup(<StatusBadge urgency="medium" size="sm" />);
+    expect(html).toContain('w-fit');
+    expect(html).toContain('max-w-full');
+    expect(html).toContain('text-xs');
+    expect(html).toContain(URGENCY_METADATA.medium.shortLabel);
+    // full label stays available to screen readers and as a tooltip
+    expect(html).toContain('sr-only');
+    expect(html).toContain(`title="${URGENCY_METADATA.medium.label}"`);
+  });
+
+  it('UnsureBadge is a neutral chip with no urgency or status colour', () => {
+    const html = renderToStaticMarkup(<UnsureBadge size="sm" />);
+    expect(html).toContain(UNSURE_CHIP_LABEL);
+    expect(html).not.toContain('data-urgency');
+    expect(html).not.toContain('bg-status-');
   });
 
   it('MedicalDisclaimerBanner selalu menampilkan teks disclaimer standar non-diagnostik', () => {

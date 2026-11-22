@@ -13,7 +13,7 @@ import { AppButton } from './AppButton';
 import { ErrorBanner } from './ErrorBanner';
 import { MedicalDisclaimerBanner } from './MedicalDisclaimerBanner';
 import { ScanResultCard } from './ScanResultCard';
-import { StatusBadge } from './StatusBadge';
+import { StatusBadge, UnsureBadge } from './StatusBadge';
 import {
   PHOTO_LIGHTING_GUIDE_TEXT,
   WebcamCapture,
@@ -343,7 +343,7 @@ export function ScanWorkspace({
                       <button
                         type="button"
                         onClick={() => void handleSelectHistoryItem(item)}
-                        className="flex-1 text-left"
+                        className="min-h-touch min-w-0 flex-1 text-left"
                       >
                         <p className="text-badge font-bold text-text">{item.condition_label}</p>
                         <p className="mt-0.5 text-[12px] text-text-muted">
@@ -364,7 +364,11 @@ export function ScanWorkspace({
                     </div>
 
                     <div className="mt-2">
-                      <StatusBadge urgency={item.urgency_level} />
+                      {item.is_low_confidence ? (
+                        <UnsureBadge size="sm" />
+                      ) : (
+                        <StatusBadge urgency={item.urgency_level} size="sm" />
+                      )}
                     </div>
                   </li>
                 );

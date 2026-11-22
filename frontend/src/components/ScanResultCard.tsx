@@ -19,7 +19,7 @@ import { AiFeedbackControl } from './AiFeedbackControl';
 import { AppButton } from './AppButton';
 import { ClinicEscalationCard } from './ClinicEscalationCard';
 import { MedicalDisclaimerBanner } from './MedicalDisclaimerBanner';
-import { StatusBadge } from './StatusBadge';
+import { StatusBadge, UnsureBadge } from './StatusBadge';
 
 export interface ScanResultCardProps {
   report: ScanReportData;
@@ -72,7 +72,7 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
       <MedicalDisclaimerBanner message={report.medical_disclaimer} />
 
       <div className="flex flex-col justify-between gap-4 border-b border-border pb-5 sm:flex-row sm:items-start">
-        <div className="space-y-1.5">
+        <div className="min-w-0 flex-1 space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
             <span
               data-testid="scan-ai-label"
@@ -156,7 +156,11 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
           )}
         </div>
 
-        <StatusBadge urgency={report.urgency_level} />
+        {isUncertain ? (
+          <UnsureBadge className="sm:mt-1" />
+        ) : (
+          <StatusBadge urgency={report.urgency_level} className="sm:mt-1 sm:max-w-[17rem]" />
+        )}
       </div>
 
       {previewUrl && (
