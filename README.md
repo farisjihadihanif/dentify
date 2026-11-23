@@ -35,29 +35,6 @@ Current metrics (held-out test set, n = 255, model `dentify-mobilenetv2-2.1.0`, 
 
 Served per-class recall: caries 0.89, calculus 0.85, gingivitis 0.80, healthy 0.88. The decision weights reduced calculus→gingivitis confusion from 17 to 10 test images, but more gingivitis is now called caries or calculus. The test set has only 28 caries images, so these figures carry wide uncertainty. Full details, every training run, data licences and limitations: [`ai-service/training/MODEL_CARD.md`](ai-service/training/MODEL_CARD.md). This is a screening aid, not a diagnosis.
 
-## Dataset & model
-
-Trained on public Kaggle dental datasets plus a small internal capstone image set (licences as listed in [`MODEL_CARD.md`](ai-service/training/MODEL_CARD.md)). For education and screening demos only; not a medical diagnosis.
-
-Free setup: Vercel (frontend), Render (backend + ai-service) and MongoDB Atlas (database). Step-by-step guide (Indonesian): [`DEPLOY.md`](DEPLOY.md).
-
-- **Frontend:** Vercel (root directory `frontend/`, `frontend/vercel.json`). The build fails unless `NEXT_PUBLIC_API_URL` is an `https://…/api/v1` URL.
-- **Backend & AI Service:** Render Free plan via the `render.yaml` Blueprint (health checks on `/healthz`). Both services sleep after 15 minutes idle; the frontend shows a "Server sedang dinyalakan" state with retry while they wake (~1 minute). `backend/railway.json` and `ai-service/railway.json` remain as an alternative.
-- **Database:** MongoDB Atlas (M0 free cluster).
-- **Analytics Dashboard:** Streamlit Cloud (`data-science/app.py`) — _Public URL: pending Streamlit Cloud account deployment (T-402)_
-
-Every URL, CORS origin and key comes from environment variables. The `.env.example` files in `frontend/`, `backend/` and `ai-service/` list each variable by name only.
-
-### Getting the model file onto the server
-
-Production serves `ai-service/models/dentify_model.tflite` through LiteRT, without TensorFlow (peak ~185 MB RAM, fits Render's 512 MB instance; parity with the `.keras` model is in the model card). Model binaries are **not in git** (`*.keras` and `*.tflite` are ignored), so the build downloads the file:
-
-1. `cd ai-service && python -m training.convert_tflite` (needs `requirements-train.txt`) creates the `.tflite` and checks it against the `.keras` model on the validation split.
-2. Upload `dentify_model.tflite` as a GitHub Release asset (or any direct-download URL) and set `MODEL_URL` (plus optionally `MODEL_SHA256`) on the ai-service.
-3. The build command runs `python scripts/fetch_model.py`, which downloads the file and fails the build if it is missing or the checksum does not match.
-
-`MODEL_RUNTIME=keras` serves the `.keras` file with full TensorFlow instead (needs `requirements-train.txt` and more than 1 GB RAM). After re-training, convert again and re-upload both the model file and the updated `model_meta.json`.
-
 ## Capstone Compliance
 
 Built for Project Brief `CC26-PSU285`. The compliance audit is maintained outside this repository.
