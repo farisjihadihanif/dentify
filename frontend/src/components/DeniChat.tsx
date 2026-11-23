@@ -13,7 +13,9 @@ import Link from 'next/link';
 import {
   AlertCircle,
   ChevronUp,
+  Home,
   ImagePlus,
+  Menu,
   MessageSquare,
   PanelLeftClose,
   PanelLeftOpen,
@@ -25,6 +27,7 @@ import {
   X,
 } from 'lucide-react';
 import { AiFeedbackControl } from './AiFeedbackControl';
+import { NAV_DOCK_ITEMS } from './FloatingNavbar';
 import { AppButton } from './AppButton';
 import { ClinicEscalationCard } from './ClinicEscalationCard';
 import { ErrorBanner } from './ErrorBanner';
@@ -492,7 +495,7 @@ export function DeniChat({
         data-testid="deni-sessions-sidebar"
         data-collapsed={!desktopSidebarOpen}
         className={[
-          'z-30 flex h-full w-72 shrink-0 flex-col border-r border-border bg-surface p-4 transition-all duration-200',
+          'z-40 flex h-full w-[85vw] max-w-[18rem] shrink-0 flex-col lg:w-72 border-r border-border bg-surface p-4 transition-all duration-200',
           mobileSidebarOpen
             ? 'fixed inset-y-0 left-0 shadow-xl lg:static lg:shadow-none'
             : desktopSidebarOpen
@@ -561,7 +564,7 @@ export function DeniChat({
               Belum ada sesi percakapan tersimpan. Mulai pertanyaan pertama Anda bersama Deni.
             </p>
           ) : (
-            <ul className="mt-3 flex-1 space-y-1.5 overflow-y-auto pb-20 pr-1">
+            <ul className="mt-3 flex-1 space-y-1.5 overflow-y-auto pb-2 pr-1 lg:pb-20">
               {sessionsList.map((sess) => {
                 const active = sessionId === sess.id;
                 return (
@@ -595,25 +598,60 @@ export function DeniChat({
             </ul>
           )}
         </div>
+
+        {/* Mobile-only app navigation inside the drawer (the floating dock is desktop-only on /chat) */}
+        <nav
+          aria-label="Navigasi Dentify"
+          data-testid="deni-drawer-nav"
+          className="mt-3 grid grid-cols-4 gap-1 border-t border-border pt-3 lg:hidden"
+        >
+          <Link
+            href="/"
+            className="flex min-h-touch flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold text-text-muted hover:bg-brand-soft hover:text-brand-dark"
+          >
+            <Home className="h-4 w-4" aria-hidden="true" />
+            <span>Beranda</span>
+          </Link>
+          {NAV_DOCK_ITEMS.filter((item) => item.href !== '/chat').map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex min-h-touch flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold text-text-muted hover:bg-brand-soft hover:text-brand-dark"
+              >
+                <Icon className="h-4 w-4" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
       </aside>
 
+      {/* Mobile drawer backdrop: tap outside to close, like the ChatGPT / Claude / Gemini apps */}
+      {mobileSidebarOpen && (
+        <button
+          type="button"
+          aria-label="Tutup riwayat chat"
+          data-testid="deni-drawer-backdrop"
+          onClick={() => setMobileSidebarOpen(false)}
+          className="fixed inset-0 z-30 bg-surface-navy/40 lg:hidden"
+        />
+      )}
+
       {/* Main Full-Height Conversation Pane (with pr-20 clearance for vertical right dock) */}
-      <div className="flex min-w-0 flex-1 flex-col bg-bg pr-20">
+      <div className="flex min-w-0 flex-1 flex-col bg-bg lg:pr-20">
         {/* Compact utility top bar: icon-only PanelLeftOpen when sidebar is collapsed/mobile */}
-        <div className="flex items-center justify-between gap-3 border-b border-border bg-surface px-4 py-2.5 sm:px-6">
+        <div className="flex items-center justify-between gap-3 border-b border-border bg-surface px-2 py-2 sm:px-6 sm:py-2.5">
           <div className="flex items-center gap-2.5">
             {/* Mobile icon-only sidebar toggle */}
             <button
               type="button"
               onClick={() => setMobileSidebarOpen((prev) => !prev)}
               aria-label={mobileSidebarOpen ? 'Tutup Riwayat Chat' : 'Buka Riwayat Chat'}
-              className="inline-flex h-9 w-9 min-h-touch min-w-touch items-center justify-center rounded-lg border border-border bg-bg text-brand-dark transition-colors hover:bg-brand-soft lg:hidden"
+              className="inline-flex h-9 w-9 min-h-touch min-w-touch items-center justify-center rounded-lg text-brand-dark transition-colors hover:bg-brand-soft lg:hidden"
             >
-              {mobileSidebarOpen ? (
-                <PanelLeftClose className="h-4 w-4 shrink-0" aria-hidden="true" />
-              ) : (
-                <PanelLeftOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
-              )}
+              <Menu className="h-5 w-5 shrink-0" aria-hidden="true" />
             </button>
 
             {/* Desktop icon-only sidebar open button (shown only when sidebar is collapsed) */}
@@ -643,17 +681,18 @@ export function DeniChat({
           <button
             type="button"
             onClick={handleStartNewChat}
-            className="inline-flex h-9 min-h-touch items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-xs font-semibold text-brand-dark transition-colors hover:bg-brand-soft lg:hidden"
+            aria-label="Chat Baru"
+            title="Chat Baru"
+            className="inline-flex h-9 min-h-touch min-w-touch items-center justify-center gap-1.5 rounded-lg text-brand-dark transition-colors hover:bg-brand-soft lg:hidden"
           >
-            <Plus className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-            <span>Baru</span>
+            <Plus className="h-5 w-5 shrink-0" aria-hidden="true" />
           </button>
         </div>
 
         {/* Scrollable Full-Height Message Area */}
         <section
           aria-label="Percakapan Deni"
-          className="flex-1 overflow-y-auto px-4 py-5 sm:px-6"
+          className="flex-1 overflow-y-auto px-3 py-4 sm:px-6 sm:py-5"
         >
           <div className="mx-auto max-w-3xl space-y-5">
             {(scanReport || scanId) && (
@@ -838,7 +877,7 @@ export function DeniChat({
           ref={composerRef}
           onPaste={handleComposerPaste}
           data-testid="deni-bottom-composer"
-          className="border-t border-border bg-surface px-4 pb-4 pt-3 sm:px-6 sm:pb-5"
+          className="border-t border-border bg-surface px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2.5 sm:px-6 sm:pb-5 sm:pt-3"
         >
           <div className="mx-auto max-w-3xl space-y-2.5">
             {/* Attached Photo Preview Bar */}
@@ -870,7 +909,7 @@ export function DeniChat({
             )}
 
             {/* Compact Toolbar: Contoh Pertanyaan Dropdown + Tambah Foto */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2">
               <div ref={templateMenuRef} className="relative">
                 <button
                   type="button"
@@ -882,7 +921,8 @@ export function DeniChat({
                   className="inline-flex h-9 min-h-touch items-center gap-1.5 rounded-pill border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark transition-colors hover:border-brand/40 hover:bg-brand-soft disabled:opacity-60"
                 >
                   <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  <span>Contoh Pertanyaan</span>
+                  <span className="sm:hidden">Contoh</span>
+                  <span className="hidden sm:inline">Contoh Pertanyaan</span>
                   <ChevronUp
                     className={[
                       'h-3.5 w-3.5 shrink-0 transition-transform duration-150',
@@ -925,7 +965,8 @@ export function DeniChat({
                 className="inline-flex h-9 min-h-touch cursor-pointer items-center gap-1.5 rounded-pill border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark transition-colors hover:border-brand/40 hover:bg-brand-soft"
               >
                 <ImagePlus className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                <span>+ Tambah Foto</span>
+                <span className="sm:hidden">Foto</span>
+                <span className="hidden sm:inline">+ Tambah Foto</span>
                 <input
                   ref={photoInputRef}
                   id="deni-photo-upload"
@@ -976,7 +1017,7 @@ export function DeniChat({
                 maxLength={1000}
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Ketik pertanyaan atau lampirkan foto gigi untuk Deni..."
+                placeholder="Tanya Deni..."
                 className="h-11 min-h-touch min-w-0 flex-1 rounded-xl border border-border bg-bg px-4 text-base text-text placeholder:text-text-muted focus:border-brand focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand-ring"
               />
               <AppButton
@@ -984,7 +1025,8 @@ export function DeniChat({
                 variant="primary"
                 size="md"
                 loading={isSending}
-                loadingText="Mengirim..."
+                loadingText=""
+                aria-label={isSending ? 'Mengirim...' : 'Kirim'}
                 disabled={
                   !loggedIn || (!inputMessage.trim() && !attachedPhoto) || cooldownLeft > 0
                 }

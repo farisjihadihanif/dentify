@@ -159,7 +159,7 @@ export function FloatingNavbar({
         aria-label="Navigasi Utama Dentify"
         data-testid="floating-navbar"
         data-orientation="vertical-right"
-        className="fixed right-2.5 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-1.5 rounded-2xl border border-border/90 bg-surface/95 p-1.5 shadow-xl backdrop-blur-md sm:right-4 sm:gap-2 sm:rounded-3xl sm:p-2"
+        className="fixed right-2.5 top-1/2 z-40 hidden -translate-y-1/2 lg:flex flex-col items-center gap-1.5 rounded-2xl border border-border/90 bg-surface/95 p-1.5 shadow-xl backdrop-blur-md sm:right-4 sm:gap-2 sm:rounded-3xl sm:p-2"
       >
         <Link
           href="/"
