@@ -33,8 +33,6 @@ Current metrics (held-out test set, n = 255, model `dentify-mobilenetv2-2.1.0`, 
 | Single view + val-tuned weights           | 80.8%     | 0.81     | 0.93          |
 | Single view, plain argmax                 | 76.5%     | 0.74     | 0.57          |
 
-Served per-class recall: caries 0.89, calculus 0.85, gingivitis 0.80, healthy 0.88. The decision weights reduced calculus→gingivitis confusion from 17 to 10 test images, but more gingivitis is now called caries or calculus. The test set has only 28 caries images, so these figures carry wide uncertainty. Full details, every training run, data licences and limitations: [`ai-service/training/MODEL_CARD.md`](ai-service/training/MODEL_CARD.md). This is a screening aid, not a diagnosis.
-
 ## Capstone Compliance
 
 Built for Project Brief `CC26-PSU285`. The compliance audit is maintained outside this repository.
