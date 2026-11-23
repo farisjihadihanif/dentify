@@ -52,6 +52,8 @@ data-science/data/processed/*.webp
 *.ckpt
 *.ckpt.*
 ai-service/models/saved_model/
+ai-service/models/backup/
+ai-service/models/candidates/
 !ai-service/models/.gitkeep
 
 # Temporary uploads and logs

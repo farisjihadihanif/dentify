@@ -32,6 +32,31 @@ Seed MongoDB (`dental_knowledge`, `articles`, `clinic_directory`, and initial Ad
 cd backend && npm run seed
 ```
 
+### Run Dentify locally (Windows, daily use)
+
+Open three terminals in `D:\project\dentify` and start the services in this order:
+
+```powershell
+# Terminal 1: ai-service (http://localhost:8000)
+cd ai-service
+.venv\Scripts\activate
+python -m uvicorn app.main:app --port 8000
+
+# Terminal 2: backend (http://localhost:5000)
+cd backend
+npm run dev
+
+# Terminal 3: frontend (http://localhost:3000)
+cd frontend
+npm run dev
+```
+
+Then open http://localhost:3000. Stop each service with `Ctrl+C`.
+
+- Use `python -m uvicorn`, not `uvicorn` directly: the venv launcher can still point to the old `denthub` path.
+- If the website stops picking up code changes, restart Terminal 3 (`Ctrl+C`, then `npm run dev`).
+- First time only: `npm install` in `backend/` and `frontend/`, `pip install -r requirements-train.txt` in `ai-service/` (inside the venv), and `npm run seed` in `backend/`.
+
 ## Data Science & ML Pipeline
 
 ```bash
@@ -71,9 +96,13 @@ Current metrics (held-out test set, n = 255, model `dentify-mobilenetv2-2.1.0`, 
 
 Served per-class recall: caries 0.89, calculus 0.85, gingivitis 0.80, healthy 0.88. The decision weights reduced calculus→gingivitis confusion from 17 to 10 test images, but more gingivitis is now called caries or calculus. The test set has only 28 caries images, so these figures carry wide uncertainty. Full details, every training run, data licences and limitations: [`ai-service/training/MODEL_CARD.md`](ai-service/training/MODEL_CARD.md). This is a screening aid, not a diagnosis.
 
-## Deployment Targets
+## Dataset & model
 
-Step-by-step guide (Indonesian): [`DEPLOY.md`](DEPLOY.md). Everything fits free tiers:
+Trained on public Kaggle dental datasets plus a small internal capstone image set (licences as listed in [`MODEL_CARD.md`](ai-service/training/MODEL_CARD.md)). For education and screening demos only; not a medical diagnosis.
+
+## Deploy
+
+Free setup: Vercel (frontend), Render (backend + ai-service) and MongoDB Atlas (database). Step-by-step guide (Indonesian): [`DEPLOY.md`](DEPLOY.md).
 
 - **Frontend:** Vercel (root directory `frontend/`, `frontend/vercel.json`). The build fails unless `NEXT_PUBLIC_API_URL` is an `https://…/api/v1` URL.
 - **Backend & AI Service:** Render Free plan via the `render.yaml` Blueprint (health checks on `/healthz`). Both services sleep after 15 minutes idle; the frontend shows a "Server sedang dinyalakan" state with retry while they wake (~1 minute). `backend/railway.json` and `ai-service/railway.json` remain as an alternative.
@@ -95,3 +124,13 @@ Production serves `ai-service/models/dentify_model.tflite` through LiteRT, witho
 ## Capstone Compliance
 
 Built for Project Brief `CC26-PSU285`. The compliance audit is maintained outside this repository.
+
+## Copyright
+
+© 2026 Faris Jihadi Hanif Lubis. All rights reserved.
+
+This repository is public for portfolio and review purposes only. No license is granted: you may view the code, but you may not copy, modify, redistribute, or use it in other projects without my written permission.
+
+Repositori ini dipublikasikan hanya untuk keperluan portofolio. Kode boleh dilihat, tetapi tidak boleh disalin, diubah, disebarkan, atau digunakan tanpa izin tertulis dari saya.
+
+Contact: [LinkedIn](https://www.linkedin.com/in/faris-jihadi-hanif-lubis-62337a286/)
