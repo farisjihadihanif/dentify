@@ -17,7 +17,9 @@ const DEFAULT_API_URL = 'http://localhost:5000/api/v1';
 const DEFAULT_TIMEOUT_MS = 30000;
 
 export function resolveApiBaseUrl(
-  env: Record<string, string | undefined> = process.env,
+  // Next.js only inlines NEXT_PUBLIC_* into the browser bundle when written literally as
+  // process.env.NEXT_PUBLIC_API_URL; passing process.env as an object leaves it empty there.
+  env: Record<string, string | undefined> = { NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL },
 ): string {
   const raw = env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL;
   return raw.replace(/\/+$/, '');
