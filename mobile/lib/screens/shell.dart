@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../state.dart';
+import 'chat.dart';
 import 'history.dart';
 import 'scan.dart';
 
@@ -17,7 +18,7 @@ class _HomeShellState extends State<HomeShell> {
   static const _pages = <Widget>[
     ScanScreen(),
     HistoryScreen(),
-    Placeholder(),
+    ChatScreen(),
     Placeholder(),
     Placeholder(),
   ];
