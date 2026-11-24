@@ -319,7 +319,7 @@ export function WebcamCapture({
           title="Ambil Foto Gigi"
           disabled={!isStreaming}
           onClick={handleCapture}
-          className="inline-flex h-20 w-20 items-center justify-center rounded-full border-4 border-brand bg-brand text-surface shadow-md outline-none ring-4 ring-brand-soft transition-transform hover:scale-105 focus-visible:ring-brand-ring active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
+          className="inline-flex h-20 w-20 items-center justify-center rounded-full border-4 border-brand bg-brand text-surface shadow-md outline-none ring-4 ring-brand-soft transition-hover focus-visible:duration-press motion-safe:hover:scale-[1.03] focus-visible:ring-brand-ring motion-safe:active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
         >
           <Camera className="h-8 w-8" aria-hidden="true" />
         </button>

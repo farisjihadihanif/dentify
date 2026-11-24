@@ -138,7 +138,7 @@ export default function HomePage() {
             <Link
               href="/scan"
               data-testid="hero-cta-cek-sekarang"
-              className="pointer-events-auto inline-flex h-11 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-pill bg-brand px-7 text-base font-bold text-surface shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark"
+              className="pointer-events-auto inline-flex h-11 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-pill bg-brand px-7 text-base font-bold text-surface shadow-sm transition-hover motion-safe:hover:-translate-y-0.5 hover:bg-brand-dark"
             >
               <span>Cek Sekarang!</span>
               <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -189,7 +189,6 @@ export default function HomePage() {
                     prefersReducedMotion ? false : { opacity: 0, y: 36, scale: 0.97 }
                   }
                   whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  whileHover={prefersReducedMotion ? undefined : { y: -4 }}
                   viewport={{ once: true, amount: 0.2 }}
                   transition={
                     prefersReducedMotion
@@ -203,7 +202,7 @@ export default function HomePage() {
                   }
                   style={{ top: `${4.5 + index * 1.25}rem` }}
                   className={[
-                    'group sticky flex min-h-[250px] items-center rounded-[2rem] border p-7 shadow-xl transition-all duration-200 hover:shadow-2xl sm:min-h-[290px] sm:p-11',
+                    'group sticky flex min-h-[250px] items-center rounded-[2rem] border p-7 shadow-xl transition-lift motion-safe:hover:[translate:0_-3px] hover:shadow-2xl sm:min-h-[290px] sm:p-11',
                     theme.card,
                   ].join(' ')}
                 >
@@ -211,7 +210,7 @@ export default function HomePage() {
                     <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:w-56 sm:flex-col sm:items-start sm:justify-center">
                       <span
                         className={[
-                          'font-display text-6xl font-extrabold leading-none tracking-tight transition-transform duration-200 group-hover:scale-105 sm:text-7xl',
+                          'font-display text-6xl font-extrabold leading-none tracking-tight transition-hover motion-safe:group-hover:scale-[1.03] sm:text-7xl',
                           theme.num,
                         ].join(' ')}
                       >

@@ -64,6 +64,14 @@ const config: Config = {
       minWidth: {
         touch: '2.75rem',
       },
+      // Hover motion: values live in globals.css (:root). `DEFAULT` drives every bare `transition-*`.
+      transitionDuration: {
+        DEFAULT: 'var(--duration-hover-color)',
+        press: 'var(--duration-press)',
+      },
+      transitionTimingFunction: {
+        DEFAULT: 'var(--ease-hover)',
+      },
       borderRadius: {
         card: '0.875rem',
         pill: '9999px',

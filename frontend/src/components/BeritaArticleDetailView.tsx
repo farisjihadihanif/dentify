@@ -456,7 +456,7 @@ export function BeritaArticleDetailView({
                         <span className="inline-block rounded-pill bg-brand-soft px-2 py-0.5 text-xs font-bold text-brand-dark">
                           {item.category}
                         </span>
-                        <p className="line-clamp-2 text-sm font-bold leading-snug text-text group-hover:text-brand-dark">
+                        <p className="line-clamp-2 text-sm font-bold leading-snug text-text transition-colors group-hover:text-brand-dark">
                           {item.title}
                         </p>
                       </div>

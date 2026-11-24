@@ -205,7 +205,7 @@ export function DentalArticleModal({ article, onClose }: DentalArticleModalProps
             onClick={onClose}
             aria-label="Tutup jendela artikel"
             data-testid="dental-article-modal-close"
-            className="inline-flex h-10 w-10 min-h-touch min-w-touch shrink-0 items-center justify-center rounded-pill border border-border bg-surface text-text opacity-100 shadow-md transition-transform hover:scale-105 hover:bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
+            className="inline-flex h-10 w-10 min-h-touch min-w-touch shrink-0 items-center justify-center rounded-pill border border-border bg-surface text-text opacity-100 shadow-md transition-hover hover:bg-bg focus-visible:duration-press motion-safe:hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>

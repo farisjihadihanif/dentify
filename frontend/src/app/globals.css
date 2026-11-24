@@ -37,6 +37,11 @@
      < sm = 12px offset + 54px dock + 6px gap; sm–xl = 24px offset + 58px dock + 6px gap;
      xl+ = the dock sits between the footer's left and right columns, so only normal padding. */
   --dock-clearance: 4.5rem;
+  /* Hover motion: tune here. Move = lifts, zooms, shadows; color = links, nav, buttons. */
+  --duration-hover-move: 450ms;
+  --duration-hover-color: 300ms;
+  --duration-press: 100ms;
+  --ease-hover: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 @media (min-width: 640px) {
@@ -77,11 +82,47 @@
     font-family: var(--font-display), 'Bricolage Grotesque', system-ui, sans-serif;
   }
 
+  a,
+  button,
+  label {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-duration: var(--duration-hover-color);
+    transition-timing-function: var(--ease-hover);
+  }
+
   input,
   textarea,
   select {
     font-size: 16px;
   }
+}
+
+@layer utilities {
+  /* Colour and movement together, each at its own pace. */
+  .transition-hover {
+    transition-property: transform, box-shadow, color, background-color, border-color, opacity;
+    transition-duration: var(--duration-hover-move), var(--duration-hover-move),
+      var(--duration-hover-color), var(--duration-hover-color), var(--duration-hover-color),
+      var(--duration-hover-color);
+    transition-timing-function: var(--ease-hover);
+  }
+
+  /* Same, via the individual transform properties. Safe on framer-motion elements, whose
+     inline `transform` and `opacity` must not also be CSS-transitioned. */
+  .transition-lift {
+    transition-property: translate, scale, rotate, box-shadow, color;
+    transition-duration: var(--duration-hover-move), var(--duration-hover-move),
+      var(--duration-hover-move), var(--duration-hover-move), var(--duration-hover-color);
+    transition-timing-function: var(--ease-hover);
+  }
+}
+
+/* Press feedback stays quick. */
+a:active,
+button:active,
+label:active,
+.group:active .transition-lift {
+  transition-duration: var(--duration-press);
 }
 
 .bg-dental-grid {
@@ -159,15 +200,15 @@
 @keyframes deni-tooltip-bounce {
   0%,
   100% {
-    transform: translateY(0);
+    translate: 0 0;
   }
   50% {
-    transform: translateY(-5px);
+    translate: 0 -3px;
   }
 }
 
 .animate-deni-tooltip-bounce {
-  animation: deni-tooltip-bounce 1.2s ease-in-out infinite;
+  animation: deni-tooltip-bounce 2.4s ease-in-out infinite;
 }
 
 @keyframes kinetic-marquee {

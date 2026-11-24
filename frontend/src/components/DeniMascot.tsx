@@ -115,10 +115,10 @@ export function DeniMascot() {
         <span
           data-testid="deni-mascot-tooltip"
           className={[
-            'pointer-events-none absolute bottom-full right-0 mb-2 inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill border border-accent-deni bg-surface px-3.5 py-1.5 text-badge font-bold text-accent-deni shadow-md transition-all duration-200',
+            'animate-deni-tooltip-bounce pointer-events-none absolute bottom-full right-0 mb-2 inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill border border-accent-deni bg-surface px-3.5 py-1.5 text-badge font-bold text-accent-deni shadow-md transition-hover motion-reduce:transform-none',
             isHovered
-              ? 'animate-deni-tooltip-bounce scale-100 opacity-100'
-              : 'translate-y-1 scale-95 opacity-0 group-hover:animate-deni-tooltip-bounce group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100',
+              ? 'scale-100 opacity-100'
+              : 'translate-y-1 scale-95 opacity-0 group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100',
           ].join(' ')}
         >
           <MessageCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -147,18 +147,7 @@ export function DeniMascot() {
                   ease: 'easeInOut',
                 }
           }
-          whileHover={
-            prefersReducedMotion
-              ? undefined
-              : {
-                  y: -16,
-                  scale: 1.1,
-                  rotate: 4,
-                  transition: { type: 'spring', stiffness: 420, damping: 14 },
-                }
-          }
-          whileTap={prefersReducedMotion ? undefined : { scale: 0.94 }}
-          className="animate-deni-float relative flex h-20 w-20 items-center justify-center sm:h-24 sm:w-24"
+          className="animate-deni-float transition-lift motion-safe:group-hover:[rotate:3deg] motion-safe:group-hover:[scale:1.06] motion-safe:group-hover:[translate:0_-6px] motion-safe:group-active:[scale:0.96] relative flex h-20 w-20 items-center justify-center sm:h-24 sm:w-24"
         >
           {!imageError ? (
             <img

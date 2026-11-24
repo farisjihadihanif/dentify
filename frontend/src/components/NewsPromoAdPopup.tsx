@@ -89,7 +89,7 @@ export function NewsPromoAdPopup({
           onClick={() => setIsOpen(false)}
           aria-label="Tutup pop-up promo"
           data-testid="ad-popup-close-btn"
-          className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-pill border border-border bg-surface text-text opacity-100 shadow-md transition-transform hover:scale-105 hover:bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
+          className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-pill border border-border bg-surface text-text opacity-100 shadow-md transition-hover hover:bg-bg focus-visible:duration-press motion-safe:hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </button>

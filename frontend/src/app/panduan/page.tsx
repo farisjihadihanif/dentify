@@ -218,7 +218,6 @@ export default function PanduanPage() {
                         : { opacity: 0, y: 32, scale: 0.97 }
                     }
                     whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                    whileHover={prefersReducedMotion ? undefined : { y: -4 }}
                     viewport={{ once: true, amount: 0.2 }}
                     transition={
                       prefersReducedMotion
@@ -232,7 +231,7 @@ export default function PanduanPage() {
                     }
                     style={{ top: `${4.5 + index * 1.25}rem` }}
                     className={[
-                      "group sticky flex min-h-[250px] items-center rounded-[2rem] border p-7 shadow-xl transition-all duration-200 hover:shadow-2xl sm:min-h-[290px] sm:p-11",
+                      "group sticky flex min-h-[250px] items-center rounded-[2rem] border p-7 shadow-xl transition-lift motion-safe:hover:[translate:0_-3px] hover:shadow-2xl sm:min-h-[290px] sm:p-11",
                       theme.card,
                     ].join(" ")}
                   >
@@ -240,7 +239,7 @@ export default function PanduanPage() {
                       <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:w-56 sm:flex-col sm:items-start sm:justify-center">
                         <span
                           className={[
-                            "font-display text-6xl font-extrabold leading-none tracking-tight transition-transform duration-200 group-hover:scale-105 sm:text-7xl",
+                            "font-display text-6xl font-extrabold leading-none tracking-tight transition-hover motion-safe:group-hover:scale-[1.03] sm:text-7xl",
                             theme.num,
                           ].join(" ")}
                         >
@@ -371,7 +370,6 @@ export default function PanduanPage() {
                         : { opacity: 0, y: 32, scale: 0.97 }
                     }
                     whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                    whileHover={prefersReducedMotion ? undefined : { y: -4 }}
                     viewport={{ once: true, amount: 0.2 }}
                     transition={
                       prefersReducedMotion
@@ -385,7 +383,7 @@ export default function PanduanPage() {
                     }
                     style={{ top: `${4.5 + index * 1.25}rem` }}
                     className={[
-                      "group sticky flex min-h-[250px] w-full cursor-pointer items-center rounded-[2rem] border p-7 text-left shadow-xl transition-all duration-200 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring sm:min-h-[290px] sm:p-11",
+                      "group sticky flex min-h-[250px] w-full cursor-pointer items-center rounded-[2rem] border p-7 text-left shadow-xl transition-lift motion-safe:hover:[translate:0_-3px] hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring focus-visible:duration-press sm:min-h-[290px] sm:p-11",
                       theme.card,
                     ].join(" ")}
                   >
@@ -393,7 +391,7 @@ export default function PanduanPage() {
                       <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:w-56 sm:flex-col sm:items-start sm:justify-center">
                         <span
                           className={[
-                            "font-display text-6xl font-extrabold leading-none tracking-tight transition-transform duration-200 group-hover:scale-105 sm:text-7xl",
+                            "font-display text-6xl font-extrabold leading-none tracking-tight transition-hover motion-safe:group-hover:scale-[1.03] sm:text-7xl",
                             theme.num,
                           ].join(" ")}
                         >
@@ -456,7 +454,7 @@ export default function PanduanPage() {
                             />
                             <span>Baca Artikel Lengkap</span>
                             <ArrowUpRight
-                              className="h-4 w-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                              className="h-4 w-4 transition-hover motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:translate-x-0.5"
                               aria-hidden="true"
                             />
                           </span>
@@ -506,76 +504,21 @@ export default function PanduanPage() {
               className="flex select-none flex-wrap items-baseline justify-center font-display text-[4.5rem] font-black leading-none tracking-tighter sm:text-[8rem] lg:text-[11rem]"
             >
               {Array.from('DENTIFY').map((char, idx) => (
-                <motion.span
+                <span
                   key={`${char}-${idx}`}
-                  initial="rest"
-                  animate="rest"
-                  whileHover={prefersReducedMotion ? undefined : 'hover'}
-                  variants={{
-                    rest: {
-                      y: 0,
-                      scale: 1,
-                      rotate: 0,
-                      color: '#FFFFFF',
-                      transition: {
-                        y: { type: 'spring', stiffness: 110, damping: 18 },
-                        scale: { type: 'spring', stiffness: 110, damping: 18 },
-                        rotate: { type: 'spring', stiffness: 110, damping: 18 },
-                        color: { duration: 0.35, ease: 'easeOut' },
-                      },
-                    },
-                    hover: {
-                      y: -14,
-                      scale: 1.09,
-                      rotate: idx % 2 === 0 ? -4 : 4,
-                      color: '#9FE7F5',
-                      transition: {
-                        y: { type: 'spring', stiffness: 110, damping: 18 },
-                        scale: { type: 'spring', stiffness: 110, damping: 18 },
-                        rotate: { type: 'spring', stiffness: 110, damping: 18 },
-                        color: { delay: 0.45, duration: 0.4, ease: 'easeOut' },
-                      },
-                    },
-                  }}
-                  className="inline-block cursor-default text-white"
+                  className={[
+                    'inline-block cursor-default text-white transition-lift motion-safe:hover:text-[#9FE7F5] motion-safe:hover:[scale:1.06] motion-safe:hover:[translate:0_-10px]',
+                    idx % 2 === 0
+                      ? 'motion-safe:hover:[rotate:-3deg]'
+                      : 'motion-safe:hover:[rotate:3deg]',
+                  ].join(' ')}
                 >
                   {char}
-                </motion.span>
+                </span>
               ))}
-              <motion.span
-                initial="rest"
-                animate="rest"
-                whileHover={prefersReducedMotion ? undefined : 'hover'}
-                variants={{
-                  rest: {
-                    y: 0,
-                    scale: 1,
-                    rotate: 0,
-                    color: '#0284C7',
-                    transition: {
-                      y: { type: 'spring', stiffness: 110, damping: 18 },
-                      scale: { type: 'spring', stiffness: 110, damping: 18 },
-                      rotate: { type: 'spring', stiffness: 110, damping: 18 },
-                      color: { duration: 0.35, ease: 'easeOut' },
-                    },
-                  },
-                  hover: {
-                    y: -16,
-                    scale: 1.25,
-                    rotate: 12,
-                    color: '#9FE7F5',
-                    transition: {
-                      y: { type: 'spring', stiffness: 110, damping: 18 },
-                      scale: { type: 'spring', stiffness: 110, damping: 18 },
-                      rotate: { type: 'spring', stiffness: 110, damping: 18 },
-                      color: { delay: 0.45, duration: 0.4, ease: 'easeOut' },
-                    },
-                  },
-                }}
-                className="inline-block cursor-default text-brand-ring"
-              >
+              <span className="inline-block cursor-default text-brand-ring transition-lift motion-safe:hover:text-[#9FE7F5] motion-safe:hover:[rotate:8deg] motion-safe:hover:[scale:1.15] motion-safe:hover:[translate:0_-11px]">
                 .
-              </motion.span>
+              </span>
             </div>
           </div>
         </section>

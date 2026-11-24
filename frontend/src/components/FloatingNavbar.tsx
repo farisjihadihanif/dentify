@@ -168,7 +168,7 @@ export function FloatingNavbar({
           aria-current={isHomeActive ? "page" : undefined}
           data-testid="navbar-logo-home-link"
           className={[
-            "inline-flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-150 sm:rounded-2xl",
+            "inline-flex h-11 w-11 items-center justify-center rounded-xl transition-colors sm:rounded-2xl",
             isHomeActive
               ? "bg-brand-soft ring-2 ring-brand-ring"
               : "hover:bg-brand-soft/80",
@@ -192,7 +192,7 @@ export function FloatingNavbar({
                   aria-label={item.label}
                   title={item.label}
                   className={[
-                    "flex min-h-touch min-w-touch flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1 text-xs font-semibold leading-none transition-all duration-150 sm:rounded-2xl sm:px-1.5",
+                    "flex min-h-touch min-w-touch flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1 text-xs font-semibold leading-none transition-colors sm:rounded-2xl sm:px-1.5",
                     isActive
                       ? "bg-brand text-surface shadow-sm"
                       : "text-text-muted hover:bg-brand-soft hover:text-brand-dark",
@@ -230,7 +230,7 @@ export function FloatingNavbar({
           aria-current={isHomeActive ? "page" : undefined}
           data-testid="navbar-logo-home-link"
           className={[
-            "inline-flex min-h-touch min-w-touch shrink-0 items-center justify-center rounded-pill px-2 transition-all duration-150 sm:px-3",
+            "inline-flex min-h-touch min-w-touch shrink-0 items-center justify-center rounded-pill px-2 transition-colors sm:px-3",
             isHomeActive
               ? "bg-brand-soft ring-2 ring-brand-ring"
               : "hover:bg-brand-soft/80",
@@ -261,7 +261,7 @@ export function FloatingNavbar({
                   aria-current={isActive ? "page" : undefined}
                   title={item.label}
                   className={[
-                    "inline-flex min-h-touch min-w-touch shrink-0 flex-col items-center justify-center gap-0.5 whitespace-nowrap rounded-pill px-2.5 text-xs font-semibold leading-none transition-all duration-150 sm:flex-row sm:gap-1.5 sm:px-3.5 sm:text-sm",
+                    "inline-flex min-h-touch min-w-touch shrink-0 flex-col items-center justify-center gap-0.5 whitespace-nowrap rounded-pill px-2.5 text-xs font-semibold leading-none transition-colors sm:flex-row sm:gap-1.5 sm:px-3.5 sm:text-sm",
                     isActive
                       ? "bg-brand text-surface shadow-sm"
                       : "text-text-muted hover:bg-brand-soft hover:text-brand-dark",

@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, useReducedMotion } from 'framer-motion';
 
 export interface DentalInstrumentSpec {
   id: string;
@@ -459,13 +458,12 @@ function renderDentalInstrumentSvg(id: string) {
 /**
  * Home Hero Concentric Dental Instrument Orbit:
  * - 4 bold circular concentric orbit rings (`pointer-events-none`) over a crisp multi-sized geometric starfield
- * - 12 large (48px–60px), frameless interactive `<motion.button>` dental instruments (including AI Dental Scan)
+ * - 12 large (48px–60px), frameless interactive `<button>` dental instruments (including AI Dental Scan)
  *   with ZERO boxes, ZERO borders, ZERO card backgrounds, and ZERO drop-shadow glows
- * - Hover scales to 1.25 with a floating clinical tooltip pill; click navigates to `/scan` or `/panduan`.
+ * - Hover scales to 1.15 with a floating clinical tooltip pill; click navigates to `/scan` or `/panduan`.
  */
 export function ConcentricDentalOrbit() {
   const router = useRouter();
-  const prefersReducedMotion = useReducedMotion();
 
   return (
     <div
@@ -553,17 +551,14 @@ export function ConcentricDentalOrbit() {
                     style={{ left: `${leftPct}%`, top: `${topPct}%` }}
                   >
                     <div className={['pointer-events-none', ring.counterAnimClass].join(' ')}>
-                      <motion.button
+                      <button
                         type="button"
                         onClick={() => router.push(tool.href)}
                         data-testid={`orbit-tool-${tool.id}`}
                         data-instrument={tool.label}
                         data-tooltip={tool.tooltip}
                         aria-label={tool.tooltip}
-                        whileHover={prefersReducedMotion ? undefined : { scale: 1.25 }}
-                        whileTap={prefersReducedMotion ? undefined : { scale: 0.94 }}
-                        transition={{ type: 'spring', stiffness: 320, damping: 20 }}
-                        className="group pointer-events-auto relative inline-flex cursor-pointer items-center justify-center bg-transparent p-1 opacity-80 transition-opacity duration-150 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none"
+                        className="group pointer-events-auto relative inline-flex cursor-pointer items-center justify-center bg-transparent p-1 opacity-80 transition-hover motion-safe:hover:scale-[1.15] motion-safe:active:scale-95 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none"
                         style={{
                           color:
                             tool.tone === 'accent'
@@ -575,11 +570,11 @@ export function ConcentricDentalOrbit() {
 
                         <span
                           role="tooltip"
-                          className="pointer-events-none absolute bottom-full left-1/2 mb-2.5 -translate-x-1/2 whitespace-nowrap rounded-pill border border-border bg-surface px-3 py-1 text-[11px] font-semibold tracking-tight text-text opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
+                          className="pointer-events-none absolute bottom-full left-1/2 mb-2.5 -translate-x-1/2 whitespace-nowrap rounded-pill border border-border bg-surface px-3 py-1 text-[11px] font-semibold tracking-tight text-text opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
                         >
                           {tool.tooltip}
                         </span>
-                      </motion.button>
+                      </button>
                     </div>
                   </div>
                 );

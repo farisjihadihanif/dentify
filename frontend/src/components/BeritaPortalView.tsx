@@ -304,7 +304,7 @@ export function BeritaPortalView({
                       type="button"
                       onClick={() => setPreviewArticle(article)}
                       data-testid={`berita-card-${article.slug}`}
-                      className="group flex w-48 shrink-0 cursor-pointer flex-col overflow-hidden rounded-card border border-border bg-surface text-left shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring sm:w-56"
+                      className="group flex w-48 shrink-0 cursor-pointer flex-col overflow-hidden rounded-card border border-border bg-surface text-left shadow-sm transition-hover hover:border-brand/40 focus-visible:duration-press motion-safe:hover:-translate-y-[3px] hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring sm:w-56"
                     >
                       <div
                         className={[
@@ -321,7 +321,7 @@ export function BeritaPortalView({
                             }
                           }}
                           className={[
-                            'h-full w-full transition-transform duration-300 group-hover:scale-105',
+                            'h-full w-full transition-hover motion-safe:group-hover:scale-[1.03]',
                             isPosterCover ? 'object-contain' : 'object-cover',
                           ].join(' ')}
                           style={
@@ -332,7 +332,7 @@ export function BeritaPortalView({
                         />
                       </div>
                       <div className="p-3.5">
-                        <h3 className="line-clamp-3 font-display text-sm font-bold leading-snug text-text group-hover:text-brand-dark">
+                        <h3 className="line-clamp-3 font-display text-sm font-bold leading-snug text-text transition-colors group-hover:text-brand-dark">
                           {article.title}
                         </h3>
                       </div>
@@ -370,7 +370,7 @@ export function BeritaPortalView({
               onClick={() => setPreviewArticle(null)}
               aria-label="Tutup pratinjau artikel"
               data-testid="berita-preview-close"
-              className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-pill border border-border bg-surface text-text opacity-100 shadow-md transition-transform hover:scale-105 hover:bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
+              className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-pill border border-border bg-surface text-text opacity-100 shadow-md transition-hover hover:bg-bg focus-visible:duration-press motion-safe:hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
             >
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
