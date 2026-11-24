@@ -8,7 +8,7 @@ import React, {
   type ChangeEvent,
   type FormEvent,
 } from 'react';
-import { Plus, Trash2, History, Camera, Upload } from 'lucide-react';
+import { Plus, Trash2, History, Camera, RotateCcw, Upload } from 'lucide-react';
 import { AppButton } from './AppButton';
 import { ErrorBanner } from './ErrorBanner';
 import { MedicalDisclaimerBanner } from './MedicalDisclaimerBanner';
@@ -29,16 +29,17 @@ import {
   type ScanReportData,
 } from '../services/scanService';
 import { formatJakartaDateTime } from '../utils/dateFormat';
-import {
-  compressClientImage,
-  validateClientImageFile,
-} from '../utils/imageHelper';
+import { isMobileDevice } from '../utils/cameraSupport';
+import { prepareImageForUpload, validateClientImageFile } from '../utils/imageHelper';
 
 export const LOADING_PROGRESS_STEPS = [
   'Mengunggah foto…',
   'Menganalisis gigi…',
   'Menyusun rekomendasi…',
 ] as const;
+
+/** After this long the ai-service is probably still waking up, so reassure the user. */
+const SLOW_ANALYSIS_MS = 15000;
 
 export interface ScanWorkspaceProps {
   initialHistory?: ScanReportData[];
@@ -61,12 +62,17 @@ export function ScanWorkspace({
   initialReport = null,
 }: ScanWorkspaceProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const nativeCameraRef = useRef<HTMLInputElement | null>(null);
+  // Increases per chosen photo, so a slow compression never overwrites a newer choice
+  const photoRequestRef = useRef(0);
 
   const [activeTab, setActiveTab] = useState<CaptureSource>('upload');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [userSymptoms, setUserSymptoms] = useState('');
+  const [isPreparing, setIsPreparing] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSlow, setIsSlow] = useState(false);
   const [progressStepIndex, setProgressStepIndex] = useState(0);
   const [report, setReport] = useState<ScanReportData | null>(initialReport);
   const [historyItems, setHistoryItems] = useState<ScanReportData[]>(initialHistory);
@@ -98,14 +104,19 @@ export function ScanWorkspace({
   useEffect(() => {
     if (!isAnalyzing) {
       setProgressStepIndex(0);
+      setIsSlow(false);
       return undefined;
     }
+    const slowTimer = window.setTimeout(() => setIsSlow(true), SLOW_ANALYSIS_MS);
     const interval = window.setInterval(() => {
       setProgressStepIndex((prev) =>
         prev < LOADING_PROGRESS_STEPS.length - 1 ? prev + 1 : prev,
       );
     }, 1100);
-    return () => window.clearInterval(interval);
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(slowTimer);
+    };
   }, [isAnalyzing]);
 
   useEffect(() => {
@@ -116,12 +127,21 @@ export function ScanWorkspace({
     return () => window.clearInterval(timer);
   }, [cooldownLeft]);
 
+  useEffect(
+    () => () => {
+      if (previewUrl?.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
+    },
+    [previewUrl],
+  );
+
   const resetFileInput = () => {
+    photoRequestRef.current += 1;
+    setIsPreparing(false);
     setSelectedFile(null);
     setPreviewUrl(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    // Cleared so choosing the same file again still fires onChange
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (nativeCameraRef.current) nativeCameraRef.current.value = '';
   };
 
   const handleStartNewScan = () => {
@@ -167,57 +187,63 @@ export function ScanWorkspace({
     }
   };
 
-  const handleGalleryFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] ?? null;
+  /** Same validation and compression for gallery files, native camera photos and webcam captures. */
+  const acceptPhoto = async (file: File) => {
+    resetFileInput();
     setUiError(null);
-
-    if (!file) {
-      resetFileInput();
-      return;
-    }
 
     const validation = validateClientImageFile(file);
     if (!validation.valid && validation.error) {
-      resetFileInput();
       setUiError(validation.error);
       return;
     }
 
-    setSelectedFile(file);
-    if (typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function') {
-      setPreviewUrl(URL.createObjectURL(file));
+    const requestId = photoRequestRef.current;
+    setIsPreparing(true);
+    try {
+      const prepared = await prepareImageForUpload(file);
+      if (photoRequestRef.current !== requestId) return;
+      setSelectedFile(prepared);
+      setPreviewUrl(URL.createObjectURL(prepared));
+    } catch (error) {
+      if (photoRequestRef.current !== requestId) return;
+      setUiError(
+        error && typeof error === 'object' && 'uiError' in error
+          ? (error as { uiError: MappedUiError }).uiError
+          : mapApiError('INVALID_IMAGE'),
+      );
+    } finally {
+      if (photoRequestRef.current === requestId) setIsPreparing(false);
     }
   };
 
-  const handleCameraCapture = (file: File, dataUrl: string) => {
+  const handlePhotoInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) void acceptPhoto(file);
+  };
+
+  const handleUseCamera = () => {
+    setActiveTab('camera');
     setUiError(null);
-    const validation = validateClientImageFile(file);
-    if (!validation.valid && validation.error) {
-      setUiError(validation.error);
-      return;
-    }
-    setSelectedFile(file);
-    setPreviewUrl(dataUrl);
+    resetFileInput();
+    if (isMobileDevice()) nativeCameraRef.current?.click();
+  };
+
+  const handleRetakePhoto = () => {
+    resetFileInput();
+    if (isMobileDevice()) nativeCameraRef.current?.click();
   };
 
   const handleAnalyzeSubmit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
     if (!selectedFile || isAnalyzing || cooldownLeft > 0) return;
 
-    const validation = validateClientImageFile(selectedFile);
-    if (!validation.valid && validation.error) {
-      resetFileInput();
-      setUiError(validation.error);
-      return;
-    }
-
     setUiError(null);
     setIsAnalyzing(true);
 
     try {
-      const optimizedFile = await compressClientImage(selectedFile);
       const result = await submitDentalScan({
-        image: optimizedFile,
+        image: selectedFile,
         captureSource: activeTab,
         userSymptoms,
       });
@@ -402,7 +428,9 @@ export function ScanWorkspace({
                 {LOADING_PROGRESS_STEPS[progressStepIndex]}
               </h2>
               <p className="text-badge text-text-muted">
-                Mohon tunggu beberapa detik, layanan AI sedang memeriksa kondisi gigi dan gusi Anda.
+                {isSlow
+                  ? 'Analisis lebih lama dari biasanya, bisa sampai sekitar 1 menit. Mohon jangan tutup halaman ini.'
+                  : 'Mohon tunggu beberapa detik, layanan AI sedang memeriksa kondisi gigi dan gusi Anda.'}
               </p>
             </section>
           ) : (
@@ -419,16 +447,13 @@ export function ScanWorkspace({
               <div
                 role="tablist"
                 aria-label="Pilih metode pengambilan foto"
-                className="grid grid-cols-2 gap-3"
+                className="grid gap-3 sm:grid-cols-2"
               >
                 <button
                   type="button"
                   role="tab"
                   aria-selected={activeTab === 'camera'}
-                  onClick={() => {
-                    setActiveTab('camera');
-                    resetFileInput();
-                  }}
+                  onClick={handleUseCamera}
                   className={[
                     'inline-flex h-10 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-xl border px-4 text-sm font-semibold transition-colors',
                     activeTab === 'camera'
@@ -461,7 +486,28 @@ export function ScanWorkspace({
 
               <form onSubmit={(e) => void handleAnalyzeSubmit(e)} className="space-y-5" noValidate>
                 {activeTab === 'camera' ? (
-                  <WebcamCapture onCapture={handleCameraCapture} />
+                  <div className="space-y-3">
+                    {selectedFile && previewUrl ? (
+                      <>
+                        <img
+                          src={previewUrl}
+                          alt="Pratinjau foto gigi"
+                          className="max-h-[60vh] w-full rounded-card border border-border bg-bg object-contain"
+                        />
+                        <AppButton variant="secondary" fullWidth onClick={handleRetakePhoto}>
+                          <RotateCcw className="h-4 w-4 shrink-0" aria-hidden="true" />
+                          <span>Ulangi</span>
+                        </AppButton>
+                      </>
+                    ) : isPreparing ? null : isMobileDevice() ? (
+                      <AppButton variant="secondary" size="lg" fullWidth onClick={handleUseCamera}>
+                        <Camera className="h-5 w-5 shrink-0" aria-hidden="true" />
+                        <span>Buka Kamera</span>
+                      </AppButton>
+                    ) : (
+                      <WebcamCapture onCapture={(file) => void acceptPhoto(file)} />
+                    )}
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     <label
@@ -472,7 +518,7 @@ export function ScanWorkspace({
                         Pilih atau Sertakan File Foto Gigi dari Perangkat Anda
                       </span>
                       <span className="mt-1 text-badge text-text-muted">
-                        Format yang didukung: JPG, PNG, WEBP, GIF, atau BMP (maksimal 5 MB)
+                        Format: JPG, PNG, WEBP, GIF, atau BMP. Foto besar dikompres otomatis sebelum dikirim.
                       </span>
                       <input
                         ref={fileInputRef}
@@ -480,7 +526,7 @@ export function ScanWorkspace({
                         name="image"
                         type="file"
                         accept="image/jpeg,image/png,image/webp,image/gif,image/bmp"
-                        onChange={handleGalleryFileChange}
+                        onChange={handlePhotoInputChange}
                         className="sr-only"
                       />
                     </label>
@@ -502,6 +548,25 @@ export function ScanWorkspace({
                     )}
                   </div>
                 )}
+
+                {isPreparing && (
+                  <p role="status" className="text-badge font-medium text-brand-dark">
+                    Menyiapkan foto…
+                  </p>
+                )}
+
+                {/* Phones: opens the native camera app (see handleUseCamera) */}
+                <input
+                  ref={nativeCameraRef}
+                  data-testid="native-camera-input"
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handlePhotoInputChange}
+                  className="hidden"
+                  aria-hidden="true"
+                  tabIndex={-1}
+                />
 
                 <div>
                   <label htmlFor="user-symptoms" className="block text-badge font-semibold text-text">
@@ -526,7 +591,7 @@ export function ScanWorkspace({
                   type="submit"
                   variant="primary"
                   fullWidth
-                  disabled={!selectedFile || cooldownLeft > 0}
+                  disabled={!selectedFile || isPreparing || cooldownLeft > 0}
                   loading={isAnalyzing}
                   loadingText="Menganalisis Gambar..."
                 >

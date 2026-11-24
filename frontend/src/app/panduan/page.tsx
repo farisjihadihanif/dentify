@@ -95,7 +95,7 @@ const GUIDE_SECTIONS = [
     badge: "Tahap 3 • AI Scan",
     title: "Gunakan Fitur AI Scan & Riwayat di Sidebar",
     description:
-      "Di halaman Scan, Anda dapat memotret lewat Kamera Langsung atau menyertakan file foto (JPG/PNG/WEBP ≤ 5 MB). Seluruh riwayat scan tersimpan rapi di Sidebar kiri dan dapat dibuka kembali kapan saja.",
+      "Di halaman Scan, Anda dapat memotret lewat Kamera Langsung atau menyertakan file foto (JPG/PNG/WEBP, foto besar dikompres otomatis). Seluruh riwayat scan tersimpan rapi di Sidebar kiri dan dapat dibuka kembali kapan saja.",
     icon: Camera,
   },
   {

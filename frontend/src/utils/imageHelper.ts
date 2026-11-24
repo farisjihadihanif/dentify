@@ -1,5 +1,5 @@
 /**
- * Client-side image validation (JPEG, PNG, WEBP, GIF, BMP <= 5 MB), compression,
+ * Client-side image validation, compression under the upload limit,
  * and 1:1 circular avatar frame geometry helpers.
  */
 
@@ -13,8 +13,11 @@ export const ALLOWED_CLIENT_MIME_TYPES = [
   'image/bmp',
 ] as const;
 const IMAGE_EXTENSION_REGEX = /\.(jpe?g|png|webp|gif|bmp)$/i;
-export const MAX_CLIENT_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
-export const DEFAULT_MAX_IMAGE_WIDTH = 1024;
+/** Original files may be large (phone cameras); they are compressed before upload. */
+export const MAX_CLIENT_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
+/** Vercel rejects bodies over 4.5 MB; a 3 MB photo also fits as base64 in a chat message. */
+export const MAX_UPLOAD_IMAGE_BYTES = 3 * 1024 * 1024; // 3 MB
+export const MAX_UPLOAD_DIMENSION = 2048;
 
 export interface ImageValidationResult {
   valid: boolean;
@@ -46,93 +49,115 @@ export function validateClientImageFile(
     };
   }
 
-  if (file.size <= 0 || file.size > MAX_CLIENT_FILE_SIZE_BYTES) {
+  if (file.size <= 0) {
+    return { valid: false, error: mapApiError('INVALID_IMAGE') };
+  }
+  if (file.size > MAX_CLIENT_FILE_SIZE_BYTES) {
     return {
       valid: false,
-      error: mapApiError('PAYLOAD_TOO_LARGE'),
+      error: {
+        ...mapApiError('PAYLOAD_TOO_LARGE'),
+        message: 'Ukuran foto asli melebihi 25 MB. Silakan pilih foto lain.',
+      },
     };
   }
 
   return { valid: true };
 }
 
+const ENCODE_DIMENSIONS = [MAX_UPLOAD_DIMENSION, 1600, 1280, 1024];
+const ENCODE_QUALITIES = [0.92, 0.85, 0.78];
+
 /**
- * Kompresi ringan citra pada sisi klien menggunakan HTML5 Canvas (`maxWidth = 1024px`).
- * Apabila dijalankan di lingkungan non-browser (SSR/tes unit) atau gambar sudah kecil,
- * mengembalikan `file` asli tanpa gagal.
+ * Tries quality steps, then smaller sizes, until the image fits `maxBytes`. Never upscales and
+ * never goes below 1024 px on the long side: the model crops to 224 px, so detail must survive.
+ * Returns null when nothing fits.
  */
-export async function compressClientImage(
-  file: File,
-  maxWidth: number = DEFAULT_MAX_IMAGE_WIDTH,
-  quality: number = 0.88,
-): Promise<File> {
-  if (
-    typeof window === 'undefined' ||
-    typeof document === 'undefined' ||
-    typeof Image === 'undefined' ||
-    typeof URL === 'undefined' ||
-    typeof URL.createObjectURL !== 'function'
-  ) {
-    return file;
+export async function encodeUnderLimit(
+  width: number,
+  height: number,
+  encode: (width: number, height: number, quality: number) => Promise<Blob | null>,
+  maxBytes: number = MAX_UPLOAD_IMAGE_BYTES,
+): Promise<Blob | null> {
+  const longSide = Math.max(width, height);
+  const targets = [...new Set(ENCODE_DIMENSIONS.map((dim) => Math.min(dim, longSide)))];
+  for (const target of targets) {
+    const scale = target / longSide;
+    for (const quality of ENCODE_QUALITIES) {
+      const blob = await encode(Math.round(width * scale), Math.round(height * scale), quality);
+      if (blob && blob.size <= maxBytes) return blob;
+    }
   }
+  return null;
+}
 
-  // Lewati kompresi bila ukuran file sudah ringan (< 350 KB)
-  if (file.size < 350 * 1024) {
-    return file;
-  }
+function uploadError(error: MappedUiError): Error & { uiError: MappedUiError } {
+  return Object.assign(new Error(error.message), { uiError: error });
+}
 
-  return new Promise<File>((resolve) => {
-    const objectUrl = URL.createObjectURL(file);
+function loadImage(objectUrl: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
     const img = new Image();
-
-    img.onload = () => {
-      URL.revokeObjectURL(objectUrl);
-
-      const origW = img.naturalWidth || img.width;
-      const origH = img.naturalHeight || img.height;
-      if (!origW || !origH || origW <= maxWidth) {
-        resolve(file);
-        return;
-      }
-
-      const scale = maxWidth / origW;
-      const targetW = Math.round(origW * scale);
-      const targetH = Math.round(origH * scale);
-
-      const canvas = document.createElement('canvas');
-      canvas.width = targetW;
-      canvas.height = targetH;
-
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        resolve(file);
-        return;
-      }
-
-      ctx.drawImage(img, 0, 0, targetW, targetH);
-      const outputMime =
-        file.type === 'image/png' || file.type === 'image/webp' ? file.type : 'image/jpeg';
-
-      canvas.toBlob(
-        (blob) => {
-          if (!blob || blob.size >= file.size) {
-            resolve(file);
-            return;
-          }
-          resolve(new File([blob], file.name, { type: outputMime }));
-        },
-        outputMime,
-        quality,
-      );
-    };
-
-    img.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      resolve(file);
-    };
-
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
     img.src = objectUrl;
   });
+}
+
+/**
+ * Compresses a photo to a JPEG under 3 MB (long side up to 2048 px). Photos that are already
+ * small enough are returned unchanged. Rejects with `{ uiError }` when it cannot be made to fit.
+ */
+export async function prepareImageForUpload(file: File): Promise<File> {
+  const tooLarge = () =>
+    uploadError({
+      ...mapApiError('PAYLOAD_TOO_LARGE'),
+      message:
+        'Ukuran foto masih di atas 3 MB setelah dikompres. Silakan pilih atau ambil foto lain.',
+    });
+  const fits = file.size <= MAX_UPLOAD_IMAGE_BYTES;
+
+  if (
+    typeof document === 'undefined' ||
+    typeof Image === 'undefined' ||
+    typeof URL.createObjectURL !== 'function'
+  ) {
+    if (fits) return file;
+    throw tooLarge();
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const img = await loadImage(objectUrl);
+    // The browser cannot decode it (e.g. HEIC on desktop): the server could not either
+    if (!img || !img.naturalWidth || !img.naturalHeight) {
+      throw uploadError(mapApiError('INVALID_IMAGE'));
+    }
+    const { naturalWidth, naturalHeight } = img;
+    const uploadableType = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type);
+    if (fits && uploadableType && Math.max(naturalWidth, naturalHeight) <= MAX_UPLOAD_DIMENSION) {
+      return file;
+    }
+
+    const blob = await encodeUnderLimit(naturalWidth, naturalHeight, (w, h, quality) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return Promise.resolve(null);
+      // JPEG has no transparency
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, w, h);
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, w, h);
+      return new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+    });
+    if (!blob) throw tooLarge();
+    const baseName = (file.name || 'foto-gigi').replace(/\.[^.]+$/, '');
+    return new File([blob], `${baseName}.jpg`, { type: 'image/jpeg' });
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
 }
 
 function estimateDataUrlBytes(dataUrl: string): number {
