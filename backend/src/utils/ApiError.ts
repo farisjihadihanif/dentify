@@ -10,6 +10,9 @@ export type ErrorCode =
   | 'NOT_DENTAL_IMAGE'
   | 'RATE_LIMITED'
   | 'AI_SERVICE_UNAVAILABLE'
+  | 'AI_AUTH_FAILED'
+  | 'AI_SERVICE_ERROR'
+  | 'SERVER_NOT_READY'
   | 'INTERNAL_ERROR';
 
 export class ApiError extends Error {

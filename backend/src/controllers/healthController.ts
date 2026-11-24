@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { getDbStatus } from '../config/db';
 import { getEnv } from '../config/env';
+import { logger } from '../utils/logger';
 
 interface AiHealthResponse {
   status: string;
@@ -9,13 +10,15 @@ interface AiHealthResponse {
 }
 
 async function fetchAiServiceHealth(): Promise<{
-  status: 'ok' | 'degraded' | 'unavailable';
+  status: 'ok' | 'degraded' | 'unavailable' | 'auth_failed';
   model_version: string | null;
   model_loaded: boolean;
 }> {
   const env = getEnv();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 3000);
+  const startedAt = Date.now();
+  let callStatus: number | 'unreachable' = 'unreachable';
   try {
     const response = await fetch(`${env.aiServiceUrl}/internal/health`, {
       method: 'GET',
@@ -25,6 +28,11 @@ async function fetchAiServiceHealth(): Promise<{
       },
       signal: controller.signal,
     });
+    callStatus = response.status;
+    if (response.status === 401 || response.status === 403) {
+      // AI_SERVICE_API_KEY differs between the backend and the ai-service
+      return { status: 'auth_failed', model_version: null, model_loaded: false };
+    }
     if (!response.ok) {
       return { status: 'unavailable', model_version: null, model_loaded: false };
     }
@@ -38,6 +46,11 @@ async function fetchAiServiceHealth(): Promise<{
     return { status: 'unavailable', model_version: null, model_loaded: false };
   } finally {
     clearTimeout(timer);
+    logger[callStatus === 200 ? 'info' : 'warn']('AI service call', {
+      operation: 'health',
+      status: callStatus,
+      duration_ms: Date.now() - startedAt,
+    });
   }
 }
 

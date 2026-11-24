@@ -10,8 +10,8 @@ export const chatMessageSchema = z
       .max(1000, 'Pesan maksimal 1000 karakter.')
       .optional()
       .default(''),
-    image_data_url: z.string().max(7_200_000, 'Ukuran lampiran foto maksimal 5 MB.').optional(),
-    image_base64: z.string().max(7_200_000, 'Ukuran lampiran foto maksimal 5 MB.').optional(),
+    image_data_url: z.string().max(4_300_000, 'Ukuran lampiran foto maksimal 3 MB.').optional(),
+    image_base64: z.string().max(4_300_000, 'Ukuran lampiran foto maksimal 3 MB.').optional(),
     image_mime_type: z.enum(['image/jpeg', 'image/png', 'image/webp']).optional(),
     history: z
       .array(

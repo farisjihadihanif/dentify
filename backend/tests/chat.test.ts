@@ -105,6 +105,11 @@ describe('Chat endpoints: Deni sessions, ownership, rollover at 50, guest & fall
     expect(fallbackRes.body.data.urgency_level).toBe('emergency');
     expect(fallbackRes.body.data.trigger_clinic_finder).toBe(true);
     expect(fallbackRes.body.data.reply).toContain('Deni');
+    expect(fallbackRes.body.data.ai_error).toEqual({
+      code: 'AI_SERVICE_UNAVAILABLE',
+      message: 'Down',
+    });
+    expect(severeRes.body.data.ai_error).toBeNull();
     expect(fallbackRes.body.data.medical_disclaimer).toBe(DISCLAIMER_CHAT);
   });
 
@@ -204,6 +209,8 @@ describe('Chat endpoints: Deni sessions, ownership, rollover at 50, guest & fall
         image_data_url: 'data:image/jpeg;base64,/9j/4AAQSkZJRg==',
       }),
     );
+    // The photo is forwarded once: a duplicate copy would double the request size
+    expect(aiSpy.mock.calls[0][0]).not.toHaveProperty('image_base64');
   });
 
   it('does not pass the hidden label of an unsure (low-confidence) scan to Deni', async () => {

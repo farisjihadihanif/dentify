@@ -146,13 +146,14 @@ export async function postChatMessage(
     let triggerClinicFinder: boolean;
     let suggestedQuestions: string[];
     let isFallback = false;
+    // Why Deni fell back, so the UI can show the real cause next to the general guidance
+    let aiError: { code: string; message: string } | null = null;
 
     try {
       const aiReply = await requestAgentChat({
         message: effectiveMessage,
         user_name: userName,
         image_data_url: attachedImage,
-        image_base64: attachedImage,
         image_mime_type: input.image_mime_type,
         scan_context: scanContext,
         chat_history: chatHistory,
@@ -165,9 +166,13 @@ export async function postChatMessage(
         aiReply.suggested_questions?.length > 0
           ? aiReply.suggested_questions.slice(0, 3)
           : STATIC_FALLBACK_SUGGESTIONS;
-    } catch {
+    } catch (err) {
       // Static Indonesian fallback on AI/LLM failure
       isFallback = true;
+      aiError =
+        err instanceof ApiError
+          ? { code: err.code, message: err.message }
+          : { code: 'AI_SERVICE_ERROR', message: 'Layanan asisten Deni mengalami kendala.' };
       const severe = containsSevereSymptoms(effectiveMessage);
       reply = STATIC_FALLBACK_CHAT_REPLY;
       urgencyLevel = severe ? 'emergency' : linkedScan?.urgency_level ?? 'low';
@@ -240,6 +245,7 @@ export async function postChatMessage(
         trigger_clinic_finder: triggerClinicFinder,
         suggested_questions: suggestedQuestions,
         is_fallback: isFallback,
+        ai_error: aiError,
         medical_disclaimer: DISCLAIMER_CHAT,
       },
     });
