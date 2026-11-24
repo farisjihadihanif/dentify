@@ -2,7 +2,9 @@ import 'package:material_ui/material_ui.dart';
 
 import '../state.dart';
 import 'chat.dart';
+import 'clinics.dart';
 import 'history.dart';
+import 'profile.dart';
 import 'scan.dart';
 
 class HomeShell extends StatefulWidget {
@@ -19,8 +21,8 @@ class _HomeShellState extends State<HomeShell> {
     ScanScreen(),
     HistoryScreen(),
     ChatScreen(),
-    Placeholder(),
-    Placeholder(),
+    ClinicsScreen(),
+    ProfileScreen(),
   ];
 
   @override
