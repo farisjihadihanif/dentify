@@ -14,3 +14,10 @@ flutter test --dart-define=SHOTS=true --update-goldens          # cuplikan layar
 - `lib/photo.dart`: kamera/galeri dan kompresi JPEG di bawah 3 MB.
 - `lib/report_pdf.dart`: laporan PDF dibuat di perangkat. Server tidak menyimpan foto, jadi foto hanya ada di PDF tepat setelah scan.
 - HTTP tanpa TLS hanya diizinkan di build debug.
+
+## Rilis
+
+1. Salin `android/key.properties.example` ke `android/key.properties` (tidak di-commit) dan isi password. Tanpa berkas itu APK memakai kunci debug; jangan diterbitkan.
+2. Naikkan `version` di `pubspec.yaml` dan `appVersion` di `lib/config.dart`.
+3. `flutter build apk --release`, lalu ubah nama `build/app/outputs/flutter-apk/app-release.apk` menjadi `Dentify.apk`.
+4. Unggah ke GitHub Releases dengan tag `mobile-vX.Y.Z` (mis. `mobile-v1.0.0`).

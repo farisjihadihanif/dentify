@@ -1,0 +1,4 @@
+storeFile=D:/keytool/dentify-release.jks
+storePassword=
+keyAlias=dentify
+keyPassword=
