@@ -163,7 +163,7 @@ export function BeritaArticleDetailView({
         <div>
           <Link
             href="/berita"
-            className="inline-flex h-11 min-h-cta items-center gap-2 rounded-pill bg-brand px-5 text-sm font-bold text-surface transition-colors hover:bg-brand-dark"
+            className="inline-flex h-11 min-h-cta items-center gap-2 rounded-pill bg-brand px-5 text-sm font-bold text-surface btn-motion hover:bg-brand-dark"
           >
             <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>Kembali ke Berita &amp; Promo</span>
@@ -204,7 +204,7 @@ export function BeritaArticleDetailView({
           <li>
             <Link
               href="/"
-              className="inline-flex min-h-touch items-center transition-colors hover:text-brand-dark"
+              className="inline-flex min-h-touch items-center link-underline hover:text-brand-dark"
             >
               Beranda
             </Link>
@@ -216,7 +216,7 @@ export function BeritaArticleDetailView({
             <Link
               href="/berita"
               data-testid="berita-detail-back-link"
-              className="inline-flex min-h-touch items-center transition-colors hover:text-brand-dark"
+              className="inline-flex min-h-touch items-center link-underline hover:text-brand-dark"
             >
               Portal Berita &amp; Promo
             </Link>
@@ -231,7 +231,7 @@ export function BeritaArticleDetailView({
           type="button"
           onClick={() => void handleCopyLink()}
           data-testid="berita-share-copy-btn"
-          className="inline-flex h-9 min-h-touch items-center gap-1.5 rounded-pill border border-border bg-surface px-4 text-xs font-bold text-text shadow-sm transition-colors hover:border-brand/40 hover:bg-brand-soft hover:text-brand-dark"
+          className="inline-flex h-9 min-h-touch items-center gap-1.5 rounded-pill border border-border bg-surface px-4 text-xs font-bold text-text shadow-sm btn-motion hover:border-brand/40 hover:bg-brand-soft hover:text-brand-dark"
         >
           {copiedLink ? (
             <>
@@ -355,6 +355,7 @@ export function BeritaArticleDetailView({
           {/* Dedicated Promo Info & Claim Card */}
           {isPromo && (
             <section
+              data-reveal="up"
               data-testid="berita-promo-claim-card"
               className="space-y-4 rounded-2xl border border-brand/30 bg-brand-soft p-6"
             >
@@ -372,14 +373,14 @@ export function BeritaArticleDetailView({
               <div className="flex flex-wrap gap-2.5">
                 <Link
                   href="/clinics"
-                  className="inline-flex h-10 min-h-cta items-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-surface shadow-sm transition-colors hover:bg-brand-dark"
+                  className="inline-flex h-10 min-h-cta items-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-surface shadow-sm btn-motion hover:bg-brand-dark"
                 >
                   <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
                   <span>Cari Klinik Mitra Terdekat</span>
                 </Link>
                 <Link
                   href="/chat"
-                  className="inline-flex h-10 min-h-touch items-center gap-2 rounded-xl border border-border bg-surface px-4 text-sm font-bold text-brand-dark transition-colors hover:bg-bg"
+                  className="inline-flex h-10 min-h-touch items-center gap-2 rounded-xl border border-border bg-surface px-4 text-sm font-bold text-brand-dark btn-motion hover:bg-bg"
                 >
                   <MessageCircleHeart className="h-4 w-4 shrink-0" aria-hidden="true" />
                   <span>Tanya Deni Mengenai Promo</span>
@@ -399,14 +400,14 @@ export function BeritaArticleDetailView({
           <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6">
             <Link
               href="/berita"
-              className="inline-flex min-h-touch w-full items-center justify-center gap-2 whitespace-nowrap sm:w-auto rounded-xl border border-border bg-bg px-4 text-sm font-bold text-brand-dark transition-colors hover:bg-brand-soft"
+              className="inline-flex min-h-touch w-full items-center justify-center gap-2 whitespace-nowrap sm:w-auto rounded-xl border border-border bg-bg px-4 text-sm font-bold text-brand-dark btn-motion hover:bg-brand-soft"
             >
               <ArrowLeft className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               <span>Kembali ke Portal Berita &amp; Promo</span>
             </Link>
             <Link
               href="/scan"
-              className="inline-flex min-h-touch w-full items-center justify-center gap-2 whitespace-nowrap sm:w-auto rounded-xl bg-brand px-4 text-sm font-bold text-surface transition-colors hover:bg-brand-dark"
+              className="inline-flex min-h-touch w-full items-center justify-center gap-2 whitespace-nowrap sm:w-auto rounded-xl bg-brand px-4 text-sm font-bold text-surface btn-motion hover:bg-brand-dark"
             >
               <Camera className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               <span>Coba AI Dental Scan Gratis</span>
@@ -427,12 +428,12 @@ export function BeritaArticleDetailView({
             </h2>
 
             {relatedArticles.length > 0 ? (
-              <ul className="space-y-3.5">
+              <ul data-reveal-group data-reveal-async className="space-y-3.5">
                 {relatedArticles.map((item) => (
                   <li key={item.id}>
                     <Link
                       href={`/berita/${item.slug}`}
-                      className="group flex items-start gap-3 rounded-xl p-1.5 transition-colors hover:bg-brand-soft/60"
+                      className="hover-card group flex items-start gap-3 rounded-xl p-1.5 hover:bg-brand-soft/60"
                     >
                       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-border bg-slate-100">
                         <img
@@ -444,7 +445,7 @@ export function BeritaArticleDetailView({
                             }
                           }}
                           className={[
-                            'h-full w-full',
+                            'zoom-media h-full w-full',
                             item.coverFit === 'contain' ||
                             (!item.coverFit && item.category === 'Promo')
                               ? 'object-contain p-0.5'
@@ -473,15 +474,15 @@ export function BeritaArticleDetailView({
             <div className="pt-1">
               <Link
                 href="/berita"
-                className="inline-flex min-h-touch w-full items-center justify-center rounded-xl border border-border bg-bg text-sm font-bold text-brand-dark transition-colors hover:bg-brand-soft"
+                className="inline-flex min-h-touch w-full items-center justify-center rounded-xl border border-border bg-bg text-sm font-bold text-brand-dark btn-motion hover:bg-brand-soft"
               >
-                Lihat Semua Terbitan →
+                Lihat Semua Terbitan <span className="nudge-arrow ml-1">→</span>
               </Link>
             </div>
           </section>
 
           {/* Quick Action Screening & Consultation Card */}
-          <section className="space-y-4 rounded-[1.5rem] border border-brand/25 bg-brand-soft p-5 shadow-sm">
+          <section data-reveal="up" className="hover-card space-y-4 rounded-[1.5rem] border border-brand/25 bg-brand-soft p-5 shadow-sm">
             <h2 className="font-display text-lg font-extrabold text-text">
               Skrining &amp; Konsultasi Dentify
             </h2>
@@ -492,14 +493,14 @@ export function BeritaArticleDetailView({
             <div className="flex flex-col gap-2.5">
               <Link
                 href="/scan"
-                className="inline-flex h-10 min-h-cta items-center justify-center gap-2 rounded-xl bg-brand px-4 text-xs font-bold text-surface shadow-sm transition-colors hover:bg-brand-dark"
+                className="inline-flex h-10 min-h-cta items-center justify-center gap-2 rounded-xl bg-brand px-4 text-xs font-bold text-surface shadow-sm btn-motion hover:bg-brand-dark"
               >
                 <Camera className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span>Mulai AI Dental Scan</span>
               </Link>
               <Link
                 href="/chat"
-                className="inline-flex h-10 min-h-touch items-center justify-center gap-2 rounded-xl bg-accent-deni px-4 text-xs font-bold text-surface shadow-sm transition-opacity hover:opacity-95"
+                className="inline-flex h-10 min-h-touch items-center justify-center gap-2 rounded-xl bg-accent-deni px-4 text-xs font-bold text-surface shadow-sm btn-motion hover:opacity-95"
               >
                 <MessageCircleHeart className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span>Tanya Asisten AI Deni</span>

@@ -74,8 +74,8 @@ export function AppFooter({ pathnameOverride }: AppFooterProps = {}) {
               rel="noopener noreferrer"
               className={
                 isPanduan
-                  ? "text-white no-underline visited:text-white hover:underline"
-                  : "text-brand-dark no-underline visited:text-brand-dark hover:underline"
+                  ? "text-white link-underline no-underline visited:text-white"
+                  : "text-brand-dark link-underline no-underline visited:text-brand-dark"
               }
             >
               <strong className="font-semibold">
@@ -106,7 +106,7 @@ export function AppFooter({ pathnameOverride }: AppFooterProps = {}) {
                     aria-label={`${label} (tab baru)`}
                     title={label}
                     className={[
-                      "inline-flex min-h-touch min-w-touch items-center justify-center rounded-pill transition-colors",
+                      "inline-flex min-h-touch min-w-touch items-center justify-center rounded-pill icon-motion",
                       isPanduan
                         ? "text-slate-200 hover:bg-white/10 hover:text-white"
                         : "text-text-muted hover:bg-brand-soft hover:text-brand-dark",
@@ -127,26 +127,26 @@ export function AppFooter({ pathnameOverride }: AppFooterProps = {}) {
           <Link
             href="/panduan"
             className={[
-              "inline-flex min-h-touch items-center gap-1.5 whitespace-nowrap rounded-pill px-4 text-sm font-semibold transition-colors",
+              "inline-flex min-h-touch items-center gap-1.5 whitespace-nowrap rounded-pill px-4 text-sm font-semibold btn-motion",
               isPanduan
                 ? "border border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
                 : "bg-brand-soft text-brand-dark hover:bg-brand hover:text-surface",
             ].join(" ")}
           >
             <BookOpen className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-            <span>Panduan Aplikasi</span>
+            <span className="nav-label">Panduan Aplikasi</span>
           </Link>
           <Link
             href="/berita"
             className={[
-              "inline-flex min-h-touch items-center gap-1.5 whitespace-nowrap rounded-pill border px-4 text-sm font-semibold transition-colors",
+              "inline-flex min-h-touch items-center gap-1.5 whitespace-nowrap rounded-pill border px-4 text-sm font-semibold btn-motion",
               isPanduan
                 ? "border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
                 : "border-border bg-surface text-brand-dark hover:border-brand hover:bg-brand-soft",
             ].join(" ")}
           >
             <Newspaper className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-            <span>Promo, Berita &amp; Artikel</span>
+            <span className="nav-label">Promo, Berita &amp; Artikel</span>
           </Link>
         </div>
       </div>

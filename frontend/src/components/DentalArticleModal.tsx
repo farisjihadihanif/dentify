@@ -247,7 +247,7 @@ export function DentalArticleModal({ article, onClose }: DentalArticleModalProps
                     href={src.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:text-brand-dark hover:underline"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:text-brand-dark link-underline"
                   >
                     <span>{src.label}</span>
                     <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -263,7 +263,7 @@ export function DentalArticleModal({ article, onClose }: DentalArticleModalProps
             type="button"
             onClick={onClose}
             data-testid="dental-article-modal-close-btn"
-            className="inline-flex h-10 min-h-touch items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-brand px-5 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"
+            className="inline-flex h-10 min-h-touch items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-brand px-5 text-sm font-semibold text-surface btn-motion hover:bg-brand-dark"
           >
             <span>Tutup Artikel</span>
           </button>

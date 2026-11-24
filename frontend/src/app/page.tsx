@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { motion, useReducedMotion } from 'framer-motion';
 import {
   Camera,
   Sparkles,
@@ -97,8 +96,6 @@ const TIMELINE_FLOW_STEPS = [
  * 3. Section 3: AI Scan & Tanya Deni feature preview cards.
  */
 export default function HomePage() {
-  const prefersReducedMotion = useReducedMotion();
-
   return (
     <main className="bg-bg text-text">
       {/* =====================================================================
@@ -114,7 +111,7 @@ export default function HomePage() {
           href="/"
           aria-label="Dentify Beranda"
           data-testid="hero-top-left-logo"
-          className="absolute left-5 top-5 z-20 inline-flex min-h-touch items-center rounded-pill bg-surface/90 px-3 py-1.5 shadow-sm ring-1 ring-border transition-colors hover:bg-surface sm:left-8 sm:top-7"
+          className="absolute left-5 top-5 z-20 inline-flex min-h-touch items-center rounded-pill bg-surface/90 px-3 py-1.5 shadow-sm ring-1 ring-border btn-motion hover:bg-surface sm:left-8 sm:top-7"
         >
           <DentifyLogo size={30} showText />
         </Link>
@@ -138,7 +135,7 @@ export default function HomePage() {
             <Link
               href="/scan"
               data-testid="hero-cta-cek-sekarang"
-              className="pointer-events-auto inline-flex h-11 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-pill bg-brand px-7 text-base font-bold text-surface shadow-sm transition-hover motion-safe:hover:-translate-y-0.5 hover:bg-brand-dark"
+              className="pointer-events-auto inline-flex h-11 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-pill bg-brand px-7 text-base font-bold text-surface shadow-sm btn-motion hover:bg-brand-dark"
             >
               <span>Cek Sekarang!</span>
               <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -162,11 +159,8 @@ export default function HomePage() {
         className="w-full bg-surface-navy px-4 py-16 text-white sm:px-8 sm:py-24 lg:px-12"
       >
         <div className="mx-auto w-full max-w-[1380px]">
-          <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: prefersReducedMotion ? 0 : 0.45 }}
+          <div
+            data-reveal="up"
             className="mx-auto max-w-3xl text-center"
           >
             <h2
@@ -175,7 +169,7 @@ export default function HomePage() {
             >
               Cara Kerja Dentify dari Awal hingga Solusi
             </h2>
-          </motion.div>
+          </div>
 
           {/* Alternating High-Contrast Multi-Tone Stacked Cards */}
           <div className="mx-auto mt-14 w-full max-w-[1380px] space-y-8">
@@ -183,26 +177,12 @@ export default function HomePage() {
               const Icon = item.icon;
               const theme = STACKED_CARD_THEMES[index % STACKED_CARD_THEMES.length];
               return (
-                <motion.article
+                <article
                   key={item.step}
-                  initial={
-                    prefersReducedMotion ? false : { opacity: 0, y: 36, scale: 0.97 }
-                  }
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  viewport={{ once: true, amount: 0.2 }}
-                  transition={
-                    prefersReducedMotion
-                      ? { duration: 0 }
-                      : {
-                          type: 'spring',
-                          stiffness: 125,
-                          damping: 20,
-                          delay: index * 0.06,
-                        }
-                  }
+                  data-reveal="up"
                   style={{ top: `${4.5 + index * 1.25}rem` }}
                   className={[
-                    'group sticky flex min-h-[250px] items-center rounded-[2rem] border p-7 shadow-xl transition-lift motion-safe:hover:[translate:0_-3px] hover:shadow-2xl sm:min-h-[290px] sm:p-11',
+                    'group sticky flex min-h-[250px] items-center rounded-[2rem] border p-7 shadow-xl hover-card sm:min-h-[290px] sm:p-11',
                     theme.card,
                   ].join(' ')}
                 >
@@ -247,7 +227,7 @@ export default function HomePage() {
                       </p>
                     </div>
                   </div>
-                </motion.article>
+                </article>
               );
             })}
           </div>
@@ -262,7 +242,7 @@ export default function HomePage() {
         data-testid="home-section-3-preview"
         className="mx-auto max-w-6xl space-y-10 px-4 pb-24 pt-16 sm:px-6 lg:px-8"
       >
-        <div className="text-center">
+        <div data-reveal="up" className="text-center">
           <span className="inline-block rounded-pill bg-brand-soft px-3.5 py-1 text-xs font-bold text-brand-dark">
             Fitur Unggulan Dentify
           </span>
@@ -276,7 +256,10 @@ export default function HomePage() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="flex flex-col justify-between rounded-card border border-border bg-surface p-6 shadow-sm">
+          <div
+            data-reveal="up"
+            className="hover-card flex flex-col justify-between rounded-card border border-border bg-surface p-6 shadow-sm"
+          >
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill bg-brand-soft px-3 py-1 text-xs font-bold text-brand-dark">
@@ -327,7 +310,7 @@ export default function HomePage() {
             <div className="mt-6">
               <Link
                 href="/scan"
-                className="inline-flex h-10 min-h-cta w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-brand px-4 text-sm font-semibold text-surface shadow-sm transition-colors hover:bg-brand-dark"
+                className="inline-flex h-10 min-h-cta w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-brand px-4 text-sm font-semibold text-surface shadow-sm btn-motion hover:bg-brand-dark"
               >
                 <span>Buka Fitur AI Scan Sekarang</span>
                 <ArrowRight className="h-4 w-4 shrink-0" />
@@ -335,7 +318,10 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="flex flex-col justify-between rounded-card border border-border bg-surface p-6 shadow-sm">
+          <div
+            data-reveal="up"
+            className="hover-card flex flex-col justify-between rounded-card border border-border bg-surface p-6 shadow-sm"
+          >
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill bg-accent-deni-soft px-3 py-1 text-xs font-bold text-accent-deni">
@@ -349,6 +335,7 @@ export default function HomePage() {
                 <img
                   src="/images/deni-mascot.svg"
                   alt="Maskot Deni"
+                  data-reveal="left"
                   className="h-16 w-16 shrink-0 object-contain drop-shadow-sm"
                 />
                 <div>
@@ -383,7 +370,7 @@ export default function HomePage() {
             <div className="mt-6">
               <Link
                 href="/chat"
-                className="inline-flex h-10 min-h-cta w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-accent-deni px-4 text-sm font-semibold text-surface shadow-sm transition-opacity hover:opacity-95"
+                className="inline-flex h-10 min-h-cta w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-accent-deni px-4 text-sm font-semibold text-surface shadow-sm btn-motion hover:opacity-95"
               >
                 <MessageCircleHeart className="h-4 w-4 shrink-0" />
                 <span>Tanyakan ke Deni Sekarang</span>

@@ -184,7 +184,7 @@ export default function RegisterPage() {
             Sudah memiliki akun?{" "}
             <Link
               href="/login"
-              className="font-semibold text-brand-dark hover:underline"
+              className="font-semibold text-brand-dark link-underline"
             >
               Masuk di sini
             </Link>

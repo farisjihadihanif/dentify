@@ -484,7 +484,7 @@ export function ProfileEditorView({
                       <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
                         <label
                           htmlFor="profile-avatar-upload"
-                          className="inline-flex h-9 min-h-touch cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark transition-colors hover:bg-brand-soft"
+                          className="inline-flex h-9 min-h-touch cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark btn-motion hover:bg-brand-soft"
                         >
                           <Camera
                             className="h-4 w-4 shrink-0"
@@ -517,7 +517,7 @@ export function ProfileEditorView({
                               setAvatarOffsetX(0);
                               setAvatarOffsetY(0);
                             }}
-                            className="inline-flex h-9 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg border border-border bg-surface px-3 text-xs font-semibold text-text transition-colors hover:bg-brand-soft"
+                            className="inline-flex h-9 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg border border-border bg-surface px-3 text-xs font-semibold text-text btn-motion hover:bg-brand-soft"
                           >
                             <SlidersHorizontal
                               className="h-3.5 w-3.5 shrink-0"
@@ -534,7 +534,7 @@ export function ProfileEditorView({
                               setAvatar("");
                               setPendingAvatarSrc(null);
                             }}
-                            className="inline-flex h-9 min-h-touch items-center whitespace-nowrap rounded-lg px-3 text-xs font-semibold text-status-red hover:underline"
+                            className="inline-flex h-9 min-h-touch items-center whitespace-nowrap rounded-lg px-3 text-xs font-semibold text-status-red link-underline"
                           >
                             Hapus Foto
                           </button>
@@ -611,7 +611,7 @@ export function ProfileEditorView({
                                 setAvatarOffsetX(0);
                                 setAvatarOffsetY(0);
                               }}
-                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-dark hover:underline"
+                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-dark link-underline"
                             >
                               <RotateCcw
                                 className="h-3 w-3"
@@ -917,7 +917,7 @@ export function ProfileEditorView({
                 type="button"
                 onClick={handleLogout}
                 data-testid="logout-btn"
-                className="inline-flex h-10 min-h-touch shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-status-red/40 bg-transparent px-4 text-sm font-semibold text-status-red transition-colors hover:border-status-red hover:bg-status-red/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-red"
+                className="inline-flex h-10 min-h-touch shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-status-red/40 bg-transparent px-4 text-sm font-semibold text-status-red btn-motion hover:border-status-red hover:bg-status-red/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-red"
               >
                 <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span>Keluar dari Akun</span>

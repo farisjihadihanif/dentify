@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowUpRight,
   BookOpen,
@@ -141,7 +140,6 @@ const GUIDE_SECTIONS = [
  *   "Informasi Seputar Dunia Dentist & Perawatan Gigi" cards opening cited pop-up article modals.
  */
 export default function PanduanPage() {
-  const prefersReducedMotion = useReducedMotion();
   const [selectedArticle, setSelectedArticle] =
     useState<DentalEducationArticle | null>(null);
 
@@ -174,11 +172,8 @@ export default function PanduanPage() {
           className="w-full bg-surface-navy px-4 py-16 text-white sm:px-8 sm:py-24 lg:px-12"
         >
           <div className="mx-auto w-full max-w-[1380px]">
-            <motion.div
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
+            <div
+              data-reveal="up"
               className="mx-auto max-w-3xl text-center"
             >
               <span className="inline-block max-w-full rounded-pill border border-white/20 bg-white/10 px-4 py-1 text-xs font-bold text-zinc-200 [text-wrap:balance]">
@@ -195,7 +190,7 @@ export default function PanduanPage() {
                 mengunduh laporan hasil, berkonsultasi dengan Deni, hingga
                 menemukan klinik dokter gigi terdekat.
               </p>
-            </motion.div>
+            </div>
 
             <div className="mx-auto mt-14 w-full max-w-[1380px] space-y-8">
               {GUIDE_SECTIONS.map((item, index) => {
@@ -204,7 +199,7 @@ export default function PanduanPage() {
                   STACKED_CARD_THEMES[index % STACKED_CARD_THEMES.length];
                 const anchorId = "anchorId" in item ? item.anchorId : undefined;
                 return (
-                  <motion.article
+                  <article
                     key={item.step}
                     id={anchorId}
                     data-testid={
@@ -212,26 +207,10 @@ export default function PanduanPage() {
                         ? "panduan-low-confidence-guide"
                         : undefined
                     }
-                    initial={
-                      prefersReducedMotion
-                        ? false
-                        : { opacity: 0, y: 32, scale: 0.97 }
-                    }
-                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                    viewport={{ once: true, amount: 0.2 }}
-                    transition={
-                      prefersReducedMotion
-                        ? { duration: 0 }
-                        : {
-                            type: "spring",
-                            stiffness: 130,
-                            damping: 20,
-                            delay: index * 0.05,
-                          }
-                    }
+                    data-reveal="up"
                     style={{ top: `${4.5 + index * 1.25}rem` }}
                     className={[
-                      "group sticky flex min-h-[250px] items-center rounded-[2rem] border p-7 shadow-xl transition-lift motion-safe:hover:[translate:0_-3px] hover:shadow-2xl sm:min-h-[290px] sm:p-11",
+                      "group sticky flex min-h-[250px] items-center rounded-[2rem] border p-7 shadow-xl hover-card sm:min-h-[290px] sm:p-11",
                       theme.card,
                     ].join(" ")}
                   >
@@ -283,14 +262,14 @@ export default function PanduanPage() {
                           <div className="flex flex-wrap items-center gap-2.5 pt-2">
                             <Link
                               href="/chat"
-                              className="inline-flex h-11 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg bg-brand px-4 text-sm font-bold text-[var(--color-on-brand)] shadow-sm transition-colors hover:bg-[var(--color-brand-hover)]"
+                              className="inline-flex h-11 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg bg-brand px-4 text-sm font-bold text-[var(--color-on-brand)] shadow-sm btn-motion hover:bg-[var(--color-brand-hover)]"
                             >
                               <MessageCircleHeart className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                              <span>Konsultasi Foto ke Deni AI →</span>
+                              <span>Konsultasi Foto ke Deni AI <span className="nudge-arrow ml-1">→</span></span>
                             </Link>
                             <Link
                               href="/scan"
-                              className="inline-flex h-11 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg border border-white/25 bg-white/15 px-4 text-sm font-bold text-white transition-colors hover:bg-white/25"
+                              className="inline-flex h-11 min-h-touch items-center gap-1.5 whitespace-nowrap rounded-lg border border-white/25 bg-white/15 px-4 text-sm font-bold text-white btn-motion hover:bg-white/25"
                             >
                               <Camera className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                               <span>Ambil Ulang Foto di AI Scan</span>
@@ -299,21 +278,21 @@ export default function PanduanPage() {
                         )}
                       </div>
                     </div>
-                  </motion.article>
+                  </article>
                 );
               })}
             </div>
 
-            <div className="mx-auto mt-14 flex w-full max-w-[1380px] flex-wrap items-center justify-center gap-3 rounded-[1.5rem] border border-white/15 bg-white/10 p-6 text-center">
+            <div data-reveal="up" className="mx-auto mt-14 flex w-full max-w-[1380px] flex-wrap items-center justify-center gap-3 rounded-[1.5rem] border border-white/15 bg-white/10 p-6 text-center">
               <Link
                 href="/scan"
-                className="inline-flex h-10 min-h-cta items-center justify-center whitespace-nowrap rounded-xl bg-brand px-5 text-sm font-bold text-surface shadow-sm transition-colors hover:bg-brand-dark"
+                className="inline-flex h-10 min-h-cta items-center justify-center whitespace-nowrap rounded-xl bg-brand px-5 text-sm font-bold text-surface shadow-sm btn-motion hover:bg-brand-dark"
               >
-                Mulai AI Scan Sekarang →
+                Mulai AI Scan Sekarang <span className="nudge-arrow ml-1">→</span>
               </Link>
               <Link
                 href="/chat"
-                className="inline-flex h-10 min-h-touch items-center justify-center whitespace-nowrap rounded-xl bg-accent-deni px-5 text-sm font-bold text-surface shadow-sm transition-opacity hover:opacity-95"
+                className="inline-flex h-10 min-h-touch items-center justify-center whitespace-nowrap rounded-xl bg-accent-deni px-5 text-sm font-bold text-surface shadow-sm btn-motion hover:opacity-95"
               >
                 Tanya Deni Sekarang
               </Link>
@@ -330,11 +309,8 @@ export default function PanduanPage() {
           className="w-full border-t border-white/15 bg-surface-navy px-4 py-16 text-white sm:px-8 sm:py-24 lg:px-12"
         >
           <div className="mx-auto w-full max-w-[1380px]">
-            <motion.div
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
+            <div
+              data-reveal="up"
               className="mx-auto max-w-3xl text-center"
             >
               <span className="inline-block max-w-full rounded-pill border border-white/20 bg-white/10 px-4 py-1 text-xs font-bold text-zinc-200 [text-wrap:balance]">
@@ -351,7 +327,7 @@ export default function PanduanPage() {
                 edukasi lengkap yang merujuk pada pedoman WHO, ADA, dan Kemenkes
                 RI.
               </p>
-            </motion.div>
+            </div>
 
             <div className="mx-auto mt-14 w-full max-w-[1380px] space-y-8">
               {DENTIST_WORLD_ARTICLES.map((article, index) => {
@@ -359,31 +335,15 @@ export default function PanduanPage() {
                 const theme =
                   STACKED_CARD_THEMES[index % STACKED_CARD_THEMES.length];
                 return (
-                  <motion.button
+                  <button
                     key={article.id}
                     type="button"
                     data-testid={`dentist-article-card-${article.id}`}
                     onClick={() => setSelectedArticle(article)}
-                    initial={
-                      prefersReducedMotion
-                        ? false
-                        : { opacity: 0, y: 32, scale: 0.97 }
-                    }
-                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                    viewport={{ once: true, amount: 0.2 }}
-                    transition={
-                      prefersReducedMotion
-                        ? { duration: 0 }
-                        : {
-                            type: "spring",
-                            stiffness: 135,
-                            damping: 20,
-                            delay: index * 0.06,
-                          }
-                    }
+                    data-reveal="up"
                     style={{ top: `${4.5 + index * 1.25}rem` }}
                     className={[
-                      "group sticky flex min-h-[250px] w-full cursor-pointer items-center rounded-[2rem] border p-7 text-left shadow-xl transition-lift motion-safe:hover:[translate:0_-3px] hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring focus-visible:duration-press sm:min-h-[290px] sm:p-11",
+                      "group sticky flex min-h-[250px] w-full cursor-pointer items-center rounded-[2rem] border p-7 text-left shadow-xl hover-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring focus-visible:duration-press sm:min-h-[290px] sm:p-11",
                       theme.card,
                     ].join(" ")}
                   >
@@ -454,14 +414,14 @@ export default function PanduanPage() {
                             />
                             <span>Baca Artikel Lengkap</span>
                             <ArrowUpRight
-                              className="h-4 w-4 transition-hover motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:translate-x-0.5"
+                              className="h-4 w-4 shrink-0"
                               aria-hidden="true"
                             />
                           </span>
                         </div>
                       </div>
                     </div>
-                  </motion.button>
+                  </button>
                 );
               })}
             </div>
@@ -496,11 +456,12 @@ export default function PanduanPage() {
 
           {/* Oversized Full-Width Interactive DENTIFY. Display Wordmark */}
           <div className="mx-auto flex w-full max-w-[1380px] flex-col items-center justify-center px-4 pt-12 text-center sm:px-8 sm:pt-16">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
+            <p data-reveal="up" className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
               Kesehatan Gigi Preventif Untuk Semua
             </p>
             <div
               aria-label="DENTIFY."
+              data-reveal-group
               className="flex select-none flex-wrap items-baseline justify-center font-display text-[4.5rem] font-black leading-none tracking-tighter sm:text-[8rem] lg:text-[11rem]"
             >
               {Array.from('DENTIFY').map((char, idx) => (

@@ -307,7 +307,7 @@ export function WebcamCapture({
           title="Ganti Kamera"
           disabled={isStarting || !isStreaming}
           onClick={() => void handleSwitchCamera()}
-          className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-border bg-surface text-text transition-colors hover:bg-brand-soft disabled:opacity-40"
+          className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-border bg-surface text-text btn-motion hover:bg-brand-soft disabled:opacity-40"
         >
           <SwitchCamera className="h-5 w-5" aria-hidden="true" />
         </button>
@@ -331,7 +331,7 @@ export function WebcamCapture({
             aria-pressed={torchOn}
             title="Senter"
             onClick={() => void handleToggleTorch()}
-            className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-border bg-surface text-text transition-colors hover:bg-brand-soft"
+            className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-border bg-surface text-text btn-motion hover:bg-brand-soft"
           >
             {torchOn ? (
               <FlashlightOff className="h-5 w-5" aria-hidden="true" />

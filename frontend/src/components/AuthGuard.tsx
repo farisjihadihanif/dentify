@@ -61,13 +61,13 @@ export function AuthGuard({
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Link
               href={`/login?redirect=${encodeURIComponent(targetRedirect)}`}
-              className="inline-flex h-10 min-h-cta items-center justify-center whitespace-nowrap rounded-xl bg-brand px-5 text-sm font-semibold text-surface shadow-sm transition-colors hover:bg-brand-dark"
+              className="inline-flex h-10 min-h-cta items-center justify-center whitespace-nowrap rounded-xl bg-brand px-5 text-sm font-semibold text-surface shadow-sm btn-motion hover:bg-brand-dark"
             >
-              Masuk ke Akun Sekarang →
+              Masuk ke Akun Sekarang <span className="nudge-arrow ml-1">→</span>
             </Link>
             <Link
               href="/register"
-              className="inline-flex h-10 min-h-cta items-center justify-center whitespace-nowrap rounded-xl border border-border bg-surface px-5 text-sm font-semibold text-text transition-colors hover:bg-brand-soft"
+              className="inline-flex h-10 min-h-cta items-center justify-center whitespace-nowrap rounded-xl border border-border bg-surface px-5 text-sm font-semibold text-text btn-motion hover:bg-brand-soft"
             >
               Daftar Akun Gratis
             </Link>

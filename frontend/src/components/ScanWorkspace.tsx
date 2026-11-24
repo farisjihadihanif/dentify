@@ -350,7 +350,11 @@ export function ScanWorkspace({
               kesehatan gigi secara rutin.
             </div>
           ) : (
-            <ul className="max-h-[28rem] space-y-2.5 overflow-y-auto pr-1">
+            <ul
+              data-reveal-group
+              data-reveal-async
+              className="-mx-2 -mt-2 max-h-[28.5rem] space-y-2.5 overflow-y-auto px-2 pb-3 pt-2"
+            >
               {historyItems.map((item) => {
                 const itemKey = item.id ?? item.created_at;
                 const isSelected = Boolean(item.id && report?.id === item.id);
@@ -359,7 +363,7 @@ export function ScanWorkspace({
                   <li
                     key={itemKey}
                     className={[
-                      'rounded-card border p-3 transition-colors',
+                      'hover-card rounded-card border p-3',
                       isSelected
                         ? 'border-brand bg-brand-soft'
                         : 'border-border bg-bg hover:bg-brand-soft/60',
@@ -455,7 +459,7 @@ export function ScanWorkspace({
                   aria-selected={activeTab === 'camera'}
                   onClick={handleUseCamera}
                   className={[
-                    'inline-flex h-10 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-xl border px-4 text-sm font-semibold transition-colors',
+                    'inline-flex h-10 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-xl border px-4 text-sm font-semibold btn-motion',
                     activeTab === 'camera'
                       ? 'border-brand bg-brand text-surface shadow-sm'
                       : 'border-border bg-surface text-text hover:bg-brand-soft',
@@ -473,7 +477,7 @@ export function ScanWorkspace({
                     resetFileInput();
                   }}
                   className={[
-                    'inline-flex h-10 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-xl border px-4 text-sm font-semibold transition-colors',
+                    'inline-flex h-10 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-xl border px-4 text-sm font-semibold btn-motion',
                     activeTab === 'upload'
                       ? 'border-brand bg-brand text-surface shadow-sm'
                       : 'border-border bg-surface text-text hover:bg-brand-soft',
@@ -540,7 +544,7 @@ export function ScanWorkspace({
                         <button
                           type="button"
                           onClick={resetFileInput}
-                          className="font-semibold text-status-red hover:underline"
+                          className="link-underline font-semibold text-status-red"
                         >
                           Ganti Foto
                         </button>

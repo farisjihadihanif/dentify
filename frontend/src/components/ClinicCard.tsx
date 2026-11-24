@@ -19,8 +19,10 @@ export function ClinicCard({ clinic, className = '' }: ClinicCardProps) {
   return (
     <article
       data-testid="clinic-card"
+      data-reveal="up"
+      data-reveal-async
       className={[
-        'flex flex-col justify-between gap-4 rounded-card border border-border bg-surface p-4 shadow-sm sm:flex-row sm:items-center',
+        'hover-card flex flex-col justify-between gap-4 rounded-card border border-border bg-surface p-4 shadow-sm sm:flex-row sm:items-center',
         className,
       ]
         .filter(Boolean)
@@ -57,9 +59,9 @@ export function ClinicCard({ clinic, className = '' }: ClinicCardProps) {
           href={directionsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex h-10 min-h-cta min-w-touch items-center justify-center whitespace-nowrap rounded-xl bg-brand px-4 text-sm font-semibold text-surface shadow-sm transition-colors hover:bg-brand-dark"
+          className="inline-flex h-10 min-h-cta min-w-touch items-center justify-center whitespace-nowrap rounded-xl bg-brand px-4 text-sm font-semibold text-surface shadow-sm btn-motion hover:bg-brand-dark"
         >
-          Buka Rute Peta →
+          Buka Rute Peta <span className="nudge-arrow ml-1">→</span>
         </a>
       </div>
     </article>

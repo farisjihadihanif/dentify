@@ -200,7 +200,7 @@ export function BeritaPortalView({
               aria-label="Prioritaskan Kategori"
               data-testid="berita-category-select"
               onClick={() => setIsCategoryMenuOpen((prev) => !prev)}
-              className="inline-flex h-12 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-pill bg-brand px-6 py-3 text-sm font-semibold text-surface shadow-sm transition-colors hover:bg-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
+              className="inline-flex h-12 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-pill bg-brand px-6 py-3 text-sm font-semibold text-surface shadow-sm btn-motion hover:bg-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
             >
               <ActiveCategoryIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>{selectedCategory}</span>
@@ -263,7 +263,7 @@ export function BeritaPortalView({
             data-shelf-order={sectionIdx + 2}
             className="space-y-4"
           >
-            <div className="flex flex-col justify-between gap-1 border-b border-border pb-3 sm:flex-row sm:items-end">
+            <div data-reveal="up" className="flex flex-col justify-between gap-1 border-b border-border pb-3 sm:flex-row sm:items-end">
               <div>
                 <h2
                   id={`heading-shelf-${category.toLowerCase()}`}
@@ -292,7 +292,10 @@ export function BeritaPortalView({
             ) : shelfItems.length > 0 ? (
               <div
                 data-testid={`berita-shelf-track-${category.toLowerCase()}`}
-                className="flex gap-4 overflow-x-auto pb-3"
+                data-reveal-group
+                data-reveal-async
+                // Padding leaves room for the hover lift and shadow; negative margins keep the layout.
+                className="-mx-4 -mb-5 -mt-2 flex gap-4 overflow-x-auto px-4 pb-8 pt-2"
               >
                 {shelfItems.map((article) => {
                   const isPosterCover =
@@ -304,11 +307,11 @@ export function BeritaPortalView({
                       type="button"
                       onClick={() => setPreviewArticle(article)}
                       data-testid={`berita-card-${article.slug}`}
-                      className="group flex w-48 shrink-0 cursor-pointer flex-col overflow-hidden rounded-card border border-border bg-surface text-left shadow-sm transition-hover hover:border-brand/40 focus-visible:duration-press motion-safe:hover:-translate-y-[3px] hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring sm:w-56"
+                      className="hover-card group flex w-48 shrink-0 cursor-pointer flex-col rounded-card border border-border bg-surface text-left shadow-sm hover:border-brand/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring sm:w-56"
                     >
                       <div
                         className={[
-                          'aspect-[3/4] w-full overflow-hidden',
+                          'aspect-[3/4] w-full overflow-hidden rounded-t-[13px]',
                           isPosterCover ? 'bg-bg/80 p-1.5' : 'bg-surface-navy',
                         ].join(' ')}
                       >
@@ -321,7 +324,7 @@ export function BeritaPortalView({
                             }
                           }}
                           className={[
-                            'h-full w-full transition-hover motion-safe:group-hover:scale-[1.03]',
+                            'zoom-media h-full w-full',
                             isPosterCover ? 'object-contain' : 'object-cover',
                           ].join(' ')}
                           style={
@@ -416,14 +419,14 @@ export function BeritaPortalView({
                 <button
                   type="button"
                   onClick={() => setPreviewArticle(null)}
-                  className="inline-flex h-11 min-h-touch items-center justify-center rounded-xl border border-border bg-bg px-4 text-sm font-semibold text-text transition-colors hover:bg-brand-soft"
+                  className="inline-flex h-11 min-h-touch items-center justify-center rounded-xl border border-border bg-bg px-4 text-sm font-semibold text-text btn-motion hover:bg-brand-soft"
                 >
                   Tutup
                 </button>
                 <Link
                   href={`/berita/${previewArticle.slug}`}
                   data-testid="berita-preview-read-more"
-                  className="inline-flex h-11 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-brand px-5 text-sm font-bold text-surface shadow-sm transition-colors hover:bg-brand-dark"
+                  className="inline-flex h-11 min-h-cta items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-brand px-5 text-sm font-bold text-surface shadow-sm btn-motion hover:bg-brand-dark"
                 >
                   <span>Baca Selengkapnya</span>
                   <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />

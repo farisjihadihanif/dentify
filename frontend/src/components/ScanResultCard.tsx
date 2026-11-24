@@ -67,7 +67,7 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
   return (
     <section
       aria-label="Laporan Hasil Analisis Gigi"
-      className="space-y-6 rounded-card border border-border bg-surface p-6 shadow-sm sm:p-8"
+      className="animate-rise-in space-y-6 rounded-card border border-border bg-surface p-6 shadow-sm sm:p-8"
     >
       <MedicalDisclaimerBanner message={report.medical_disclaimer} />
 
@@ -139,7 +139,7 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
                   type="button"
                   onClick={onScanAgain}
                   data-testid="low-confidence-cta-retake"
-                  className="inline-flex min-h-touch w-full items-center justify-center gap-2 rounded-lg bg-brand px-3 text-sm font-semibold text-surface shadow-sm transition-colors hover:bg-brand-dark"
+                  className="inline-flex min-h-touch w-full items-center justify-center gap-2 rounded-lg bg-brand px-3 text-sm font-semibold text-surface shadow-sm btn-motion hover:bg-brand-dark"
                 >
                   <RotateCcw className="h-4 w-4 shrink-0" aria-hidden="true" />
                   <span>Ambil Ulang Foto</span>
@@ -148,7 +148,7 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
               <Link
                 href={deniHref}
                 data-testid="low-confidence-cta-deni"
-                className="inline-flex min-h-touch w-full items-center justify-center gap-2 rounded-lg border border-amber-700/30 bg-white px-3 text-sm font-semibold text-amber-950 transition-colors hover:bg-amber-100"
+                className="inline-flex min-h-touch w-full items-center justify-center gap-2 rounded-lg border border-amber-700/30 bg-white px-3 text-sm font-semibold text-amber-950 btn-motion hover:bg-amber-100"
               >
                 <MessageCircleHeart className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span>Tanya Deni</span>
@@ -156,7 +156,7 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
               <Link
                 href="/panduan#panduan-hasil-kurang-meyakinkan"
                 data-testid="low-confidence-cta-panduan"
-                className="inline-flex min-h-touch w-full items-center justify-center gap-2 rounded-lg border border-amber-700/30 bg-white px-3 text-sm font-semibold text-amber-950 transition-colors hover:bg-amber-100"
+                className="inline-flex min-h-touch w-full items-center justify-center gap-2 rounded-lg border border-amber-700/30 bg-white px-3 text-sm font-semibold text-amber-950 btn-motion hover:bg-amber-100"
               >
                 <BookOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span>Panduan Memotret</span>
@@ -195,7 +195,7 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
         <p className="mt-1.5 text-body text-text-muted">{report.care_recommendations.summary}</p>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <div className="rounded-card border border-border bg-surface p-4">
+          <div data-reveal="up" className="hover-card rounded-card border border-border bg-surface p-4">
             <h4 className="flex items-center gap-2 text-card-title text-status-green">
               <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden="true" />
               <span>Yang Dianjurkan (Do&apos;s)</span>
@@ -207,7 +207,7 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
             </ul>
           </div>
 
-          <div className="rounded-card border border-border bg-surface p-4">
+          <div data-reveal="up" className="hover-card rounded-card border border-border bg-surface p-4">
             <h4 className="flex items-center gap-2 text-card-title text-status-red">
               <XCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
               <span>Yang Harus Dihindari (Don&apos;ts)</span>
@@ -237,7 +237,7 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
 
           <Link
             href={deniHref}
-            className="inline-flex h-10 min-h-touch items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-accent-deni px-4 text-sm font-semibold text-surface shadow-sm transition-opacity hover:opacity-95"
+            className="inline-flex h-10 min-h-touch items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-accent-deni px-4 text-sm font-semibold text-surface shadow-sm btn-motion hover:opacity-95"
           >
             <MessageCircleHeart className="h-4 w-4 shrink-0" />
             <span>Tanya Deni Lebih Lanjut</span>
@@ -245,7 +245,7 @@ export function ScanResultCard({ report, previewUrl, onScanAgain }: ScanResultCa
 
           <Link
             href={clinicsHref}
-            className="inline-flex h-10 min-h-touch items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-brand px-4 text-sm font-semibold text-surface shadow-sm transition-colors hover:bg-brand-dark"
+            className="inline-flex h-10 min-h-touch items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-brand px-4 text-sm font-semibold text-surface shadow-sm btn-motion hover:bg-brand-dark"
           >
             <MapPin className="h-4 w-4 shrink-0" />
             <span>Cari Klinik Terdekat</span>

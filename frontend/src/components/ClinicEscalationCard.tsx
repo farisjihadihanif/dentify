@@ -82,9 +82,9 @@ export function ClinicEscalationCard({
 
         <Link
           href={clinicsHref}
-          className="inline-flex h-10 min-h-touch shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-status-red px-4 text-sm font-semibold text-surface shadow-sm transition-opacity hover:opacity-95"
+          className="inline-flex h-10 min-h-touch shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-status-red px-4 text-sm font-semibold text-surface shadow-sm btn-motion hover:opacity-95"
         >
-          Lihat Semua di Peta →
+          Lihat Semua di Peta <span className="nudge-arrow ml-1">→</span>
         </Link>
       </div>
 

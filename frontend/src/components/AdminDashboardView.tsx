@@ -391,7 +391,7 @@ export function AdminDashboardView({
 
         <Link
           href="/berita"
-          className="inline-flex min-h-touch shrink-0 items-center gap-2 self-start whitespace-nowrap rounded-pill border border-border bg-surface px-4 text-sm font-bold text-brand-dark shadow-sm transition-colors hover:bg-brand-soft sm:self-auto"
+          className="inline-flex min-h-touch shrink-0 items-center gap-2 self-start whitespace-nowrap rounded-pill border border-border bg-surface px-4 text-sm font-bold text-brand-dark shadow-sm btn-motion hover:bg-brand-soft sm:self-auto"
         >
           <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           <span>Lihat Portal Berita Publik</span>
@@ -411,7 +411,7 @@ export function AdminDashboardView({
           data-testid="admin-tab-articles"
           onClick={() => setActiveTab('articles')}
           className={[
-            'inline-flex h-10 min-h-touch items-center gap-2 rounded-xl px-4 text-sm font-bold transition-colors',
+            'inline-flex h-10 min-h-touch items-center gap-2 rounded-xl px-4 text-sm font-bold btn-motion',
             activeTab === 'articles'
               ? 'bg-brand text-surface shadow-sm'
               : 'text-text-muted hover:bg-brand-soft hover:text-brand-dark',
@@ -428,7 +428,7 @@ export function AdminDashboardView({
           data-testid="admin-tab-users"
           onClick={() => setActiveTab('users')}
           className={[
-            'inline-flex h-10 min-h-touch items-center gap-2 rounded-xl px-4 text-sm font-bold transition-colors',
+            'inline-flex h-10 min-h-touch items-center gap-2 rounded-xl px-4 text-sm font-bold btn-motion',
             activeTab === 'users'
               ? 'bg-brand text-surface shadow-sm'
               : 'text-text-muted hover:bg-brand-soft hover:text-brand-dark',
@@ -470,7 +470,7 @@ export function AdminDashboardView({
                 <button
                   type="button"
                   onClick={() => setFormState(EMPTY_ARTICLE_FORM)}
-                  className="text-xs font-semibold text-brand-dark hover:underline"
+                  className="text-xs font-semibold text-brand-dark link-underline"
                 >
                   Batal Edit
                 </button>
@@ -595,7 +595,7 @@ export function AdminDashboardView({
                         data-testid="cover-fit-contain-btn"
                         onClick={() => setFormState((p) => ({ ...p, coverFit: 'contain', coverZoom: 1 }))}
                         className={[
-                          'inline-flex min-h-touch items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 transition-colors',
+                          'inline-flex min-h-touch items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 btn-motion',
                           formState.coverFit === 'contain'
                             ? 'bg-brand text-surface'
                             : 'text-text-muted hover:text-text',
@@ -609,7 +609,7 @@ export function AdminDashboardView({
                         data-testid="cover-fit-cover-btn"
                         onClick={() => setFormState((p) => ({ ...p, coverFit: 'cover' }))}
                         className={[
-                          'inline-flex min-h-touch items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 transition-colors',
+                          'inline-flex min-h-touch items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 btn-motion',
                           formState.coverFit === 'cover'
                             ? 'bg-brand text-surface'
                             : 'text-text-muted hover:text-text',
@@ -806,7 +806,7 @@ export function AdminDashboardView({
                   <article
                     key={article.id}
                     data-testid={`admin-article-row-${article.slug}`}
-                    className="flex flex-col gap-3 rounded-xl border border-border bg-bg p-3.5 sm:flex-row sm:items-center"
+                    className="hover-card flex flex-col gap-3 rounded-xl border border-border bg-bg p-3.5 sm:flex-row sm:items-center"
                   >
                     <img
                       src={article.coverImageUrl || '/images/covers/artikel-default.svg'}
@@ -845,7 +845,7 @@ export function AdminDashboardView({
                         type="button"
                         onClick={() => handleEditArticle(article)}
                         aria-label={`Edit ${article.title}`}
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-surface text-brand-dark transition-colors hover:bg-brand-soft"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-surface text-brand-dark btn-motion hover:bg-brand-soft"
                       >
                         <Edit3 className="h-4 w-4" aria-hidden="true" />
                       </button>
@@ -857,7 +857,7 @@ export function AdminDashboardView({
                             ? `Sembunyikan ${article.title}`
                             : `Publikasikan ${article.title}`
                         }
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-surface text-text transition-colors hover:bg-brand-soft"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-surface text-text btn-motion hover:bg-brand-soft"
                       >
                         {article.isPublished ? (
                           <EyeOff className="h-4 w-4" aria-hidden="true" />
@@ -869,7 +869,7 @@ export function AdminDashboardView({
                         type="button"
                         onClick={() => void handleDeleteArticle(article)}
                         aria-label={`Hapus ${article.title}`}
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-status-red/30 bg-surface text-status-red transition-colors hover:bg-status-red/10"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-status-red/30 bg-surface text-status-red btn-motion hover:bg-status-red/10"
                       >
                         <Trash2 className="h-4 w-4" aria-hidden="true" />
                       </button>
@@ -987,7 +987,7 @@ export function AdminDashboardView({
                         disabled={isSelf}
                         onClick={() => void handleDeleteUser(user)}
                         aria-label={`Hapus akun ${user.full_name}`}
-                        className="inline-flex min-h-touch items-center gap-1.5 rounded-lg border border-status-red/30 bg-surface px-3 text-sm font-semibold text-status-red transition-colors hover:bg-status-red/10 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="inline-flex min-h-touch items-center gap-1.5 rounded-lg border border-status-red/30 bg-surface px-3 text-sm font-semibold text-status-red btn-motion hover:bg-status-red/10 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         <Trash2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         <span>Hapus</span>

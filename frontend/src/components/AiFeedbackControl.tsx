@@ -79,7 +79,7 @@ export function AiFeedbackControl({
           onClick={() => handleSelectRating('helpful')}
           aria-pressed={selectedRating === 'helpful'}
           className={[
-            'inline-flex h-9 min-h-touch items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border px-3.5 text-xs font-semibold transition-colors',
+            'inline-flex h-9 min-h-touch items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border px-3.5 text-xs font-semibold btn-motion',
             selectedRating === 'helpful'
               ? 'border-accent-deni bg-accent-deni text-surface'
               : 'border-border bg-surface text-text hover:bg-brand-soft',
@@ -94,7 +94,7 @@ export function AiFeedbackControl({
           onClick={() => handleSelectRating('inaccurate')}
           aria-pressed={selectedRating === 'inaccurate'}
           className={[
-            'inline-flex h-9 min-h-touch items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border px-3.5 text-xs font-semibold transition-colors',
+            'inline-flex h-9 min-h-touch items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border px-3.5 text-xs font-semibold btn-motion',
             selectedRating === 'inaccurate'
               ? 'border-status-red bg-status-red text-surface'
               : 'border-border bg-surface text-text hover:bg-brand-soft',
@@ -122,7 +122,7 @@ export function AiFeedbackControl({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex h-10 min-h-touch items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-brand px-4 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark disabled:opacity-60"
+            className="inline-flex h-10 min-h-touch items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-brand px-4 text-sm font-semibold text-surface btn-motion hover:bg-brand-dark disabled:opacity-60"
           >
             {isSubmitting ? 'Mengirim...' : 'Kirim Masukan'}
           </button>

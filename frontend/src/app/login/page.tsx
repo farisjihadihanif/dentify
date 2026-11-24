@@ -132,7 +132,7 @@ export default function LoginPage() {
             Belum memiliki akun Dentify?{' '}
             <Link
               href="/register"
-              className="whitespace-nowrap font-semibold text-brand-dark hover:underline"
+              className="whitespace-nowrap font-semibold text-brand-dark link-underline"
             >
               Daftar Akun Baru
             </Link>
@@ -141,7 +141,7 @@ export default function LoginPage() {
             Atau baca{' '}
             <Link
               href="/panduan"
-              className="whitespace-nowrap font-semibold text-brand-dark hover:underline"
+              className="whitespace-nowrap font-semibold text-brand-dark link-underline"
             >
               Panduan Penggunaan Aplikasi →
             </Link>

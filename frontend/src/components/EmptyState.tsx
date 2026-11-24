@@ -50,7 +50,7 @@ export function EmptyState({
         ) : (
           <Link
             href={actionHref}
-            className="inline-flex min-h-cta items-center justify-center rounded-card bg-brand px-6 py-3 text-body font-semibold text-surface transition-colors hover:bg-brand-dark"
+            className="inline-flex min-h-cta items-center justify-center rounded-card bg-brand px-6 py-3 text-body font-semibold text-surface btn-motion hover:bg-brand-dark"
           >
             {actionLabel}
           </Link>

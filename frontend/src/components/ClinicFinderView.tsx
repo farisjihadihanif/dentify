@@ -149,7 +149,7 @@ export function ClinicFinderView({
                 aria-pressed={radiusKm === km}
                 onClick={() => void handleRadiusChange(km)}
                 className={[
-                  'inline-flex h-9 min-h-touch min-w-touch items-center justify-center whitespace-nowrap rounded-lg border px-3 text-xs font-semibold transition-colors',
+                  'inline-flex h-9 min-h-touch min-w-touch items-center justify-center whitespace-nowrap rounded-lg border px-3 text-xs font-semibold btn-motion',
                   radiusKm === km
                     ? 'border-brand bg-brand text-surface shadow-sm'
                     : 'border-border bg-surface text-text hover:bg-brand-soft',
@@ -214,7 +214,7 @@ export function ClinicFinderView({
               href={buildGoogleMapsDirectionsUrl(coords.lat, coords.lng)}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-brand-dark underline"
+              className="link-underline font-semibold text-brand-dark"
             >
               Google Maps ↗
             </a>
@@ -237,7 +237,7 @@ export function ClinicFinderView({
               href={buildGoogleMapsDirectionsUrl(coords.lat, coords.lng)}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-brand-dark underline"
+              className="link-underline font-semibold text-brand-dark"
             >
               Google Maps ↗
             </a>
@@ -247,7 +247,7 @@ export function ClinicFinderView({
       )}
 
       <section aria-labelledby="heading-daftar-klinik" className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div data-reveal="up" className="flex items-center justify-between">
           <h2 id="heading-daftar-klinik" className="text-card-title text-text">
             Daftar Klinik &amp; Praktik Dokter Gigi Terdekat ({clinics.length})
           </h2>

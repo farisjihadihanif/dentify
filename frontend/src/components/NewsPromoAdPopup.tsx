@@ -134,7 +134,7 @@ export function NewsPromoAdPopup({
               href={`/berita/${featuredArticle.slug}`}
               onClick={() => setIsOpen(false)}
               data-testid="ad-popup-cta-read"
-              className="inline-flex h-11 min-h-cta flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-brand px-4 text-sm font-bold text-surface shadow-sm transition-colors hover:bg-brand-dark"
+              className="inline-flex h-11 min-h-cta flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-brand px-4 text-sm font-bold text-surface shadow-sm btn-motion hover:bg-brand-dark"
             >
               <span>Baca Selengkapnya</span>
               <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -143,7 +143,7 @@ export function NewsPromoAdPopup({
             <Link
               href="/berita"
               onClick={() => setIsOpen(false)}
-              className="inline-flex h-11 min-h-touch items-center justify-center whitespace-nowrap rounded-xl border border-border bg-bg px-4 text-xs font-semibold text-brand-dark transition-colors hover:bg-brand-soft"
+              className="inline-flex h-11 min-h-touch items-center justify-center whitespace-nowrap rounded-xl border border-border bg-bg px-4 text-xs font-semibold text-brand-dark btn-motion hover:bg-brand-soft"
             >
               Lihat Semua
             </Link>

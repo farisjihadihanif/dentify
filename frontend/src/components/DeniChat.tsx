@@ -586,7 +586,7 @@ export function DeniChat({
             }}
             aria-label="Sembunyikan sidebar riwayat"
             data-testid="deni-sidebar-collapse-btn"
-            className="inline-flex h-9 w-9 min-h-touch min-w-touch items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-brand-soft hover:text-brand-dark"
+            className="inline-flex h-9 w-9 min-h-touch min-w-touch items-center justify-center rounded-lg text-text-muted icon-motion hover:bg-brand-soft hover:text-brand-dark"
           >
             <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -650,7 +650,7 @@ export function DeniChat({
                       type="button"
                       aria-label={`Hapus sesi ${sess.title}`}
                       onClick={() => void handleDeleteSession(sess.id)}
-                      className="inline-flex h-9 w-9 min-h-touch min-w-touch shrink-0 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-bg hover:text-status-red"
+                      className="inline-flex h-9 w-9 min-h-touch min-w-touch shrink-0 items-center justify-center rounded-lg text-text-muted icon-motion hover:bg-bg hover:text-status-red"
                     >
                       <Trash2 className="h-4 w-4" aria-hidden="true" />
                     </button>
@@ -669,10 +669,10 @@ export function DeniChat({
         >
           <Link
             href="/"
-            className="flex min-h-touch flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold text-text-muted hover:bg-brand-soft hover:text-brand-dark"
+            className="flex min-h-touch flex-col items-center justify-center gap-1 nav-item rounded-xl text-[11px] font-semibold text-text-muted hover:bg-brand-soft hover:text-brand-dark"
           >
             <Home className="h-4 w-4" aria-hidden="true" />
-            <span>Beranda</span>
+            <span className="nav-label">Beranda</span>
           </Link>
           {NAV_DOCK_ITEMS.filter((item) => item.href !== '/chat').map((item) => {
             const Icon = item.icon;
@@ -680,10 +680,10 @@ export function DeniChat({
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex min-h-touch flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold text-text-muted hover:bg-brand-soft hover:text-brand-dark"
+                className="flex min-h-touch flex-col items-center justify-center gap-1 nav-item rounded-xl text-[11px] font-semibold text-text-muted hover:bg-brand-soft hover:text-brand-dark"
               >
                 <Icon className="h-4 w-4" />
-                <span>{item.label}</span>
+                <span className="nav-label">{item.label}</span>
               </Link>
             );
           })}
@@ -713,7 +713,7 @@ export function DeniChat({
               aria-expanded={mobileSidebarOpen}
               onClick={() => setMobileSidebarOpen((prev) => !prev)}
               aria-label={mobileSidebarOpen ? 'Tutup Riwayat Chat' : 'Buka Riwayat Chat'}
-              className="inline-flex h-9 w-9 min-h-touch min-w-touch items-center justify-center rounded-lg text-brand-dark transition-colors hover:bg-brand-soft lg:hidden"
+              className="inline-flex h-9 w-9 min-h-touch min-w-touch items-center justify-center rounded-lg text-brand-dark icon-motion hover:bg-brand-soft lg:hidden"
             >
               <Menu className="h-5 w-5 shrink-0" aria-hidden="true" />
             </button>
@@ -725,7 +725,7 @@ export function DeniChat({
                 onClick={() => setDesktopSidebarOpen(true)}
                 aria-label="Buka Sidebar Riwayat"
                 data-testid="deni-sidebar-open-btn"
-                className="hidden h-9 w-9 min-h-touch min-w-touch items-center justify-center rounded-lg border border-border bg-bg text-brand-dark transition-colors hover:bg-brand-soft lg:inline-flex"
+                className="hidden h-9 w-9 min-h-touch min-w-touch items-center justify-center rounded-lg border border-border bg-bg text-brand-dark btn-motion hover:bg-brand-soft lg:inline-flex"
               >
                 <PanelLeftOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
               </button>
@@ -747,7 +747,7 @@ export function DeniChat({
             onClick={handleStartNewChat}
             aria-label="Chat Baru"
             title="Chat Baru"
-            className="inline-flex h-9 min-h-touch min-w-touch items-center justify-center gap-1.5 rounded-lg text-brand-dark transition-colors hover:bg-brand-soft lg:hidden"
+            className="inline-flex h-9 min-h-touch min-w-touch items-center justify-center gap-1.5 rounded-lg text-brand-dark icon-motion hover:bg-brand-soft lg:hidden"
           >
             <SquarePen className="h-5 w-5 shrink-0" aria-hidden="true" />
           </button>
@@ -800,6 +800,7 @@ export function DeniChat({
                   key={`msg-${idx}`}
                   className={[
                     'flex items-start gap-2.5',
+                    isUser ? 'animate-bubble-user' : 'animate-bubble-deni',
                     isUser ? 'justify-end' : 'justify-start',
                   ].join(' ')}
                 >
@@ -863,7 +864,7 @@ export function DeniChat({
                             onClick={() => handleRetryMessage(msg)}
                             data-testid="chat-retry-user-btn"
                             aria-label="Ulangi kirim pesan ini"
-                            className="inline-flex items-center gap-1 rounded-pill border border-surface/30 bg-surface/15 px-2.5 py-0.5 text-[11px] font-semibold text-surface transition-colors hover:bg-surface/25 disabled:opacity-50"
+                            className="inline-flex items-center gap-1 rounded-pill border border-surface/30 bg-surface/15 px-2.5 py-0.5 text-[11px] font-semibold text-surface btn-motion hover:bg-surface/25 disabled:opacity-50"
                           >
                             <RotateCcw className="h-3 w-3 shrink-0" aria-hidden="true" />
                             <span>Ulangi</span>
@@ -887,7 +888,7 @@ export function DeniChat({
                             disabled={isSending || cooldownLeft > 0}
                             onClick={() => handleRetryPrecedingUserMessage(idx)}
                             data-testid="chat-retry-fallback-btn"
-                            className="inline-flex items-center gap-1 rounded-pill border border-border bg-bg px-2.5 py-1 text-xs font-semibold text-brand-dark transition-colors hover:bg-brand-soft disabled:opacity-50"
+                            className="inline-flex items-center gap-1 rounded-pill border border-border bg-bg px-2.5 py-1 text-xs font-semibold text-brand-dark btn-motion hover:bg-brand-soft disabled:opacity-50"
                           >
                             <RotateCcw className="h-3 w-3 shrink-0" aria-hidden="true" />
                             <span>Ulangi</span>
@@ -901,7 +902,7 @@ export function DeniChat({
             })}
 
             {isSending && (
-              <div className="flex items-center gap-2 text-badge font-medium text-accent-deni">
+              <div className="animate-bubble-deni flex items-center gap-2 text-badge font-medium text-accent-deni">
                 <span className="inline-block h-3.5 w-3.5 animate-spin rounded-pill border-2 border-current border-t-transparent" />
                 <span>
                   {isSlow
@@ -1034,7 +1035,7 @@ export function DeniChat({
                     data-testid="deni-template-dropdown-btn"
                     disabled={isSending || cooldownLeft > 0}
                     onClick={() => setTemplateMenuOpen((prev) => !prev)}
-                    className="inline-flex h-9 min-h-touch items-center gap-1.5 rounded-pill border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark transition-colors hover:border-brand/40 hover:bg-brand-soft disabled:opacity-60"
+                    className="inline-flex h-9 min-h-touch items-center gap-1.5 rounded-pill border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark btn-motion hover:border-brand/40 hover:bg-brand-soft disabled:opacity-60"
                   >
                     <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                     <span className="sm:hidden">Contoh</span>
@@ -1078,7 +1079,7 @@ export function DeniChat({
                 <label
                   htmlFor="deni-photo-upload"
                   data-testid="deni-add-photo-btn"
-                  className="inline-flex h-9 min-h-touch cursor-pointer items-center gap-1.5 rounded-pill border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark transition-colors hover:border-brand/40 hover:bg-brand-soft"
+                  className="inline-flex h-9 min-h-touch cursor-pointer items-center gap-1.5 rounded-pill border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark btn-motion hover:border-brand/40 hover:bg-brand-soft"
                 >
                   <ImagePlus className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                   <span className="sm:hidden">Foto</span>
@@ -1103,7 +1104,7 @@ export function DeniChat({
                     (!inputMessage.trim() && !attachedPhoto) ||
                     cooldownLeft > 0
                   }
-                  className="ml-auto inline-flex h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-brand px-3 text-xs font-bold text-surface transition-colors hover:bg-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring disabled:opacity-40"
+                  className="ml-auto inline-flex h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-brand px-3 text-xs font-bold text-surface btn-motion hover:bg-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring disabled:opacity-40"
                 >
                   {isSending ? (
                     <span className="h-4 w-4 animate-spin rounded-pill border-2 border-current border-t-transparent" />

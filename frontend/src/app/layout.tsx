@@ -5,6 +5,7 @@ import { AppFooter } from '../components/AppFooter';
 import { DeniMascot } from '../components/DeniMascot';
 import { FloatingNavbar } from '../components/FloatingNavbar';
 import { NewsPromoAdPopup } from '../components/NewsPromoAdPopup';
+import { ScrollReveal } from '../components/ScrollReveal';
 import { ServerWarmup } from '../components/ServerWarmup';
 import './globals.css';
 
@@ -48,6 +49,7 @@ export default function RootLayout({
     >
       <body className="flex min-h-screen flex-col bg-bg font-sans text-body text-text antialiased">
         <ServerWarmup />
+        <ScrollReveal />
         <AdminRolePill />
         <NewsPromoAdPopup />
         <FloatingNavbar />
