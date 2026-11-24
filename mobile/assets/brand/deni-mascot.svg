@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" role="img" aria-labelledby="deni-title">
+  <title id="deni-title">Deni, asisten kesehatan gigi Dentify</title>
+  <!-- ground shadow -->
+  <ellipse cx="100" cy="206" rx="46" ry="7" fill="#0B192C" opacity="0.12"/>
+  <!-- tooth body -->
+  <path d="M100 38 C82 26 54 26 44 48 C34 70 40 98 50 118 C58 134 60 154 63 178 C66 198 82 200 86 180 C90 160 93 146 100 146 C107 146 110 160 114 180 C118 200 134 198 137 178 C140 154 142 134 150 118 C160 98 166 70 156 48 C146 26 118 26 100 38 Z"
+        fill="#FFFFFF" stroke="#0F766E" stroke-width="6" stroke-linejoin="round"/>
+  <!-- soft highlight -->
+  <path d="M60 52 C66 42 78 40 86 44" fill="none" stroke="#CCFBF1" stroke-width="7" stroke-linecap="round"/>
+  <!-- headset band -->
+  <path d="M40 74 C34 8 166 8 160 74" fill="none" stroke="#0E7490" stroke-width="7" stroke-linecap="round"/>
+  <!-- ear cups -->
+  <rect x="28" y="62" width="20" height="30" rx="9" fill="#0E7490"/>
+  <rect x="152" y="62" width="20" height="30" rx="9" fill="#0E7490"/>
+  <!-- microphone boom -->
+  <path d="M36 92 C38 116 56 124 72 122" fill="none" stroke="#0E7490" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="76" cy="122" r="6" fill="#0F766E"/>
+  <!-- eyes -->
+  <ellipse cx="82" cy="84" rx="7" ry="9" fill="#0B192C"/>
+  <ellipse cx="118" cy="84" rx="7" ry="9" fill="#0B192C"/>
+  <circle cx="84.5" cy="80.5" r="2.5" fill="#FFFFFF"/>
+  <circle cx="120.5" cy="80.5" r="2.5" fill="#FFFFFF"/>
+  <!-- cheeks -->
+  <ellipse cx="70" cy="100" rx="8" ry="5" fill="#FDA4AF" opacity="0.6"/>
+  <ellipse cx="130" cy="100" rx="8" ry="5" fill="#FDA4AF" opacity="0.6"/>
+  <!-- smile -->
+  <path d="M88 102 Q100 116 112 102" fill="none" stroke="#0B192C" stroke-width="4" stroke-linecap="round"/>
+  <!-- sparkle -->
+  <path d="M168 30 L171 39 L180 42 L171 45 L168 54 L165 45 L156 42 L165 39 Z" fill="#14B8A6"/>
+</svg>
