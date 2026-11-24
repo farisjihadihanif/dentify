@@ -59,7 +59,8 @@ export const UNSURE_CARE_RECOMMENDATIONS = {
   ],
 };
 
-export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB
+// Vercel rejects request bodies over 4.5 MB; the frontend compresses photos to under 3 MB
+export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024; // 4 MB
 export const MIN_IMAGE_DIMENSION = 32;
 export const MAX_CHAT_MESSAGES = 50;
 export const ALLOWED_IMAGE_MIME_TYPES = [

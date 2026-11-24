@@ -7,6 +7,11 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    // CommonJS Vercel entry, loads the compiled dist/
+    files: ['api/**/*.js'],
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
+  {
     languageOptions: {
       globals: {
         ...globals.node,

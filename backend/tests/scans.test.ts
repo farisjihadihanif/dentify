@@ -64,9 +64,9 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
     return { token: res.body.data.token as string, userId: res.body.data.user.id as string };
   }
 
-  it('rejects > 5 MB upload with 413 PAYLOAD_TOO_LARGE', async () => {
+  it('rejects > 4 MB upload with 413 PAYLOAD_TOO_LARGE', async () => {
     const app = createApp();
-    const oversized = Buffer.alloc(5 * 1024 * 1024 + 1024, 0x41);
+    const oversized = Buffer.alloc(4 * 1024 * 1024 + 1024, 0x41);
     const res = await request(app)
       .post('/api/v1/scans')
       .set('Authorization', `Bearer ${scannerToken}`)
@@ -75,6 +75,7 @@ describe('Scan endpoints, upload validation, and ownership isolation', () => {
 
     expect(res.status).toBe(413);
     expect(res.body.code).toBe('PAYLOAD_TOO_LARGE');
+    expect(res.body.message).toBe('Ukuran foto maksimal 4 MB.');
   });
 
   it('rejects non-image payload disguised as .jpg with 422 INVALID_IMAGE', async () => {

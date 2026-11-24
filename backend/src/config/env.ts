@@ -38,7 +38,7 @@ export function getEnv(): AppEnv {
   return {
     nodeEnv: envValue('NODE_ENV') ?? 'development',
     port: Number(envValue('PORT') ?? 5000),
-    trustProxy: Number(envValue('TRUST_PROXY') ?? 0),
+    trustProxy: Number(envValue('TRUST_PROXY') ?? (process.env.VERCEL ? 1 : 0)),
     mongodbUri: envValue('MONGODB_URI') ?? 'mongodb://127.0.0.1:27017/dentify',
     jwtSecret: envValue('JWT_SECRET') ?? 'dev-only-insecure-secret-change-me-32chars',
     jwtExpiresIn: envValue('JWT_EXPIRES_IN') ?? '7d',
@@ -46,7 +46,9 @@ export function getEnv(): AppEnv {
     corsOrigins,
     aiServiceUrl: (envValue('AI_SERVICE_URL') ?? 'http://localhost:8000').replace(/\/+$/, ''),
     aiServiceApiKey: (envValue('AI_SERVICE_API_KEY') ?? '').trim() || 'dev-internal-key',
-    aiServiceTimeoutMs: Number(envValue('AI_SERVICE_TIMEOUT_MS') ?? 25000),
+    // Must cover the ai-service waking from sleep (~1 minute on Render Free) and stay below the
+    // Vercel function's maxDuration (vercel.json).
+    aiServiceTimeoutMs: Number(envValue('AI_SERVICE_TIMEOUT_MS') ?? 90000),
     overpassUrl: envValue('OVERPASS_URL') ?? 'https://overpass-api.de/api/interpreter',
     nominatimUrl: envValue('NOMINATIM_URL') ?? 'https://nominatim.openstreetmap.org/search',
     osmUserAgent:

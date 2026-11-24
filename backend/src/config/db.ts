@@ -1,13 +1,13 @@
-import mongoose from 'mongoose';
+import mongoose, { type ConnectOptions } from 'mongoose';
 import { getEnv } from './env';
 import { logger } from '../utils/logger';
 
-export async function connectDb(uri?: string): Promise<typeof mongoose> {
+export async function connectDb(uri?: string, options?: ConnectOptions): Promise<typeof mongoose> {
   const targetUri = uri ?? getEnv().mongodbUri;
   if (mongoose.connection.readyState === 1) {
     return mongoose;
   }
-  const conn = await mongoose.connect(targetUri);
+  const conn = await mongoose.connect(targetUri, options);
   logger.info('MongoDB connected');
   return conn;
 }

@@ -8,7 +8,12 @@ import { notFound } from './middlewares/notFound';
 import { errorHandler } from './middlewares/errorHandler';
 import { ApiError } from './utils/ApiError';
 
-export function createApp(): Express {
+export interface CreateAppOptions {
+  /** Awaited before every API request; used on Vercel to open the cached MongoDB connection. */
+  ready?: () => Promise<void>;
+}
+
+export function createApp(options: CreateAppOptions = {}): Express {
   const app = express();
   const env = getEnv();
 
@@ -36,14 +41,22 @@ export function createApp(): Express {
     }),
   );
 
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-  // Liveness probe for the hosting platform (Render healthCheckPath). It touches neither MongoDB
-  // nor the ai-service, so frequent probes never keep the free ai-service instance awake.
+  // Liveness probe for hosting platforms. It touches neither MongoDB nor the ai-service.
   app.get('/healthz', (_req, res) => {
     res.status(200).json({ status: 'alive' });
   });
+
+  // After CORS, so the browser can read the 503 when the server is not ready
+  const { ready } = options;
+  if (ready) {
+    app.use((_req, _res, next) => {
+      ready().then(() => next(), next);
+    });
+  }
+
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
   app.get('/health', getHealth);
   app.use('/api/v1', apiRoutes);
 

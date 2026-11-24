@@ -34,7 +34,7 @@ export function errorHandler(
     if (err.code === 'LIMIT_FILE_SIZE') {
       res.status(413).json({
         success: false,
-        message: 'Ukuran foto maksimal 5 MB.',
+        message: 'Ukuran foto maksimal 4 MB.',
         code: 'PAYLOAD_TOO_LARGE',
       });
       return;
@@ -43,6 +43,16 @@ export function errorHandler(
       success: false,
       message: 'Format unggahan foto tidak valid.',
       code: 'INVALID_IMAGE',
+    });
+    return;
+  }
+
+  // Body parser size limit
+  if (err instanceof Error && 'type' in err && err.type === 'entity.too.large') {
+    res.status(413).json({
+      success: false,
+      message: 'Ukuran data yang dikirim terlalu besar.',
+      code: 'PAYLOAD_TOO_LARGE',
     });
     return;
   }

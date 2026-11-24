@@ -11,7 +11,7 @@ dentify/
 ├── ai-service/     FastAPI + TensorFlow/Keras (.keras) + OpenCV + LangChain/Gemini (:8000)
 ├── data-science/   Data wrangling, feature engineering, EDA notebooks, A/B test, Streamlit dashboard (:8501)
 ├── scripts/        End-to-end smoke verification (`e2e-smoke.js`)
-└── render.yaml     Render Blueprint (backend + ai-service)
+└── render.yaml     Render Blueprint (ai-service)
 ```
 
 ## Website
