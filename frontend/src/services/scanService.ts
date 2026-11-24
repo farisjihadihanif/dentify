@@ -2,7 +2,7 @@
  * Dental scan service.
  */
 
-import apiClient from './apiClient';
+import apiClient, { AI_REQUEST_TIMEOUT_MS } from './apiClient';
 import type { UrgencyLevel } from '../components/StatusBadge';
 
 export type DentalCondition = 'caries' | 'calculus' | 'gingivitis' | 'healthy';
@@ -78,7 +78,9 @@ export async function submitDentalScan(input: SubmitScanInput): Promise<ScanRepo
     formData.append('user_symptoms', input.userSymptoms.trim());
   }
 
-  const { data } = await apiClient.post<CreateScanResponsePayload>('/scans', formData);
+  const { data } = await apiClient.post<CreateScanResponsePayload>('/scans', formData, {
+    timeout: AI_REQUEST_TIMEOUT_MS,
+  });
   saveLastScanToStorage(data.data);
   return data.data;
 }

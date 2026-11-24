@@ -37,6 +37,12 @@ export function ErrorBanner({
     return <ServerWakingNotice onRetry={onRetry} onDismiss={onDismiss} className={className} />;
   }
 
+  // The code makes reports useful; AI_* messages already name the ai-service's own HTTP status
+  const errorCode = uiError.code.startsWith('AI_')
+    ? uiError.code
+    : uiError.httpStatus
+      ? `${uiError.code} (HTTP ${uiError.httpStatus})`
+      : null;
   const fieldEntries = uiError.fieldErrors ? Object.entries(uiError.fieldErrors) : [];
 
   return (
@@ -64,6 +70,7 @@ export function ErrorBanner({
             <p className={uiError.title ? 'mt-0.5 text-sm text-text' : 'font-semibold text-status-red'}>
               {uiError.message}
             </p>
+            {errorCode && <p className="mt-1 text-xs text-text-muted">Kode: {errorCode}</p>}
             {fieldEntries.length > 0 && (
               <ul className="mt-2 list-disc space-y-1 pl-5 text-badge text-text-muted">
                 {fieldEntries.flatMap(([field, messages]) =>

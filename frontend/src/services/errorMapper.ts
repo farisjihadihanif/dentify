@@ -15,6 +15,9 @@ export type ApiErrorCode =
   | 'NOT_DENTAL_IMAGE'
   | 'RATE_LIMITED'
   | 'AI_SERVICE_UNAVAILABLE'
+  | 'AI_AUTH_FAILED'
+  | 'AI_SERVICE_ERROR'
+  | 'SERVER_NOT_READY'
   | 'INTERNAL_ERROR'
   | 'GEOLOCATION_DENIED'
   | 'NETWORK_ERROR'
@@ -37,6 +40,8 @@ export interface MappedUiError {
   action: ErrorUiAction;
   cooldownSeconds?: number;
   fieldErrors?: Record<string, string[]>;
+  /** HTTP status of the response, when there was one */
+  httpStatus?: number;
 }
 
 export interface BackendErrorPayload {
@@ -53,7 +58,7 @@ const ERROR_CATALOG: Record<ApiErrorCode, Omit<MappedUiError, 'code' | 'fieldErr
   },
   PAYLOAD_TOO_LARGE: {
     action: 'reset_file_input',
-    message: 'Ukuran foto terlalu besar (maksimal 5 MB). Silakan pilih foto lain.',
+    message: 'Ukuran foto terlalu besar (maksimal 3 MB setelah dikompres). Silakan pilih foto lain.',
   },
   INVALID_IMAGE: {
     action: 'reset_file_input',
@@ -78,6 +83,20 @@ const ERROR_CATALOG: Record<ApiErrorCode, Omit<MappedUiError, 'code' | 'fieldErr
   AI_SERVICE_UNAVAILABLE: {
     action: 'show_retry_button',
     message: 'Layanan analisis AI sedang sibuk. Silakan kirim ulang foto Anda.',
+  },
+  AI_AUTH_FAILED: {
+    title: 'Layanan AI menolak permintaan',
+    action: 'show_alert',
+    message: 'Layanan AI menolak kunci akses server. Hubungi pengelola Dentify.',
+  },
+  AI_SERVICE_ERROR: {
+    title: 'Layanan AI mengalami kendala',
+    action: 'show_retry_button',
+    message: 'Layanan AI gagal memproses permintaan. Silakan coba lagi.',
+  },
+  SERVER_NOT_READY: {
+    action: 'show_retry_button',
+    message: 'Server belum siap. Silakan coba lagi sebentar lagi.',
   },
   GEOLOCATION_DENIED: {
     action: 'show_manual_location_form',
@@ -119,7 +138,27 @@ const ERROR_CATALOG: Record<ApiErrorCode, Omit<MappedUiError, 'code' | 'fieldErr
   },
 };
 
+/** Codes whose backend message says more than the generic one. */
+const BACKEND_MESSAGE_CODES = new Set<ApiErrorCode>([
+  'VALIDATION_ERROR',
+  'BAD_REQUEST',
+  'FORBIDDEN',
+  'NOT_FOUND',
+  'AI_AUTH_FAILED',
+  'AI_SERVICE_ERROR',
+  'SERVER_NOT_READY',
+]);
+
 const KNOWN_CODES = new Set<string>(Object.keys(ERROR_CATALOG));
+
+const STATUS_CODES: Record<number, ApiErrorCode> = {
+  400: 'BAD_REQUEST',
+  401: 'UNAUTHENTICATED',
+  403: 'FORBIDDEN',
+  404: 'NOT_FOUND',
+  413: 'PAYLOAD_TOO_LARGE',
+  429: 'RATE_LIMITED',
+};
 
 function isKnownErrorCode(code: string | undefined): code is ApiErrorCode {
   return Boolean(code && KNOWN_CODES.has(code));
@@ -143,6 +182,7 @@ export function mapApiError(errorOrPayload: unknown): MappedUiError {
       return { code: 'GEOLOCATION_DENIED', ...ERROR_CATALOG.GEOLOCATION_DENIED };
     }
 
+    const status = candidate.response?.status;
     const payload: BackendErrorPayload | undefined =
       candidate.response?.data ??
       (typeof candidate.code === 'string' && KNOWN_CODES.has(candidate.code)
@@ -159,6 +199,7 @@ export function mapApiError(errorOrPayload: unknown): MappedUiError {
           code: 'UNAUTHENTICATED',
           action: 'show_alert',
           message: payload.message,
+          httpStatus: status,
         };
       }
       return {
@@ -167,26 +208,27 @@ export function mapApiError(errorOrPayload: unknown): MappedUiError {
         action: base.action,
         cooldownSeconds: base.cooldownSeconds,
         message:
-          payload.code === 'VALIDATION_ERROR' && payload.message ? payload.message : base.message,
+          BACKEND_MESSAGE_CODES.has(payload.code) && payload.message ? payload.message : base.message,
         fieldErrors: payload.errors,
+        httpStatus: status,
       };
     }
 
-    if (candidate.response?.status === 401) {
-      return { code: 'UNAUTHENTICATED', ...ERROR_CATALOG.UNAUTHENTICATED };
+    // 504 is the platform's own timeout while the backend waited for the ai-service. A bare 502/503
+    // is not: the ai-service's are reported by the backend as AI_SERVICE_UNAVAILABLE.
+    if (status === 504) {
+      return { code: 'SERVER_WAKING', ...ERROR_CATALOG.SERVER_WAKING, httpStatus: status };
     }
-    if (candidate.response?.status === 413) {
-      return { code: 'PAYLOAD_TOO_LARGE', ...ERROR_CATALOG.PAYLOAD_TOO_LARGE };
+    if (status !== undefined) {
+      const code = STATUS_CODES[status] ?? (status >= 500 ? 'INTERNAL_ERROR' : 'UNKNOWN_ERROR');
+      return {
+        code,
+        ...ERROR_CATALOG[code],
+        ...(code === 'UNKNOWN_ERROR' && payload?.message ? { message: payload.message } : {}),
+        httpStatus: status,
+      };
     }
-    if (candidate.response?.status === 429) {
-      return { code: 'RATE_LIMITED', ...ERROR_CATALOG.RATE_LIMITED };
-    }
-    // Free-tier servers sleep when idle: while one wakes up (~1 minute) requests time out, fail
-    // without a response (the platform's wake-up page has no CORS headers) or get a bare 5xx.
-    const status = candidate.response?.status;
-    if (status === 502 || status === 503 || status === 504) {
-      return { code: 'SERVER_WAKING', ...ERROR_CATALOG.SERVER_WAKING };
-    }
+    // Network errors and timeouts: the browser got no readable answer at all
     if (!candidate.response && (candidate.code === 'ECONNABORTED' || candidate.code === 'ETIMEDOUT')) {
       return { code: 'SERVER_WAKING', ...ERROR_CATALOG.SERVER_WAKING };
     }
@@ -203,8 +245,8 @@ export function mapApiError(errorOrPayload: unknown): MappedUiError {
 
 /**
  * Errors shown as the calm "server sedang dinyalakan" state instead of an error. The backend
- * answers AI_SERVICE_UNAVAILABLE when it cannot reach the ai-service, which on the free tier is
- * almost always the ai-service still waking up; the notice checks /health to confirm.
+ * answers AI_SERVICE_UNAVAILABLE only for network errors, timeouts and 502/503/504 from the
+ * ai-service, i.e. while it wakes up; the notice checks /health to confirm.
  */
 export function isServerWakingError(error: Pick<MappedUiError, 'code'>): boolean {
   return error.code === 'SERVER_WAKING' || error.code === 'AI_SERVICE_UNAVAILABLE';

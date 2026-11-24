@@ -2,7 +2,7 @@
  * Deni conversational assistant service.
  */
 
-import apiClient from './apiClient';
+import apiClient, { AI_REQUEST_TIMEOUT_MS } from './apiClient';
 import type { UrgencyLevel } from '../components/StatusBadge';
 import type { PaginationMeta } from './scanService';
 
@@ -27,6 +27,8 @@ export interface ChatTurnResponseData {
   trigger_clinic_finder: boolean;
   suggested_questions: string[];
   is_fallback?: boolean;
+  /** Why Deni fell back to general guidance */
+  ai_error?: { code: string; message: string } | null;
   medical_disclaimer: string;
 }
 
@@ -92,16 +94,16 @@ export async function sendDeniMessage(
   };
   if (input.sessionId) body.session_id = input.sessionId;
   if (input.scanId) body.scan_id = input.scanId;
-  if (input.imageBase64) {
-    body.image_data_url = input.imageBase64;
-    body.image_base64 = input.imageBase64;
-  }
+  // Sent once: a second copy would push the body over Vercel's 4.5 MB limit
+  if (input.imageBase64) body.image_data_url = input.imageBase64;
   if (input.imageMimeType) body.image_mime_type = input.imageMimeType;
   if (input.history && input.history.length > 0) {
     body.history = input.history.slice(-10);
   }
 
-  const { data } = await apiClient.post<SendChatResponsePayload>('/chat', body);
+  const { data } = await apiClient.post<SendChatResponsePayload>('/chat', body, {
+    timeout: AI_REQUEST_TIMEOUT_MS,
+  });
   return data.data;
 }
 

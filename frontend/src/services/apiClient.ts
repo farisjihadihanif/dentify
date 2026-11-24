@@ -16,6 +16,12 @@ export { AUTH_TOKEN_STORAGE_KEY, clearAuthToken, getAuthToken, setAuthToken };
 const DEFAULT_API_URL = 'http://localhost:5000/api/v1';
 const DEFAULT_TIMEOUT_MS = 30000;
 
+/**
+ * Scan and Deni requests may have to wait for the ai-service to wake up. The backend gives up
+ * after 90 s (AI_SERVICE_TIMEOUT_MS) and answers with a real error, so wait longer than that.
+ */
+export const AI_REQUEST_TIMEOUT_MS = 115000;
+
 export function resolveApiBaseUrl(
   // Next.js only inlines NEXT_PUBLIC_* into the browser bundle when written literally as
   // process.env.NEXT_PUBLIC_API_URL; passing process.env as an object leaves it empty there.
