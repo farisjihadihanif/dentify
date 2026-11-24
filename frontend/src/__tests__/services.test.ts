@@ -15,7 +15,7 @@ describe('errorMapper', () => {
     expect(mapApiError('PAYLOAD_TOO_LARGE')).toEqual({
       code: 'PAYLOAD_TOO_LARGE',
       action: 'reset_file_input',
-      message: 'Ukuran foto terlalu besar (maksimal 5 MB). Silakan pilih foto lain.',
+      message: 'Ukuran foto terlalu besar (maksimal 3 MB setelah dikompres). Silakan pilih foto lain.',
     });
 
     expect(mapApiError('INVALID_IMAGE')).toEqual({
@@ -79,6 +79,7 @@ describe('errorMapper', () => {
       cooldownSeconds: undefined,
       message: 'Format email tidak valid.',
       fieldErrors: { email: ['Format email tidak valid.'] },
+      httpStatus: 422,
     });
 
     const notDentalMapped = mapApiError({

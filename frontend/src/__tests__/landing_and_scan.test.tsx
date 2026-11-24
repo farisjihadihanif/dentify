@@ -134,7 +134,7 @@ describe('Landing Page 3 Section & Layar Pemindaian Gigi dengan Sidebar', () => 
     expect(sureHtml).not.toContain('data-testid="unsure-badge"');
   });
 
-  it('validateClientImageFile memvalidasi format JPG/PNG/WEBP dan batas ukuran 5 MB', () => {
+  it('validateClientImageFile memvalidasi format JPG/PNG/WEBP dan batas ukuran file asli', () => {
     expect(
       validateClientImageFile({
         name: 'gigi.jpg',

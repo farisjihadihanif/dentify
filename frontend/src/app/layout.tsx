@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Bricolage_Grotesque, Plus_Jakarta_Sans } from 'next/font/google';
 import { AdminRolePill } from '../components/AdminRolePill';
 import { AppFooter } from '../components/AppFooter';
@@ -26,6 +26,14 @@ export const metadata: Metadata = {
   title: 'Dentify – Skrining Kesehatan Gigi & Konsultasi Deni',
   description:
     'Aplikasi web skrining dini kesehatan gigi berbasis Computer Vision, asisten interaktif Deni, dan pencari klinik gigi terdekat OpenStreetMap.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  // The on-screen keyboard shrinks the page, so the chat composer stays visible above it
+  interactiveWidget: 'resizes-content',
 };
 
 export default function RootLayout({

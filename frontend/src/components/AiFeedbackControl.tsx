@@ -73,7 +73,7 @@ export function AiFeedbackControl({
       className={compact ? 'mt-2 space-y-2 border-t border-border pt-2' : 'space-y-2.5 rounded-card border border-border bg-bg p-3.5'}
     >
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs font-medium text-text-muted">Apakah hasil ini membantu?</span>
+        <span className="basis-full text-xs font-medium text-text-muted sm:basis-auto">Apakah hasil ini membantu?</span>
         <button
           type="button"
           onClick={() => handleSelectRating('helpful')}

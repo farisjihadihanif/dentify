@@ -15,13 +15,11 @@ describe('Cold start: server sedang dinyalakan', () => {
     vi.unstubAllGlobals();
   });
 
-  it('maps timeouts, no-response network errors and bare 5xx to SERVER_WAKING', () => {
+  it('maps timeouts, no-response network errors and platform 504 to SERVER_WAKING', () => {
     expect(mapApiError({ code: 'ECONNABORTED' }).code).toBe('SERVER_WAKING');
     expect(mapApiError({ code: 'ETIMEDOUT' }).code).toBe('SERVER_WAKING');
     expect(mapApiError({ code: 'ERR_NETWORK' }).code).toBe('SERVER_WAKING');
-    for (const status of [502, 503, 504]) {
-      expect(mapApiError({ response: { status } }).code).toBe('SERVER_WAKING');
-    }
+    expect(mapApiError({ response: { status: 504 } }).code).toBe('SERVER_WAKING');
     expect(mapApiError({ code: 'ECONNABORTED' }).message).toBe(
       'Server sedang dinyalakan, tunggu sekitar 1 menit, lalu coba lagi.',
     );

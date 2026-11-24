@@ -19,7 +19,7 @@ import { DEFAULT_HISTORY_EMPTY_TEXT, EmptyState } from '../components/EmptyState
 import { FloatingNavbar, NAV_DOCK_ITEMS } from '../components/FloatingNavbar';
 import { OsmMapView } from '../components/OsmMapView';
 import { ProfileEditorView } from '../components/ProfileEditorView';
-import apiClient from '../services/apiClient';
+import apiClient, { AI_REQUEST_TIMEOUT_MS } from '../services/apiClient';
 import { updateCurrentUserProfile } from '../services/authService';
 import {
   INITIAL_SUGGESTED_QUESTIONS,
@@ -350,7 +350,7 @@ describe('Deni Chat (/chat)', () => {
     expect(postSpy).toHaveBeenCalledWith('/chat', {
       message: 'Gigi saya nyut-nyutan',
       scan_id: SAMPLE_SCAN_REPORT.id,
-    });
+    }, { timeout: AI_REQUEST_TIMEOUT_MS });
     expect(turn.trigger_clinic_finder).toBe(true);
 
     const getSpy = vi

@@ -8,10 +8,12 @@ import React, {
   type ChangeEvent,
   type ClipboardEvent,
   type FormEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
 import Link from 'next/link';
 import {
   AlertCircle,
+  ArrowUp,
   ChevronUp,
   Home,
   ImagePlus,
@@ -21,8 +23,8 @@ import {
   PanelLeftOpen,
   Plus,
   RotateCcw,
-  Send,
   Sparkles,
+  SquarePen,
   Trash2,
   X,
 } from 'lucide-react';
@@ -51,10 +53,8 @@ import {
   type ScanReportData,
 } from '../services/scanService';
 import { formatJakartaDateTime } from '../utils/dateFormat';
-import {
-  compressClientImage,
-  validateClientImageFile,
-} from '../utils/imageHelper';
+import { isMobileDevice } from '../utils/cameraSupport';
+import { prepareImageForUpload, validateClientImageFile } from '../utils/imageHelper';
 
 export interface DeniChatProps {
   initialScanId?: string | null;
@@ -71,6 +71,10 @@ export const FALLBACK_DENI_BANNER_TEXT = 'Deni sedang tidak tersedia. Berikut pa
 
 const WELCOME_DENI_MESSAGE =
   'Halo! Saya Deni, asisten AI kesehatan gigi preventif Anda di Dentify. Anda dapat memilih template pertanyaan, melampirkan foto gigi, atau menuliskan keluhan gigi dan gusi yang ingin Anda tanyakan.';
+
+/** After this long the ai-service is probably still waking up, so reassure the user. */
+const SLOW_REPLY_MS = 15000;
+const COMPOSER_MAX_HEIGHT_PX = 160;
 
 interface AttachedPhotoState {
   dataUrl: string;
@@ -114,7 +118,7 @@ export function DeniChat({
   const [scanReport, setScanReport] = useState<ScanReportData | null>(initialScanReport);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionsList, setSessionsList] = useState<ChatSessionSummary[]>(initialSessions);
-  const [loggedIn, setLoggedIn] = useState<boolean>(() => isAuthenticated());
+  const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const [messages, setMessages] = useState<ChatMessageItem[]>(
     initialMessages ?? [
       {
@@ -137,15 +141,17 @@ export function DeniChat({
   const [inputMessage, setInputMessage] = useState('');
   const [attachedPhoto, setAttachedPhoto] = useState<AttachedPhotoState | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [isSlow, setIsSlow] = useState(false);
   const [cooldownLeft, setCooldownLeft] = useState(0);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(!initialSidebarCollapsed);
   const [templateMenuOpen, setTemplateMenuOpen] = useState(initialTemplatePopoverOpen);
   const [uiError, setUiError] = useState<MappedUiError | null>(null);
 
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const composerRef = useRef<HTMLDivElement | null>(null);
-  const messageInputRef = useRef<HTMLInputElement | null>(null);
+  const messagesListRef = useRef<HTMLElement | null>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const drawerCloseRef = useRef<HTMLButtonElement | null>(null);
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
   const photoInputRef = useRef<HTMLInputElement | null>(null);
   const templateMenuRef = useRef<HTMLDivElement | null>(null);
   const initializedScanFromUrlRef = useRef<boolean>(false);
@@ -166,7 +172,9 @@ export function DeniChat({
     }
   }, []);
 
+  // After mount, not in useState: the server never knows the session, so it would not hydrate
   useEffect(() => {
+    setLoggedIn(isAuthenticated());
     if (initialSessions.length === 0) {
       void loadSessionsHistory();
     }
@@ -214,8 +222,41 @@ export function DeniChat({
   }, [cooldownLeft]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
-  }, [messages.length, isSending]);
+    // Scroll only the message list: scrollIntoView would also shift the clipped workspace
+    const list = messagesListRef.current;
+    list?.scrollTo?.({ top: list.scrollHeight, behavior: 'smooth' });
+  }, [messages.length, isSending, uiError]);
+
+  useEffect(() => {
+    if (!isSending) {
+      setIsSlow(false);
+      return undefined;
+    }
+    const timer = window.setTimeout(() => setIsSlow(true), SLOW_REPLY_MS);
+    return () => window.clearTimeout(timer);
+  }, [isSending]);
+
+  // The composer grows with its text, like the ChatGPT / Claude apps
+  useEffect(() => {
+    const el = messageInputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, COMPOSER_MAX_HEIGHT_PX)}px`;
+  }, [inputMessage]);
+
+  useEffect(() => {
+    if (!mobileSidebarOpen) return undefined;
+    drawerCloseRef.current?.focus();
+    const menuButton = menuButtonRef.current;
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileSidebarOpen(false);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => {
+      window.removeEventListener('keydown', handleKey);
+      menuButton?.focus();
+    };
+  }, [mobileSidebarOpen]);
 
   useEffect(() => {
     if (!templateMenuOpen) return undefined;
@@ -255,7 +296,7 @@ export function DeniChat({
     }
 
     try {
-      const optimized = await compressClientImage(file);
+      const optimized = await prepareImageForUpload(file);
       const dataUrl = await fileToDataUrl(optimized);
       const normalizedMime = (
         ['image/jpeg', 'image/png', 'image/webp'].includes(optimized.type)
@@ -267,13 +308,16 @@ export function DeniChat({
         mimeType: normalizedMime,
         name: file.name || 'foto-gigi.png',
       });
-      // Auto-focus chat input and scroll composer into view so the user can type or hit Enter immediately
+      // Auto-focus chat input so the user can type or hit Enter immediately
       window.setTimeout(() => {
-        composerRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' });
         messageInputRef.current?.focus();
       }, 0);
-    } catch {
-      setUiError(mapApiError('INVALID_IMAGE'));
+    } catch (error) {
+      setUiError(
+        error && typeof error === 'object' && 'uiError' in error
+          ? (error as { uiError: MappedUiError }).uiError
+          : mapApiError('INVALID_IMAGE'),
+      );
       clearAttachedPhoto();
     }
   };
@@ -345,7 +389,11 @@ export function DeniChat({
       }
       setMobileSidebarOpen(false);
     } catch (error) {
-      setUiError(mapApiError(error));
+      setUiError(
+        error && typeof error === 'object' && 'uiError' in error
+          ? (error as { uiError: MappedUiError }).uiError
+          : mapApiError(error),
+      );
     }
   };
 
@@ -358,7 +406,11 @@ export function DeniChat({
         handleStartNewChat();
       }
     } catch (error) {
-      setUiError(mapApiError(error));
+      setUiError(
+        error && typeof error === 'object' && 'uiError' in error
+          ? (error as { uiError: MappedUiError }).uiError
+          : mapApiError(error),
+      );
     }
   };
 
@@ -430,6 +482,8 @@ export function DeniChat({
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, deniMsg]);
+      // Deni answered with general guidance because the AI call failed: say why
+      if (response.ai_error) setUiError(mapApiError(response.ai_error));
       void loadSessionsHistory();
     } catch (error) {
       const mapped =
@@ -484,6 +538,14 @@ export function DeniChat({
     void handleSendQuestion(inputMessage);
   };
 
+  // Enter sends on desktop; on phones it adds a line, as in the native chat apps
+  const handleComposerKeyDown = (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return;
+    if (isMobileDevice()) return;
+    event.preventDefault();
+    void handleSendQuestion(inputMessage);
+  };
+
   return (
     <div
       data-testid="deni-fullscreen-workspace"
@@ -495,12 +557,11 @@ export function DeniChat({
         data-testid="deni-sessions-sidebar"
         data-collapsed={!desktopSidebarOpen}
         className={[
-          'z-40 flex h-full w-[85vw] max-w-[18rem] shrink-0 flex-col lg:w-72 border-r border-border bg-surface p-4 transition-all duration-200',
-          mobileSidebarOpen
-            ? 'fixed inset-y-0 left-0 shadow-xl lg:static lg:shadow-none'
-            : desktopSidebarOpen
-              ? 'hidden lg:flex'
-              : 'hidden',
+          'fixed inset-y-0 left-0 z-40 flex h-full w-[85vw] max-w-[20rem] shrink-0 flex-col border-r border-border bg-surface p-4',
+          'pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]',
+          'transition-[transform,visibility] duration-200 ease-out motion-reduce:transition-none lg:static lg:w-72 lg:translate-x-0',
+          mobileSidebarOpen ? 'visible translate-x-0 shadow-xl lg:shadow-none' : 'invisible -translate-x-full',
+          desktopSidebarOpen ? 'lg:visible' : 'lg:hidden',
         ].join(' ')}
       >
         <div className="flex items-center justify-between gap-2 border-b border-border pb-3">
@@ -518,9 +579,10 @@ export function DeniChat({
 
           <button
             type="button"
+            ref={drawerCloseRef}
             onClick={() => {
-              setMobileSidebarOpen(false);
-              setDesktopSidebarOpen(false);
+              if (mobileSidebarOpen) setMobileSidebarOpen(false);
+              else setDesktopSidebarOpen(false);
             }}
             aria-label="Sembunyikan sidebar riwayat"
             data-testid="deni-sidebar-collapse-btn"
@@ -635,18 +697,20 @@ export function DeniChat({
           aria-label="Tutup riwayat chat"
           data-testid="deni-drawer-backdrop"
           onClick={() => setMobileSidebarOpen(false)}
-          className="fixed inset-0 z-30 bg-surface-navy/40 lg:hidden"
+          className="fixed inset-0 z-[35] bg-black/50 lg:hidden"
         />
       )}
 
       {/* Main Full-Height Conversation Pane (with pr-20 clearance for vertical right dock) */}
       <div className="flex min-w-0 flex-1 flex-col bg-bg lg:pr-20">
         {/* Compact utility top bar: icon-only PanelLeftOpen when sidebar is collapsed/mobile */}
-        <div className="flex items-center justify-between gap-3 border-b border-border bg-surface px-2 py-2 sm:px-6 sm:py-2.5">
+        <div className="flex items-center justify-between gap-3 border-b border-border bg-surface px-2 pb-1.5 pt-[max(0.375rem,env(safe-area-inset-top))] sm:px-6 sm:py-2.5">
           <div className="flex items-center gap-2.5">
             {/* Mobile icon-only sidebar toggle */}
             <button
               type="button"
+              ref={menuButtonRef}
+              aria-expanded={mobileSidebarOpen}
               onClick={() => setMobileSidebarOpen((prev) => !prev)}
               aria-label={mobileSidebarOpen ? 'Tutup Riwayat Chat' : 'Buka Riwayat Chat'}
               className="inline-flex h-9 w-9 min-h-touch min-w-touch items-center justify-center rounded-lg text-brand-dark transition-colors hover:bg-brand-soft lg:hidden"
@@ -685,14 +749,16 @@ export function DeniChat({
             title="Chat Baru"
             className="inline-flex h-9 min-h-touch min-w-touch items-center justify-center gap-1.5 rounded-lg text-brand-dark transition-colors hover:bg-brand-soft lg:hidden"
           >
-            <Plus className="h-5 w-5 shrink-0" aria-hidden="true" />
+            <SquarePen className="h-5 w-5 shrink-0" aria-hidden="true" />
           </button>
         </div>
 
         {/* Scrollable Full-Height Message Area */}
         <section
           aria-label="Percakapan Deni"
-          className="flex-1 overflow-y-auto px-3 py-4 sm:px-6 sm:py-5"
+          ref={messagesListRef}
+          // relative: keeps absolutely positioned sr-only labels inside this scroll area
+          className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5"
         >
           <div className="mx-auto max-w-3xl space-y-5">
             {(scanReport || scanId) && (
@@ -726,24 +792,6 @@ export function DeniChat({
               </section>
             )}
 
-            {uiError && (
-              <ErrorBanner
-                error={uiError}
-                onRetry={
-                  lastAttemptRef.current
-                    ? () => {
-                        if (lastAttemptRef.current) {
-                          void handleSendQuestion(lastAttemptRef.current.text, {
-                            photoOverride: lastAttemptRef.current.photo,
-                          });
-                        }
-                      }
-                    : undefined
-                }
-                onDismiss={() => setUiError(null)}
-              />
-            )}
-
             {messages.map((msg, idx) => {
               const isUser = msg.role === 'user';
               const targetId = sessionId ? `${sessionId}:${idx}` : `guest-msg-${idx}`;
@@ -759,19 +807,19 @@ export function DeniChat({
                     <img
                       src="/images/deni-mascot.svg"
                       alt="Avatar Deni"
-                      className="mt-1 h-9 w-9 shrink-0 rounded-pill border border-border bg-accent-deni-soft object-contain p-0.5"
+                      className="mt-1 hidden h-9 w-9 shrink-0 rounded-pill border border-border bg-accent-deni-soft object-contain p-0.5 sm:block"
                     />
                   )}
                   <div
                     className={[
-                      'max-w-2xl rounded-card px-4 py-3 text-body',
+                      'min-w-0 text-body [overflow-wrap:anywhere]',
                       isUser
-                        ? 'bg-brand text-surface'
-                        : 'border border-border bg-surface text-text shadow-sm',
+                        ? 'max-w-[85%] rounded-2xl rounded-br-md bg-brand px-4 py-2.5 text-surface sm:max-w-2xl'
+                        : 'w-full text-text sm:w-auto sm:max-w-2xl sm:rounded-card sm:border sm:border-border sm:bg-surface sm:px-4 sm:py-3 sm:shadow-sm',
                     ].join(' ')}
                   >
-                    <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                      <p className="text-badge font-bold">{isUser ? 'Anda' : 'Deni'}</p>
+                    <div className={['flex flex-wrap items-center gap-2', isUser ? 'sm:mb-1.5' : 'mb-1.5'].join(' ')}>
+                      <p className={['text-badge font-bold', isUser ? 'max-sm:sr-only' : ''].join(' ')}>{isUser ? 'Anda' : 'Deni'}</p>
                       {!isUser && (
                         <span
                           data-testid="deni-ai-label"
@@ -855,8 +903,30 @@ export function DeniChat({
             {isSending && (
               <div className="flex items-center gap-2 text-badge font-medium text-accent-deni">
                 <span className="inline-block h-3.5 w-3.5 animate-spin rounded-pill border-2 border-current border-t-transparent" />
-                <span>Deni sedang menganalisis dan menyusun panduan perawatan...</span>
+                <span>
+                  {isSlow
+                    ? 'Deni masih menyiapkan jawaban, bisa sampai sekitar 1 menit. Mohon tunggu...'
+                    : 'Deni sedang menganalisis dan menyusun panduan perawatan...'}
+                </span>
               </div>
+            )}
+
+            {uiError && (
+              <ErrorBanner
+                error={uiError}
+                onRetry={
+                  lastAttemptRef.current
+                    ? () => {
+                        if (lastAttemptRef.current) {
+                          void handleSendQuestion(lastAttemptRef.current.text, {
+                            photoOverride: lastAttemptRef.current.photo,
+                          });
+                        }
+                      }
+                    : undefined
+                }
+                onDismiss={() => setUiError(null)}
+              />
             )}
 
             {hasTriggeredClinic && (
@@ -868,116 +938,16 @@ export function DeniChat({
               />
             )}
 
-            <div ref={messagesEndRef} />
           </div>
         </section>
 
         {/* Bottom Compact Composer (Contoh Pertanyaan Upward Popover + Tambah Foto + Ctrl+V Paste + Input) */}
         <div
-          ref={composerRef}
           onPaste={handleComposerPaste}
           data-testid="deni-bottom-composer"
-          className="border-t border-border bg-surface px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2.5 sm:px-6 sm:pb-5 sm:pt-3"
+          className="bg-bg px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 sm:px-6 sm:pb-5 sm:pt-2"
         >
-          <div className="mx-auto max-w-3xl space-y-2.5">
-            {/* Attached Photo Preview Bar */}
-            {attachedPhoto && (
-              <div
-                data-testid="chat-attached-photo-preview"
-                className="inline-flex items-center gap-3 rounded-xl border border-brand/30 bg-brand-soft p-2 pr-3"
-              >
-                <img
-                  src={attachedPhoto.dataUrl}
-                  alt="Pratinjau foto gigi"
-                  className="h-12 w-12 rounded-lg object-cover"
-                />
-                <div className="min-w-0">
-                  <p className="max-w-[180px] truncate text-xs font-bold text-text">
-                    {attachedPhoto.name}
-                  </p>
-                  <p className="text-xs text-brand-dark">Foto siap diperiksa Deni</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={clearAttachedPhoto}
-                  aria-label="Hapus lampiran foto"
-                  className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-pill border border-border bg-surface text-text opacity-100 shadow-sm hover:bg-bg"
-                >
-                  <X className="h-3.5 w-3.5" aria-hidden="true" />
-                </button>
-              </div>
-            )}
-
-            {/* Compact Toolbar: Contoh Pertanyaan Dropdown + Tambah Foto */}
-            <div className="flex items-center gap-2">
-              <div ref={templateMenuRef} className="relative">
-                <button
-                  type="button"
-                  aria-haspopup="menu"
-                  aria-expanded={templateMenuOpen}
-                  data-testid="deni-template-dropdown-btn"
-                  disabled={isSending || cooldownLeft > 0}
-                  onClick={() => setTemplateMenuOpen((prev) => !prev)}
-                  className="inline-flex h-9 min-h-touch items-center gap-1.5 rounded-pill border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark transition-colors hover:border-brand/40 hover:bg-brand-soft disabled:opacity-60"
-                >
-                  <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  <span className="sm:hidden">Contoh</span>
-                  <span className="hidden sm:inline">Contoh Pertanyaan</span>
-                  <ChevronUp
-                    className={[
-                      'h-3.5 w-3.5 shrink-0 transition-transform duration-150',
-                      templateMenuOpen ? 'rotate-180' : '',
-                    ].join(' ')}
-                    aria-hidden="true"
-                  />
-                </button>
-
-                {templateMenuOpen && (
-                  <div
-                    role="menu"
-                    aria-label="Daftar Contoh Pertanyaan Cepat"
-                    data-testid="deni-template-popover"
-                    className="absolute bottom-full left-0 z-30 mb-2 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-surface p-1.5 shadow-xl"
-                  >
-                    <p className="px-3 py-1.5 text-xs font-bold text-text-muted">
-                      Pilih Contoh Pertanyaan
-                    </p>
-                    <div className="space-y-1">
-                      {suggestedQuestions.map((question) => (
-                        <button
-                          key={question}
-                          type="button"
-                          role="menuitem"
-                          onClick={() => void handleSendQuestion(question)}
-                          className="block min-h-touch w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-text transition-colors hover:bg-brand-soft hover:text-brand-dark"
-                        >
-                          {question}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <label
-                htmlFor="deni-photo-upload"
-                data-testid="deni-add-photo-btn"
-                className="inline-flex h-9 min-h-touch cursor-pointer items-center gap-1.5 rounded-pill border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark transition-colors hover:border-brand/40 hover:bg-brand-soft"
-              >
-                <ImagePlus className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                <span className="sm:hidden">Foto</span>
-                <span className="hidden sm:inline">+ Tambah Foto</span>
-                <input
-                  ref={photoInputRef}
-                  id="deni-photo-upload"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={(e) => void handlePhotoSelect(e)}
-                  className="sr-only"
-                />
-              </label>
-            </div>
-
+          <div className="mx-auto max-w-3xl">
             {!loggedIn && (
               <div
                 role="note"
@@ -1005,37 +975,146 @@ export function DeniChat({
               </div>
             )}
 
-            <form onSubmit={handleFormSubmit} className="flex items-center gap-2">
+            {/* One full-width rounded composer: text on top, actions below */}
+            <form
+              onSubmit={handleFormSubmit}
+              className="rounded-3xl border border-border bg-surface p-1.5 shadow-sm transition-colors focus-within:border-brand"
+            >
+              {/* Attached Photo Preview Bar */}
+              {attachedPhoto && (
+                <div
+                  data-testid="chat-attached-photo-preview"
+                  className="mx-2 mb-1 mt-1 flex w-fit max-w-full items-center gap-3 rounded-xl border border-brand/30 bg-brand-soft p-2 pr-3"
+                >
+                  <img
+                    src={attachedPhoto.dataUrl}
+                    alt="Pratinjau foto gigi"
+                    className="h-12 w-12 rounded-lg object-cover"
+                  />
+                  <div className="min-w-0">
+                    <p className="max-w-[180px] truncate text-xs font-bold text-text">
+                      {attachedPhoto.name}
+                    </p>
+                    <p className="text-xs text-brand-dark">Foto siap diperiksa Deni</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearAttachedPhoto}
+                    aria-label="Hapus lampiran foto"
+                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-pill border border-border bg-surface text-text opacity-100 shadow-sm hover:bg-bg"
+                  >
+                    <X className="h-3.5 w-3.5" aria-hidden="true" />
+                  </button>
+                </div>
+              )}
+
               <label htmlFor="deni-message-input" className="sr-only">
                 Tulis pertanyaan konsultasi gigi Anda untuk Deni
               </label>
-              <input
+              <textarea
                 ref={messageInputRef}
                 id="deni-message-input"
                 name="message"
-                type="text"
+                rows={1}
                 maxLength={1000}
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={handleComposerKeyDown}
                 placeholder="Tanya Deni..."
-                className="h-11 min-h-touch min-w-0 flex-1 rounded-xl border border-border bg-bg px-4 text-base text-text placeholder:text-text-muted focus:border-brand focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand-ring"
+                className="block max-h-40 min-h-touch w-full resize-none bg-transparent px-3 py-2.5 text-base leading-6 text-text placeholder:text-text-muted focus:outline-none"
               />
-              <AppButton
-                type="submit"
-                variant="primary"
-                size="md"
-                loading={isSending}
-                loadingText=""
-                aria-label={isSending ? 'Mengirim...' : 'Kirim'}
-                disabled={
-                  !loggedIn || (!inputMessage.trim() && !attachedPhoto) || cooldownLeft > 0
-                }
-              >
-                <Send className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <span className={cooldownLeft > 0 ? '' : 'sr-only sm:not-sr-only'}>
-                  {cooldownLeft > 0 ? `Tunggu ${cooldownLeft}d` : 'Kirim'}
-                </span>
-              </AppButton>
+
+              {/* Compact Toolbar: Contoh Pertanyaan Dropdown + Tambah Foto */}
+              <div className="flex items-center gap-1.5">
+                <div ref={templateMenuRef} className="relative">
+                  <button
+                    type="button"
+                    aria-haspopup="menu"
+                    aria-expanded={templateMenuOpen}
+                    data-testid="deni-template-dropdown-btn"
+                    disabled={isSending || cooldownLeft > 0}
+                    onClick={() => setTemplateMenuOpen((prev) => !prev)}
+                    className="inline-flex h-9 min-h-touch items-center gap-1.5 rounded-pill border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark transition-colors hover:border-brand/40 hover:bg-brand-soft disabled:opacity-60"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span className="sm:hidden">Contoh</span>
+                    <span className="hidden sm:inline">Contoh Pertanyaan</span>
+                    <ChevronUp
+                      className={[
+                        'h-3.5 w-3.5 shrink-0 transition-transform duration-150',
+                        templateMenuOpen ? 'rotate-180' : '',
+                      ].join(' ')}
+                      aria-hidden="true"
+                    />
+                  </button>
+
+                  {templateMenuOpen && (
+                    <div
+                      role="menu"
+                      aria-label="Daftar Contoh Pertanyaan Cepat"
+                      data-testid="deni-template-popover"
+                      className="absolute bottom-full left-0 z-30 mb-2 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-surface p-1.5 shadow-xl"
+                    >
+                      <p className="px-3 py-1.5 text-xs font-bold text-text-muted">
+                        Pilih Contoh Pertanyaan
+                      </p>
+                      <div className="space-y-1">
+                        {suggestedQuestions.map((question) => (
+                          <button
+                            key={question}
+                            type="button"
+                            role="menuitem"
+                            onClick={() => void handleSendQuestion(question)}
+                            className="block min-h-touch w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-text transition-colors hover:bg-brand-soft hover:text-brand-dark"
+                          >
+                            {question}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <label
+                  htmlFor="deni-photo-upload"
+                  data-testid="deni-add-photo-btn"
+                  className="inline-flex h-9 min-h-touch cursor-pointer items-center gap-1.5 rounded-pill border border-border bg-bg px-3.5 text-xs font-semibold text-brand-dark transition-colors hover:border-brand/40 hover:bg-brand-soft"
+                >
+                  <ImagePlus className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span className="sm:hidden">Foto</span>
+                  <span className="hidden sm:inline">+ Tambah Foto</span>
+                  <input
+                    ref={photoInputRef}
+                    id="deni-photo-upload"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(e) => void handlePhotoSelect(e)}
+                    className="sr-only"
+                  />
+                </label>
+
+                <button
+                  type="submit"
+                  aria-label={isSending ? 'Mengirim...' : 'Kirim'}
+                  title="Kirim"
+                  disabled={
+                    isSending ||
+                    !loggedIn ||
+                    (!inputMessage.trim() && !attachedPhoto) ||
+                    cooldownLeft > 0
+                  }
+                  className="ml-auto inline-flex h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-brand px-3 text-xs font-bold text-surface transition-colors hover:bg-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring disabled:opacity-40"
+                >
+                  {isSending ? (
+                    <span className="h-4 w-4 animate-spin rounded-pill border-2 border-current border-t-transparent" />
+                  ) : cooldownLeft > 0 ? (
+                    `${cooldownLeft}d`
+                  ) : (
+                    <ArrowUp className="h-5 w-5 shrink-0" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
+
             </form>
           </div>
         </div>
