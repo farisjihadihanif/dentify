@@ -18,6 +18,8 @@ dentify/
 
 Visit the Deployment Website: https://dentifyd.vercel.app
 
+The mobile APP v.01 version available on release
+
 ## Model
 
 The screening model is **MobileNetV2 transfer learning** loaded from `keras.applications` (ImageNet weights; not TF Hub, not AutoML), as named in the Project Plan. The model is built with the Keras Functional API and adds custom components: a `ChannelAttention` layer, a dual (avg + max) pooling head, `ClassWeightedFocalLoss`, a `MacroF1Checkpoint` callback, and a two-stage (warm-up, then fine-tune) `tf.GradientTape` training loop. Input is CLAHE-normalised 224×224 RGB, and inference averages 4 test-time-augmentation (TTA) views. Per-class decision weights (`decision_weights` in `model_meta.json`) are tuned on the validation split only. They choose the class; the reported probabilities and confidence remain the model's raw outputs.
