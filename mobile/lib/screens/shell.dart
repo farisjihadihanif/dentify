@@ -1,6 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../state.dart';
+import 'history.dart';
+import 'scan.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
@@ -13,8 +15,8 @@ class _HomeShellState extends State<HomeShell> {
   final _opened = <int>{};
 
   static const _pages = <Widget>[
-    Placeholder(),
-    Placeholder(),
+    ScanScreen(),
+    HistoryScreen(),
     Placeholder(),
     Placeholder(),
     Placeholder(),

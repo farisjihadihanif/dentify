@@ -33,10 +33,8 @@ const _messages = {
   'UNAUTHENTICATED': 'Sesi Anda telah berakhir. Silakan masuk kembali.',
   'PAYLOAD_TOO_LARGE': 'Ukuran foto terlalu besar. Silakan pilih foto lain.',
   'INVALID_IMAGE': 'Format foto tidak didukung. Gunakan foto JPG, PNG, atau WEBP.',
-  'LOW_QUALITY_IMAGE':
-      'Foto kurang jelas atau terlalu gelap. Ambil ulang foto di tempat yang terang dengan gigi yang bersih.',
-  'NOT_DENTAL_IMAGE':
-      'Foto ini bukan foto gigi atau rongga mulut. Ambil foto close-up gigi dan gusi yang terlihat jelas.',
+  'LOW_QUALITY_IMAGE': 'Foto kurang jelas atau terlalu gelap. Ambil ulang foto di tempat yang terang dengan gigi yang bersih.',
+  'NOT_DENTAL_IMAGE': 'Foto ini bukan foto gigi atau rongga mulut. Ambil foto close-up gigi dan gusi yang terlihat jelas.',
   'RATE_LIMITED': 'Permintaan terlalu cepat. Mohon tunggu sebentar sebelum mencoba lagi.',
   'AI_SERVICE_UNAVAILABLE':
       'Layanan analisis AI sedang dinyalakan. Tunggu sekitar 1 menit, lalu coba lagi.',
